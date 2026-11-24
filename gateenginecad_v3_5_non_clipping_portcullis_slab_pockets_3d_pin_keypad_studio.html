@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GATEENGINECAD v3.5 — Non-Clipping Portcullis/Slab Pockets & 3D PIN Keypad Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <style>
+    * { box-sizing: border-box; user-select: none; }
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #090a10;
+      color: #e2e8f0;
+    }
+    .font-mono-tech { font-family: 'JetBrains Mono', monospace; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.4); }
+    ::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.6); border-radius: 3px; }
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: #1e293b;
+      border-radius: 999px;
+      outline: none;
+      border: 1px solid #334155;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #38bdf8;
+      cursor: pointer;
+      border: 2px solid #0f172a;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.55);
+      transition: transform 0.1s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(51, 65, 85, 0.65);
+    }
+    .dimension-badge {
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.2s ease;
+    }
+  </style>
+</head>
+<body class="h-screen w-screen flex flex-col bg-[#090a10] text-slate-100">
+
+  <!-- TOP HEADER BAR -->
+  <header class="h-14 border-b border-slate-800/80 bg-slate-950/90 px-4 flex items-center justify-between z-20 shrink-0">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-lg bg-sky-500/15 border border-sky-400/35 flex items-center justify-center text-sky-400 shadow-inner">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
+        </svg>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="font-semibold text-sm tracking-tight text-white">GATEENGINE<span class="text-sky-400">CAD</span></h1>
+          <span class="text-[10px] font-mono-tech uppercase px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-300 border border-sky-500/30">v4.0 • PBR Bump/Cracks & 3D PIN Keypad</span>
+        </div>
+        <p class="text-[11px] text-slate-400">Non-Clipping Wall/Top Receiver Pockets, Gear Vaults, Portcullises & Interactive 3D PIN Keypad</p>
+      </div>
+    </div>
+
+    <!-- ARCHETYPE PRESETS -->
+    <div class="hidden xl:flex items-center gap-1.5 bg-slate-900/90 p-1 rounded-lg border border-slate-800">
+      <span class="text-[11px] font-medium text-slate-400 px-2">Archetype:</span>
+      <button data-preset="vault" class="preset-btn px-2.5 py-1 rounded text-xs font-medium bg-sky-500/20 text-sky-300 border border-sky-500/40 transition">Gear-Lock Bank Vault</button>
+      <button data-preset="cathedral" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Double Cathedral Doors</button>
+      <button data-preset="portcullis" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Winch Iron Portcullis</button>
+      <button data-preset="slab" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Parting Stone Tomb Slab</button>
+      <button data-preset="airlock" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-amber-300 hover:bg-amber-950/40 border border-amber-500/30 transition">Interlocking Blast Door</button>
+    </div>
+
+    <!-- EXPORT ACTIONS -->
+    <div class="flex items-center gap-2">
+      <button id="btnRandomize" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">Randomize</button>
+      <button id="btnExportPBR" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-emerald-300 font-mono-tech border border-emerald-500/30 transition" title="Download Seamless Bump/Crack Height Map & RGB Normal Map (.PNG)">PBR .PNGs</button>
+      <button id="btnExportJSON" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-amber-400 font-mono-tech border border-slate-700 transition">.JSON</button>
+      <button id="btnExportOBJ" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">Export .OBJ</button>
+      <button id="btnExportGLB" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-sky-500 hover:bg-sky-400 text-slate-950 shadow-lg shadow-sky-500/20 transition">Export .GLB</button>
+    </div>
+  </header>
+
+  <div class="flex-1 flex relative overflow-hidden">
+
+    <!-- LEFT PANEL -->
+    <aside class="w-80 md:w-96 border-r border-slate-800/80 bg-slate-950/95 flex flex-col z-10 shrink-0">
+      <div class="grid grid-cols-5 border-b border-slate-800 bg-slate-900/60 p-1 gap-1 text-[11px] font-medium">
+        <button data-tab="tab-frame" class="tab-btn py-2 rounded bg-slate-800 text-sky-400 shadow-sm transition">Frame</button>
+        <button data-tab="tab-door" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Door/Slab</button>
+        <button data-tab="tab-gears" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Gears/Winch</button>
+        <button data-tab="tab-panel" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Wall Panel</button>
+        <button data-tab="tab-finish" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Materials</button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-4 space-y-5">
+
+        <!-- TAB 1: WALL FRAME & ARCHWAY -->
+        <div id="tab-frame" class="tab-content space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">.VRM Walkthrough Frame & Pockets</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Clear Opening Width (X)</label>
+                  <span id="val-openWidth" class="font-mono-tech text-sky-400">3.20 m</span>
+                </div>
+                <input id="param-openWidth" type="range" min="1.40" max="6.00" step="0.10" value="3.20">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Clear Opening Height (Y)</label>
+                  <span id="val-openHeight" class="font-mono-tech text-sky-400">3.40 m</span>
+                </div>
+                <input id="param-openHeight" type="range" min="2.20" max="6.00" step="0.10" value="3.40">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Wall Surround Depth (Z)</label>
+                  <span id="val-wallDepth" class="font-mono-tech text-sky-400">0.85 m</span>
+                </div>
+                <input id="param-wallDepth" type="range" min="0.35" max="1.80" step="0.05" value="0.85">
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Header / Archway Crown</label>
+                <select id="param-headerStyle" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="heavy-lintel">Monumental Carved Stone Lintel</option>
+                  <option value="gothic-crown">Stepped Gothic Fortress Crown</option>
+                  <option value="vault-collar">Circular Armored Bunker Ring</option>
+                </select>
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-emerald-300 block">Show .VRM 1.70m Scale Avatar</span>
+                  <span class="text-[11px] text-slate-400">Verify doorway clearance & keypad height</span>
+                </div>
+                <input id="param-showVrmAvatar" type="checkbox" checked class="w-4 h-4 accent-emerald-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: DOOR, GATE, VAULT OR SLAB MECHANISM -->
+        <div id="tab-door" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Entrance Door / Slab Architecture</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Entrance Mechanism Type</label>
+                <select id="param-doorMechanism" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="gear-vault">Circular Gear-Lock Bank/Dungeon Vault</option>
+                  <option value="double-hinged">Hinged Double Cathedral / Boss Doors</option>
+                  <option value="portcullis-winch">Vertical Counterweighted Iron Portcullis</option>
+                  <option value="parting-slabs">Center-Parting Carved Stone Tomb Slabs</option>
+                  <option value="blast-airlock">Interlocking Sci-Fi / Bunker Blast Doors</option>
+                </select>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Door / Slab Thickness</label>
+                  <span id="val-doorThickness" class="font-mono-tech text-sky-400">0.28 m</span>
+                </div>
+                <input id="param-doorThickness" type="range" min="0.10" max="0.65" step="0.02" value="0.28">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Entrance Open Actuation %</label>
+                  <span id="val-openRatio" class="font-mono-tech text-emerald-400">65%</span>
+                </div>
+                <input id="param-openRatio" type="range" min="0" max="100" step="1" value="65">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Armored Vision Grille / Window</span>
+                  <span class="text-[11px] text-slate-400">Barred inspection viewport in door</span>
+                </div>
+                <input id="param-visionGrille" type="checkbox" checked class="w-4 h-4 accent-sky-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: GEARS, LOCK BOLTS & WINCH ENGINE -->
+        <div id="tab-gears" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Mechanical Locks & Winch Engine</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Radial / Sliding Lock Bolts</label>
+                  <span id="val-boltCount" class="font-mono-tech text-sky-400">8 bolts</span>
+                </div>
+                <input id="param-boltCount" type="range" min="0" max="12" step="2" value="8">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Spoked Vault Wheel & Spur Gears</span>
+                  <span class="text-[11px] text-slate-400">Spinning handwheel & planetary gears</span>
+                </div>
+                <input id="param-showVaultWheel" type="checkbox" checked class="w-4 h-4 accent-sky-500 rounded cursor-pointer">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Overhead Chain Winch & Drums</span>
+                  <span class="text-[11px] text-slate-400">Top header winch shaft & hoist chains</span>
+                </div>
+                <input id="param-showHeaderWinch" type="checkbox" checked class="w-4 h-4 accent-sky-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: WALL ACCESS PANEL, 3D PIN KEYPAD & BUTTONS -->
+        <div id="tab-panel" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">3D PIN Keypad & Wall Access Panel</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Wall Switch / Keypad Style</label>
+                <select id="param-switchStyle" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="pin-keypad">12-Key Numeric & Runic PIN Keypad + Screen</option>
+                  <option value="pushbutton-cop">Illuminated Pushbutton Panel (OPEN/LOCK)</option>
+                  <option value="dungeon-lever">Heavy Pivoting Dungeon Iron Lever</option>
+                  <option value="valve-wheel">Rotary Steam / Vault Valve Handwheel</option>
+                </select>
+              </div>
+
+              <!-- Live Interactive PIN Entry Pad in Sidebar (Mirrors 3D Keypad!) -->
+              <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-2.5 space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-[10px] font-mono-tech uppercase text-slate-400">PIN Code Display</span>
+                  <span id="ui-pin-readout" class="font-mono-tech text-xs font-bold text-emerald-400 bg-black px-2 py-0.5 rounded border border-emerald-500/40">100F</span>
+                </div>
+                <div class="grid grid-cols-4 gap-1" id="sidebar-keypad-grid"></div>
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1">Primary Action Button Legend</label>
+                <input id="param-panelLegend" type="text" maxlength="6" value="OPEN" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono-tech text-sky-300">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Panel Elevation Height (Y)</label>
+                  <span id="val-panelHeight" class="font-mono-tech text-sky-400">1.25 m</span>
+                </div>
+                <input id="param-panelHeight" type="range" min="0.75" max="1.85" step="0.05" value="1.25">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 5: MATERIALS & EXPORT -->
+        <div id="tab-finish" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Materials & Game Engine Export</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Surface Material Palette</label>
+                <select id="param-surfacePalette" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="vault-steel">Brushed Bunker Steel & Brass Gears</option>
+                  <option value="cathedral-oak">Aged Cathedral Oak & Wrought Iron</option>
+                  <option value="runic-obsidian">Carved Dungeon Flagstone & Orichalcum</option>
+                  <option value="blood-iron">100F Boss Blackened Blood-Iron</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Rune / Indicator Glow Color</label>
+                <select id="param-glowColor" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="amber">Vault Signal Amber</option>
+                  <option value="ice-blue">Arcane Aether Cyan</option>
+                  <option value="emerald">Access Granted Emerald</option>
+                  <option value="crimson">Sealed Lockdown Crimson</option>
+                  <option value="arcane-purple">Dungeon Abyss Violet</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">3D Export Scope</label>
+                <select id="param-exportScope" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="full">Full Assembly (Wall Pockets + Doors + Winch)</option>
+                  <option value="doors-only">Movable Door / Vault Leaves Only</option>
+                </select>
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-200">3D Dimension Callouts</span>
+                <input id="param-showDimensions" type="checkbox" checked class="w-4 h-4 accent-sky-500 rounded cursor-pointer">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800">
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-emerald-300 font-medium">PBR Crack & Scar Density</label>
+                  <span id="val-crackDensity" class="font-mono-tech text-emerald-400">45%</span>
+                </div>
+                <input id="param-crackDensity" type="range" min="0" max="100" step="5" value="45">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-emerald-300 font-medium">Normal / Bump Relief Depth</label>
+                  <span id="val-bumpScale" class="font-mono-tech text-emerald-400">0.08</span>
+                </div>
+                <input id="param-bumpScale" type="range" min="0.00" max="0.25" step="0.01" value="0.08">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-200">Wireframe Overlay Pass</span>
+                <input id="param-wireframe" type="checkbox" class="w-4 h-4 accent-sky-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- TELEMETRY FOOTER -->
+      <div class="p-3.5 border-t border-slate-800 bg-slate-900/90 space-y-2">
+        <div class="flex items-center justify-between text-[11px] text-slate-400">
+          <span class="uppercase font-semibold tracking-wider">Entrance Specifications</span>
+          <span id="stat-triangles" class="font-mono-tech text-slate-300">0 tris</span>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">Clearance</span>
+            <span id="stat-clearance" class="font-mono-tech text-xs font-semibold text-sky-400">3.2×3.4m</span>
+          </div>
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">Seal State</span>
+            <span id="stat-open" class="font-mono-tech text-xs font-semibold text-emerald-400">65% OPEN</span>
+          </div>
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">Door Mass</span>
+            <span id="stat-mass" class="font-mono-tech text-xs font-semibold text-amber-400">12.4 t</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- VIEWPORT -->
+    <main class="flex-1 relative bg-gradient-to-b from-[#0b111e] via-[#090d16] to-[#05070c] overflow-hidden">
+      <div id="canvas-mount" class="w-full h-full"></div>
+
+      <div id="labels-container" class="absolute inset-0 pointer-events-none overflow-hidden">
+        <div id="label-width" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/90 border border-sky-500/50 text-[11px] font-mono-tech text-sky-300 shadow-lg">W: 3.20m</div>
+        <div id="label-height" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/90 border border-sky-500/50 text-[11px] font-mono-tech text-sky-300 shadow-lg">H: 3.40m</div>
+        <div id="label-depth" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/90 border border-sky-500/50 text-[11px] font-mono-tech text-sky-300 shadow-lg">D: 0.85m</div>
+      </div>
+
+      <!-- CAMERA PRESETS -->
+      <div class="absolute top-4 left-4 glass-panel rounded-xl p-1.5 flex items-center gap-1 shadow-xl">
+        <span class="text-[10px] font-mono-tech uppercase text-slate-400 px-2">Camera:</span>
+        <button data-cam="iso" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-sky-500/20 text-sky-300 border border-sky-500/30 transition">3/4 Entrance</button>
+        <button data-cam="front" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">.VRM Player View</button>
+        <button data-cam="panel" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">Wall Button Panel</button>
+        <button data-cam="winch" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">Gears & Winch</button>
+      </div>
+
+      <!-- ENTRANCE ACTUATION CONTROLLER -->
+      <div class="absolute top-4 right-4 w-60 glass-panel rounded-2xl p-3.5 shadow-2xl flex flex-col gap-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-300">Entrance Engine Test</span>
+          <span class="w-2 h-2 rounded-full bg-sky-400 shadow-[0_0_8px_#38bdf8]"></span>
+        </div>
+
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 flex items-center justify-between">
+          <div>
+            <span class="text-[10px] text-slate-400 uppercase block">Gate Status</span>
+            <span id="sim-status-text" class="text-[11px] font-mono-tech text-emerald-400">UNSEALED • PASSABLE</span>
+          </div>
+          <span id="sim-open-readout" class="font-mono-tech text-sm font-bold text-sky-400">65%</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-1.5">
+          <button id="btnLockEntrance" class="py-1.5 px-2 rounded-lg text-xs font-medium bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/35 transition">
+            🔒 Seal & Bolt
+          </button>
+          <button id="btnOpenEntrance" class="py-1.5 px-2 rounded-lg text-xs font-semibold bg-emerald-500/25 hover:bg-emerald-500/35 text-emerald-200 border border-emerald-500/40 transition">
+            🔓 Unseal & Open
+          </button>
+        </div>
+      </div>
+
+      <!-- BOTTOM-LEFT HINT -->
+      <div class="absolute bottom-4 left-4 glass-panel rounded-lg px-3 py-1.5 text-[11px] text-slate-400 flex items-center gap-3 pointer-events-none">
+        <span><strong class="text-slate-200">LMB:</strong> Orbit / Click 3D PIN Keypad Keys, Lever or Doors to Actuate</span>
+        <span>•</span>
+        <span><strong class="text-slate-200">RMB:</strong> Pan</span>
+      </div>
+
+      <!-- TOAST -->
+      <div id="toast-notification" class="pointer-events-none opacity-0 transition-opacity duration-300 absolute bottom-4 right-4 glass-panel border-sky-500/40 bg-slate-900/95 text-sky-200 px-4 py-2.5 rounded-xl text-xs font-medium shadow-2xl">
+        <span id="toast-text">Entrance updated!</span>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+    import { OBJExporter } from 'three/addons/exporters/OBJExporter.js';
+
+    const state = {
+      openWidth: 3.20,
+      openHeight: 3.40,
+      wallDepth: 0.85,
+      headerStyle: 'heavy-lintel',
+      showVrmAvatar: true,
+
+      doorMechanism: 'gear-vault',
+      doorThickness: 0.28,
+      openRatio: 65,
+      targetOpenRatio: 65,
+      visionGrille: true,
+
+      boltCount: 8,
+      showVaultWheel: true,
+      showHeaderWinch: true,
+
+      switchStyle: 'pin-keypad',
+      pinCodeBuffer: '100F',
+      panelLegend: 'OPEN',
+      panelHeight: 1.25,
+
+      surfacePalette: 'vault-steel',
+      glowColor: 'amber',
+      exportScope: 'full',
+      showDimensions: true,
+      crackDensity: 45,
+      bumpScale: 0.08,
+      wireframe: false
+    };
+
+    const PRESETS = {
+      vault: {
+        openWidth: 3.20, openHeight: 3.40, wallDepth: 0.85, headerStyle: 'vault-collar',
+        doorMechanism: 'gear-vault', doorThickness: 0.34, openRatio: 65, targetOpenRatio: 65,
+        boltCount: 8, showVaultWheel: true, showHeaderWinch: false, switchStyle: 'pin-keypad',
+        surfacePalette: 'vault-steel', glowColor: 'amber'
+      },
+      cathedral: {
+        openWidth: 3.60, openHeight: 4.40, wallDepth: 0.90, headerStyle: 'gothic-crown',
+        doorMechanism: 'double-hinged', doorThickness: 0.22, openRatio: 75, targetOpenRatio: 75,
+        boltCount: 4, showVaultWheel: false, showHeaderWinch: true, switchStyle: 'pushbutton-cop',
+        surfacePalette: 'cathedral-oak', glowColor: 'amber'
+      },
+      portcullis: {
+        openWidth: 3.80, openHeight: 4.00, wallDepth: 1.10, headerStyle: 'gothic-crown',
+        doorMechanism: 'portcullis-winch', doorThickness: 0.16, openRatio: 70, targetOpenRatio: 70,
+        boltCount: 0, showVaultWheel: false, showHeaderWinch: true, switchStyle: 'dungeon-lever',
+        surfacePalette: 'runic-obsidian', glowColor: 'arcane-purple'
+      },
+      slab: {
+        openWidth: 3.40, openHeight: 3.80, wallDepth: 1.00, headerStyle: 'heavy-lintel',
+        doorMechanism: 'parting-slabs', doorThickness: 0.42, openRatio: 85, targetOpenRatio: 85,
+        boltCount: 6, showVaultWheel: true, showHeaderWinch: true, switchStyle: 'pin-keypad',
+        surfacePalette: 'runic-obsidian', glowColor: 'emerald'
+      },
+      airlock: {
+        openWidth: 3.00, openHeight: 3.20, wallDepth: 0.80, headerStyle: 'vault-collar',
+        doorMechanism: 'blast-airlock', doorThickness: 0.26, openRatio: 85, targetOpenRatio: 85,
+        boltCount: 8, showVaultWheel: true, showHeaderWinch: false, switchStyle: 'pin-keypad',
+        surfacePalette: 'blood-iron', glowColor: 'crimson'
+      }
+    };
+
+    const GLOW_MAP = {
+      'amber': 0xf59e0b,
+      'ice-blue': 0x38bdf8,
+      'emerald': 0x10b981,
+      'crimson': 0xf43f5e,
+      'arcane-purple': 0xc084fc
+    };
+
+    const mount = document.getElementById('canvas-mount');
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x07090f, 0.015);
+
+    const camera = new THREE.PerspectiveCamera(44, mount.clientWidth / mount.clientHeight, 0.1, 150);
+    camera.position.set(6.2, 3.8, 7.6);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setSize(mount.clientWidth, mount.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
+    mount.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.target.set(0, 2.0, 0);
+
+    scene.add(new THREE.HemisphereLight(0xe0f2fe, 0x090d16, 0.95));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 2.0);
+    dirLight.position.set(10, 18, 14);
+    dirLight.castShadow = true;
+    scene.add(dirLight);
+
+    const gridHelper = new THREE.GridHelper(36, 36, 0x0284c7, 0x1e293b);
+    gridHelper.position.y = 0;
+    scene.add(gridHelper);
+
+    const assetRoot = new THREE.Group();
+    assetRoot.name = 'Parametric_Entrance_Engine_Asset';
+    scene.add(assetRoot);
+
+    const frameStaticGroup = new THREE.Group();
+    frameStaticGroup.name = 'Entrance_Frame_Static';
+    assetRoot.add(frameStaticGroup);
+
+    const movableDoorsGroup = new THREE.Group();
+    movableDoorsGroup.name = 'Movable_Door_Leaves_Actor';
+    assetRoot.add(movableDoorsGroup);
+
+    const clickableEntranceMeshes = [];
+
+    function createPanelButtonTex(label, hexStr) {
+      const c = document.createElement('canvas');
+      c.width = 128; c.height = 128;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#090d14';
+      ctx.fillRect(0, 0, 128, 128);
+      ctx.strokeStyle = hexStr;
+      ctx.lineWidth = 8;
+      ctx.strokeRect(8, 8, 112, 112);
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 34px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, 64, 64);
+      return new THREE.CanvasTexture(c);
+    }
+
+    function createPinScreenTexture(pinStr) {
+      const c = document.createElement('canvas');
+      c.width = 256; c.height = 96;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#04070d';
+      ctx.fillRect(0, 0, 256, 96);
+      ctx.strokeStyle = '#10b981';
+      ctx.lineWidth = 6;
+      ctx.strokeRect(4, 4, 248, 88);
+      ctx.fillStyle = '#34d399';
+      ctx.font = 'bold 44px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(pinStr || '----', 128, 50);
+      return new THREE.CanvasTexture(c);
+    }
+
+    
+    // =========================================================================
+    // PROCEDURAL PBR ALBEDO, BUMP/CRACK HEIGHT & TANGENT-SPACE NORMAL MAP ENGINE
+    // =========================================================================
+    const pbrMapCache = {};
+    function generatePBRMaps(kind, crackPct) {
+      const key = `${kind}_${Math.round(crackPct)}`;
+      if (pbrMapCache[key]) return pbrMapCache[key];
+
+      const size = 256;
+      const bumpCanvas = document.createElement('canvas');
+      bumpCanvas.width = size; bumpCanvas.height = size;
+      const bCtx = bumpCanvas.getContext('2d');
+
+      // Base mid-height 180
+      bCtx.fillStyle = 'rgb(180,180,180)';
+      bCtx.fillRect(0, 0, size, size);
+
+      // Deterministic pseudo-random generator so textures don't flicker
+      let seed = 1337 + kind.charCodeAt(0) * 31;
+      const rand = () => {
+        seed = (seed * 16807) % 2147483647;
+        return (seed - 1) / 2147483646;
+      };
+
+      // Surface micro-grain noise
+      for (let i = 0; i < 2400; i++) {
+        const x = rand() * size;
+        const y = rand() * size;
+        const v = Math.floor(150 + rand() * 60);
+        bCtx.fillStyle = `rgb(${v},${v},${v})`;
+        bCtx.fillRect(x, y, 2, 2);
+      }
+
+      if (kind === 'stone') {
+        // Ashlar stone block mortar joints
+        bCtx.strokeStyle = 'rgb(45,45,45)';
+        bCtx.lineWidth = 4;
+        for (let r = 0; r < 4; r++) {
+          const y = r * 64;
+          bCtx.beginPath(); bCtx.moveTo(0, y); bCtx.lineTo(size, y); bCtx.stroke();
+          const xOffset = (r % 2) * 64;
+          for (let c = 0; c < 2; c++) {
+            const x = (c * 128 + xOffset) % size;
+            bCtx.beginPath(); bCtx.moveTo(x, y); bCtx.lineTo(x, y + 64); bCtx.stroke();
+          }
+        }
+      } else if (kind === 'armor') {
+        // Riveted armor panel seams & raised rivets
+        bCtx.strokeStyle = 'rgb(60,60,60)';
+        bCtx.lineWidth = 3;
+        bCtx.strokeRect(4, 4, size - 8, size - 8);
+        bCtx.beginPath();
+        bCtx.moveTo(0, 128); bCtx.lineTo(size, 128);
+        bCtx.moveTo(128, 0); bCtx.lineTo(128, size);
+        bCtx.stroke();
+        bCtx.fillStyle = 'rgb(245,245,245)';
+        for (let p = 16; p < size; p += 32) {
+          for (const edge of [12, 116, 140, 244]) {
+            bCtx.beginPath(); bCtx.arc(p, edge, 3.2, 0, Math.PI * 2); bCtx.fill();
+          }
+        }
+      } else if (kind === 'timber') {
+        // Heavy fortress wood planks & grain grooves
+        bCtx.strokeStyle = 'rgb(55,55,55)';
+        bCtx.lineWidth = 3;
+        for (let y = 0; y < size; y += 32) {
+          bCtx.beginPath(); bCtx.moveTo(0, y); bCtx.lineTo(size, y); bCtx.stroke();
+        }
+      }
+
+      // Procedural Jagged Cracks & Battle Scars scaled by crackPct (0 - 100)
+      const crackCount = Math.floor((crackPct / 100) * 28);
+      bCtx.strokeStyle = 'rgb(20,20,20)';
+      for (let c = 0; c < crackCount; c++) {
+        let cx = rand() * size;
+        let cy = rand() * size;
+        bCtx.lineWidth = 1.2 + rand() * 2.2;
+        bCtx.beginPath();
+        bCtx.moveTo(cx, cy);
+        const segs = 4 + Math.floor(rand() * 5);
+        for (let s = 0; s < segs; s++) {
+          cx += (rand() - 0.5) * 34;
+          cy += (rand() - 0.5) * 34;
+          bCtx.lineTo(cx, cy);
+        }
+        bCtx.stroke();
+      }
+
+      // Compute Tangent-Space Normal Map (RGB) from Height/Bump Map via Sobel-like gradient
+      const normCanvas = document.createElement('canvas');
+      normCanvas.width = size; normCanvas.height = size;
+      const nCtx = normCanvas.getContext('2d');
+      const srcData = bCtx.getImageData(0, 0, size, size).data;
+      const dstImg = nCtx.createImageData(size, size);
+      const dstData = dstImg.data;
+      const strength = 2.8;
+
+      const hAt = (x, y) => {
+        const wx = (x + size) % size;
+        const wy = (y + size) % size;
+        return srcData[(wy * size + wx) * 4] / 255.0;
+      };
+
+      for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+          const dX = (hAt(x + 1, y) - hAt(x - 1, y)) * strength;
+          const dY = (hAt(x, y + 1) - hAt(x, y - 1)) * strength;
+          const invLen = 1.0 / Math.sqrt(dX * dX + dY * dY + 1.0);
+          const nx = (-dX * invLen) * 0.5 + 0.5;
+          const ny = (-dY * invLen) * 0.5 + 0.5;
+          const nz = (1.0 * invLen) * 0.5 + 0.5;
+          const idx = (y * size + x) * 4;
+          dstData[idx] = Math.floor(nx * 255);
+          dstData[idx + 1] = Math.floor(ny * 255);
+          dstData[idx + 2] = Math.floor(nz * 255);
+          dstData[idx + 3] = 255;
+        }
+      }
+      nCtx.putImageData(dstImg, 0, 0);
+
+      const bumpTex = new THREE.CanvasTexture(bumpCanvas);
+      bumpTex.wrapS = THREE.RepeatWrapping;
+      bumpTex.wrapT = THREE.RepeatWrapping;
+      bumpTex.repeat.set(2, 2);
+
+      const normalTex = new THREE.CanvasTexture(normCanvas);
+      normalTex.wrapS = THREE.RepeatWrapping;
+      normalTex.wrapT = THREE.RepeatWrapping;
+      normalTex.repeat.set(2, 2);
+
+      const entry = { bumpCanvas, normCanvas, bumpTex, normalTex };
+      pbrMapCache[key] = entry;
+      return entry;
+    }
+
+    function exportPBRTexturePack(prefix, kind, crackPct) {
+      const maps = generatePBRMaps(kind, crackPct);
+      maps.bumpCanvas.toBlob((blob) => {
+        if (blob) downloadBlob(blob, `${prefix}_${kind}_bump_cracks_height.png`);
+      });
+      setTimeout(() => {
+        maps.normCanvas.toBlob((blob) => {
+          if (blob) downloadBlob(blob, `${prefix}_${kind}_normal_map_rgb.png`);
+        });
+      }, 250);
+    }
+
+    function getMaterials() {
+      const wf = state.wireframe;
+      const palettes = {
+        'vault-steel':    { frame: 0x334155, door: 0x475569, trim: 0xd4af37 },
+        'cathedral-oak':  { frame: 0x3b4252, door: 0x5c3a21, trim: 0x94a3b8 },
+        'runic-obsidian': { frame: 0x1e222d, door: 0x282d3e, trim: 0xc29744 },
+        'blood-iron':     { frame: 0x18181b, door: 0x3f1d24, trim: 0x991b1b }
+      };
+      const p = palettes[state.surfacePalette] || palettes['vault-steel'];
+      const glowHex = GLOW_MAP[state.glowColor] || 0xf59e0b;
+
+      const stonePBR = generatePBRMaps('stone', state.crackDensity);
+      const armorPBR = generatePBRMaps('armor', state.crackDensity);
+      return {
+        frame: new THREE.MeshStandardMaterial({ color: p.frame, roughness: 0.62, metalness: 0.35, bumpMap: stonePBR.bumpTex, bumpScale: state.bumpScale, normalMap: stonePBR.normalTex, wireframe: wf }),
+        door: new THREE.MeshStandardMaterial({ color: p.door, roughness: 0.45, metalness: 0.65, bumpMap: armorPBR.bumpTex, bumpScale: state.bumpScale, normalMap: armorPBR.normalTex, wireframe: wf }),
+        trim: new THREE.MeshStandardMaterial({ color: p.trim, roughness: 0.25, metalness: 0.88, wireframe: wf }),
+        darkIron: new THREE.MeshStandardMaterial({ color: 0x11151c, roughness: 0.48, metalness: 0.80, wireframe: wf }),
+        glow: new THREE.MeshStandardMaterial({ color: glowHex, emissive: glowHex, emissiveIntensity: 2.5, wireframe: wf }),
+        vrmAvatar: new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.35, roughness: 0.3, wireframe: wf })
+      };
+    }
+
+    function clearGroup(group) {
+      while (group.children.length > 0) {
+        const c = group.children[0];
+        group.remove(c);
+        if (c.geometry) c.geometry.dispose();
+      }
+    }
+
+    function buildVaultWheelAndBolts(radius, doorThick, openRatio, mats) {
+      const wg = new THREE.Group();
+      const zFront = doorThick / 2 + 0.06;
+
+      if (state.showVaultWheel) {
+        const wheelGroup = new THREE.Group();
+        wheelGroup.position.set(0, 0, zFront + 0.08);
+        wheelGroup.rotation.z = openRatio * Math.PI * 2.5;
+
+        const rim = new THREE.Mesh(new THREE.TorusGeometry(radius * 0.38, 0.045, 12, 32), mats.trim);
+        const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.18, 0.18, 20), mats.trim);
+        hub.rotation.x = Math.PI / 2;
+        wheelGroup.add(rim, hub);
+
+        for (let s = 0; s < 6; s++) {
+          const ang = (s / 6) * Math.PI * 2;
+          const spoke = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, radius * 0.82, 8), mats.trim);
+          spoke.rotation.z = ang;
+          wheelGroup.add(spoke);
+        }
+        wg.add(wheelGroup);
+      }
+
+      const bolts = state.boltCount;
+      for (let b = 0; b < bolts; b++) {
+        const ang = (b / bolts) * Math.PI * 2;
+        const radialDist = radius * (0.78 - openRatio * 0.16);
+        const bolt = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, radius * 0.38, 10), mats.trim);
+        bolt.position.set(Math.cos(ang) * radialDist, Math.sin(ang) * radialDist, zFront);
+        bolt.rotation.z = ang + Math.PI / 2;
+        wg.add(bolt);
+      }
+
+      return wg;
+    }
+
+    // Build 3D Interactive 12-Key PIN Keypad + Digital PIN Screen on the Wall Pillar!
+    function build3DPinKeypad(panelX, panelY, panelZ, mats) {
+      const kpGroup = new THREE.Group();
+      kpGroup.name = 'Entrance_3D_PIN_Keypad';
+
+      const housing = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.64, 0.09), mats.darkIron);
+      const bezel = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.66, 0.04), mats.trim);
+      bezel.position.z = -0.02;
+      kpGroup.add(housing, bezel);
+
+      // Top LED PIN Readout Display Screen
+      const screenTex = createPinScreenTexture(state.pinCodeBuffer);
+      const screenMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.36, 0.12),
+        new THREE.MeshBasicMaterial({ map: screenTex })
+      );
+      screenMesh.position.set(0, 0.21, 0.048);
+      kpGroup.add(screenMesh);
+
+      // 4x3 Matrix of Clickable 3D Keypad Keys (1-9, CLR, 0, ENT)
+      const keys = [
+        '1', '2', '3',
+        '4', '5', '6',
+        '7', '8', '9',
+        'CLR', '0', 'ENT'
+      ];
+      keys.forEach((kLabel, idx) => {
+        const r = Math.floor(idx / 3);
+        const c = idx % 3;
+        const kx = (c - 1) * 0.115;
+        const ky = 0.07 - r * 0.105;
+        const colorHex = kLabel === 'ENT' ? '#10b981' : (kLabel === 'CLR' ? '#f43f5e' : '#38bdf8');
+        const kTex = createPanelButtonTex(kLabel, colorHex);
+        const keyMesh = new THREE.Mesh(
+          new THREE.BoxGeometry(0.092, 0.082, 0.045),
+          new THREE.MeshStandardMaterial({
+            map: kTex,
+            emissive: new THREE.Color(colorHex),
+            emissiveMap: kTex,
+            emissiveIntensity: 1.15
+          })
+        );
+        keyMesh.position.set(kx, ky, 0.052);
+        keyMesh.userData.pinKey = kLabel;
+        clickableEntranceMeshes.push(keyMesh);
+        kpGroup.add(keyMesh);
+      });
+
+      kpGroup.position.set(panelX, panelY, panelZ);
+      return kpGroup;
+    }
+
+    function buildEntranceScene() {
+      clearGroup(frameStaticGroup);
+      clearGroup(movableDoorsGroup);
+      clickableEntranceMeshes.length = 0;
+
+      const mats = getMaterials();
+      const W = state.openWidth;
+      const H = state.openHeight;
+      const D = state.wallDepth;
+      const T = state.doorThickness;
+      const ratio = state.openRatio / 100;
+
+      // 1. NON-CLIPPING WIDE SIDE WALL POCKETS & TALL UPPER RECEIVER CHAMBER
+      // When parting-slabs or blast-airlock slide open by W/2, each side wall casing must be at least (W/2 + 0.65m) wide with an internal pocket slot!
+      const isSlidingDoor = state.doorMechanism === 'parting-slabs' || state.doorMechanism === 'blast-airlock';
+      const isPortcullis = state.doorMechanism === 'portcullis-winch';
+      const pillarW = isSlidingDoor ? Math.max(1.65, W * 0.55 + 0.45) : 1.35;
+      const upperReceiverH = isPortcullis ? H * 0.95 : 1.05;
+      const totalWallH = H + upperReceiverH;
+
+      const threshold = new THREE.Mesh(new THREE.BoxGeometry(W + pillarW * 2 + 0.8, 0.16, D + 1.4), mats.frame);
+      threshold.position.set(0, 0.08, 0);
+      threshold.receiveShadow = true;
+      frameStaticGroup.add(threshold);
+
+      // Left & Right Wall Jamb Casings (Built with Front & Back Pocket Walls so sliding slabs retract cleanly inside!)
+      const cheekThick = Math.max(0.22, (D - T - 0.08) / 2);
+      for (const s of [-1, 1]) {
+        const jambCenterX = s * (W / 2 + pillarW / 2);
+        // Front & Back Masonry Walls forming a hollow internal pocket slot for sliding slabs!
+        for (const zSign of [-1, 1]) {
+          const wallCheek = new THREE.Mesh(new THREE.BoxGeometry(pillarW, totalWallH, cheekThick), mats.frame);
+          wallCheek.position.set(jambCenterX, totalWallH / 2, zSign * (D / 2 - cheekThick / 2));
+          wallCheek.castShadow = true;
+          frameStaticGroup.add(wallCheek);
+        }
+        // Outer End Cap Wall closing the outside of the pocket so slabs never poke out!
+        const outerCap = new THREE.Mesh(new THREE.BoxGeometry(0.28, totalWallH, D), mats.frame);
+        outerCap.position.set(s * (W / 2 + pillarW - 0.14), totalWallH / 2, 0);
+        frameStaticGroup.add(outerCap);
+
+        // Trim Pilasters flanking the doorway opening
+        const pilaster = new THREE.Mesh(new THREE.BoxGeometry(0.24, H + 0.2, D + 0.12), mats.trim);
+        pilaster.position.set(s * (W / 2 + 0.12), (H + 0.2) / 2, 0);
+        frameStaticGroup.add(pilaster);
+      }
+
+      // Upper Receiver Header Chamber above the Doorway (Encloses raised Portcullis 100% inside the stone gatehouse!)
+      for (const zSign of [-1, 1]) {
+        const upperHeaderFace = new THREE.Mesh(
+          new THREE.BoxGeometry(W + 0.2, upperReceiverH, cheekThick),
+          mats.frame
+        );
+        upperHeaderFace.position.set(0, H + upperReceiverH / 2, zSign * (D / 2 - cheekThick / 2));
+        frameStaticGroup.add(upperHeaderFace);
+      }
+      // Solid Top Roof Slab capping the entire Gatehouse Frame
+      const topRoofSlab = new THREE.Mesh(
+        new THREE.BoxGeometry(W + pillarW * 2 + 0.4, 0.36, D + 0.24),
+        mats.trim
+      );
+      topRoofSlab.position.set(0, totalWallH + 0.18, 0);
+      frameStaticGroup.add(topRoofSlab);
+
+      if (state.headerStyle === 'gothic-crown') {
+        // Stepped Fortress Battlement Crown on top of totalWallH (never clips portcullis!)
+        const merlons = 5;
+        const totalSpanW = W + pillarW * 2;
+        for (let m = 0; m < merlons; m++) {
+          const mx = -totalSpanW * 0.42 + (m / (merlons - 1)) * (totalSpanW * 0.84);
+          const merlon = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.55, D + 0.18), mats.frame);
+          merlon.position.set(mx, totalWallH + 0.62, 0);
+          frameStaticGroup.add(merlon);
+        }
+      } else if (state.headerStyle === 'vault-collar') {
+        const collar = new THREE.Mesh(new THREE.TorusGeometry(Math.min(W, H) * 0.52, 0.16, 16, 48), mats.trim);
+        collar.position.set(0, H / 2, D / 2 + 0.04);
+        frameStaticGroup.add(collar);
+      }
+
+      // Overhead Chain Winch Shaft & Drums mounted at the top of the Upper Receiver Chamber
+      const winchY = totalWallH - 0.32;
+      if (state.showHeaderWinch) {
+        const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.10, W + 1.2, 16), mats.trim);
+        shaft.rotation.z = Math.PI / 2;
+        shaft.position.set(0, winchY, D / 2 + 0.26);
+        frameStaticGroup.add(shaft);
+
+        for (const s of [-W * 0.34, W * 0.34]) {
+          const drum = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.38, 20), mats.darkIron);
+          drum.rotation.z = Math.PI / 2;
+          drum.position.set(s, winchY, D / 2 + 0.26);
+          frameStaticGroup.add(drum);
+        }
+      }
+
+      // 2. Interactive 3D Wall Access Panel / 12-Key PIN Keypad beside Entrance (+X Right Pillar)
+      const panelX = W / 2 + 0.62;
+      const panelY = state.panelHeight;
+      const panelZ = D / 2 + 0.05;
+
+      if (state.switchStyle === 'pin-keypad') {
+        frameStaticGroup.add(build3DPinKeypad(panelX, panelY, panelZ, mats));
+      } else {
+        const backbox = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.52, 0.08), mats.darkIron);
+        backbox.position.set(panelX, panelY, panelZ);
+        frameStaticGroup.add(backbox);
+
+        if (state.switchStyle === 'pushbutton-cop') {
+          const btnTex = createPanelButtonTex(state.panelLegend || 'OPEN', '#38bdf8');
+          const btnMesh = new THREE.Mesh(
+            new THREE.BoxGeometry(0.22, 0.22, 0.06),
+            new THREE.MeshStandardMaterial({ map: btnTex, emissive: 0x38bdf8, emissiveMap: btnTex, emissiveIntensity: 1.5 })
+          );
+          btnMesh.position.set(panelX, panelY + 0.06, panelZ + 0.05);
+          btnMesh.userData.isEntranceTrigger = true;
+          clickableEntranceMeshes.push(btnMesh);
+          frameStaticGroup.add(btnMesh);
+        } else if (state.switchStyle === 'dungeon-lever') {
+          const leverArm = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.48, 8), mats.trim);
+          leverArm.position.set(panelX, panelY, panelZ + 0.16);
+          leverArm.rotation.x = ratio > 0.5 ? -0.55 : 0.55;
+          const handle = new THREE.Mesh(new THREE.SphereGeometry(0.07, 12, 12), mats.glow);
+          handle.position.y = 0.24;
+          leverArm.add(handle);
+          leverArm.userData.isEntranceTrigger = true;
+          handle.userData.isEntranceTrigger = true;
+          clickableEntranceMeshes.push(leverArm, handle);
+          frameStaticGroup.add(leverArm);
+        } else {
+          const valve = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.03, 10, 24), mats.trim);
+          valve.position.set(panelX, panelY, panelZ + 0.08);
+          valve.rotation.z = ratio * Math.PI * 2;
+          valve.userData.isEntranceTrigger = true;
+          clickableEntranceMeshes.push(valve);
+          frameStaticGroup.add(valve);
+        }
+      }
+
+      if (state.showVrmAvatar) {
+        const av = new THREE.Group();
+        const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.18, 0.58, 8, 12), mats.vrmAvatar);
+        torso.position.y = 1.05;
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 14, 14), mats.vrmAvatar);
+        head.position.y = 1.56;
+        av.add(torso, head);
+        av.position.set(panelX - 0.50, 0.16, D / 2 + 0.55);
+        frameStaticGroup.add(av);
+      }
+
+      // 3. Build Movable Door / Vault / Portcullis / Slab Mechanism (Zero Top or Side Clipping!)
+      if (state.doorMechanism === 'gear-vault') {
+        const vaultR = Math.min(W, H) * 0.48;
+        const hingePivot = new THREE.Group();
+        hingePivot.position.set(-vaultR, H / 2, D * 0.2);
+        hingePivot.rotation.y = -ratio * 1.65;
+
+        const plug = new THREE.Mesh(new THREE.CylinderGeometry(vaultR, vaultR * 0.94, T, 48), mats.door);
+        plug.rotation.x = Math.PI / 2;
+        plug.position.x = vaultR;
+        plug.castShadow = true;
+        plug.userData.isEntranceTrigger = true;
+        clickableEntranceMeshes.push(plug);
+        hingePivot.add(plug);
+
+        const wheelAssy = buildVaultWheelAndBolts(vaultR, T, ratio, mats);
+        wheelAssy.position.x = vaultR;
+        hingePivot.add(wheelAssy);
+
+        movableDoorsGroup.add(hingePivot);
+      } else if (state.doorMechanism === 'double-hinged') {
+        const leafW = W / 2;
+        for (const s of [-1, 1]) {
+          const hinge = new THREE.Group();
+          hinge.position.set(s * (W / 2), H / 2, 0);
+          hinge.rotation.y = s * ratio * 1.55;
+
+          const leaf = new THREE.Mesh(new THREE.BoxGeometry(leafW, H - 0.18, T), mats.door);
+          leaf.position.x = -s * (leafW / 2);
+          leaf.castShadow = true;
+          leaf.userData.isEntranceTrigger = true;
+          clickableEntranceMeshes.push(leaf);
+          hinge.add(leaf);
+
+          for (const yOff of [-H * 0.32, 0, H * 0.32]) {
+            const strap = new THREE.Mesh(new THREE.BoxGeometry(leafW * 0.88, 0.10, T + 0.04), mats.trim);
+            strap.position.set(-s * (leafW * 0.46), yOff, 0);
+            hinge.add(strap);
+          }
+
+          if (state.visionGrille) {
+            const grille = new THREE.Mesh(new THREE.BoxGeometry(leafW * 0.42, 0.42, T + 0.05), mats.glow);
+            grille.position.set(-s * (leafW * 0.5), H * 0.14, 0);
+            hinge.add(grille);
+          }
+
+          movableDoorsGroup.add(hinge);
+        }
+      } else if (state.doorMechanism === 'portcullis-winch') {
+        // Portcullis rises cleanly inside the enclosed Upper Receiver Tower (never pokes through topRoofSlab!)
+        const portGroup = new THREE.Group();
+        const maxLift = H * 0.82;
+        const liftY = ratio * maxLift;
+        portGroup.position.set(0, H / 2 + liftY, 0);
+
+        for (const yRail of [-H * 0.38, 0, H * 0.38]) {
+          const cross = new THREE.Mesh(new THREE.BoxGeometry(W - 0.08, 0.14, T * 0.8), mats.trim);
+          cross.position.y = yRail;
+          portGroup.add(cross);
+        }
+
+        const bars = Math.max(5, Math.floor(W / 0.34));
+        for (let b = 0; b <= bars; b++) {
+          const bx = -W * 0.46 + (b / bars) * (W * 0.92);
+          const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, H - 0.25, 10), mats.door);
+          bar.position.x = bx;
+          const spike = new THREE.Mesh(new THREE.ConeGeometry(0.055, 0.22, 8), mats.trim);
+          spike.rotation.x = Math.PI;
+          spike.position.set(bx, -H / 2 + 0.12, 0);
+          bar.userData.isEntranceTrigger = true;
+          clickableEntranceMeshes.push(bar);
+          portGroup.add(bar, spike);
+        }
+        movableDoorsGroup.add(portGroup);
+      } else if (state.doorMechanism === 'parting-slabs' || state.doorMechanism === 'blast-airlock') {
+        // Center-parting slabs slide horizontally inside the widened hollow side wall pockets!
+        const leafW = W / 2 + 0.04;
+        for (const s of [-1, 1]) {
+          const slideX = s * (leafW / 2 + ratio * (leafW * 0.90));
+          const slab = new THREE.Mesh(new THREE.BoxGeometry(leafW, H - 0.18, T), mats.door);
+          slab.position.set(slideX, H / 2, 0);
+          slab.castShadow = true;
+          slab.userData.isEntranceTrigger = true;
+          clickableEntranceMeshes.push(slab);
+          movableDoorsGroup.add(slab);
+
+          for (let t = -2; t <= 2; t++) {
+            const tooth = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.24, T + 0.04), mats.glow);
+            tooth.position.set(slideX - s * (leafW / 2 - 0.08), H / 2 + t * (H * 0.16), 0);
+            movableDoorsGroup.add(tooth);
+          }
+        }
+      }
+
+      updateTelemetry();
+    }
+
+    function handlePinKeyInput(kLabel) {
+      if (kLabel === 'CLR') {
+        state.pinCodeBuffer = '';
+        document.getElementById('ui-pin-readout').textContent = '----';
+        buildEntranceScene();
+        showToast('Cleared PIN Keypad Buffer');
+      } else if (kLabel === 'ENT') {
+        state.targetOpenRatio = state.openRatio > 40 ? 0 : 100;
+        showToast(`PIN [${state.pinCodeBuffer || '100F'}] Verified — ${state.targetOpenRatio > 40 ? 'Unsealing Entrance!' : 'Sealing Entrance!'}`);
+      } else {
+        if (state.pinCodeBuffer.length >= 4) state.pinCodeBuffer = '';
+        state.pinCodeBuffer += kLabel;
+        document.getElementById('ui-pin-readout').textContent = state.pinCodeBuffer;
+        buildEntranceScene();
+      }
+    }
+
+    function initSidebarKeypad() {
+      const grid = document.getElementById('sidebar-keypad-grid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      ['1', '2', '3', 'A', '4', '5', '6', 'B', '7', '8', '9', 'F', 'CLR', '0', 'ENT'].forEach((k) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = k;
+        btn.className = k === 'ENT'
+          ? 'col-span-2 py-1 rounded text-[11px] font-mono-tech font-bold bg-emerald-500/25 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/35'
+          : (k === 'CLR'
+            ? 'py-1 rounded text-[11px] font-mono-tech font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 hover:bg-rose-500/30'
+            : 'py-1 rounded text-[11px] font-mono-tech bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700');
+        btn.addEventListener('click', () => handlePinKeyInput(k));
+        grid.appendChild(btn);
+      });
+    }
+
+    function updateTelemetry() {
+      const mass = (state.openWidth * state.openHeight * state.doorThickness * 3.8).toFixed(1);
+      document.getElementById('stat-clearance').textContent = `${state.openWidth.toFixed(1)}×${state.openHeight.toFixed(1)}m`;
+      document.getElementById('stat-open').textContent = `${Math.round(state.openRatio)}% OPEN`;
+      document.getElementById('stat-mass').textContent = `${mass} t`;
+      document.getElementById('sim-open-readout').textContent = `${Math.round(state.openRatio)}%`;
+
+      let tris = 0;
+      assetRoot.traverse((obj) => {
+        if (obj.isMesh && obj.geometry) {
+          const g = obj.geometry;
+          tris += g.index ? g.index.count / 3 : g.attributes.position.count / 3;
+        }
+      });
+      document.getElementById('stat-triangles').textContent = `${Math.round(tris).toLocaleString()} tris`;
+
+      document.getElementById('label-width').textContent = `W: ${state.openWidth.toFixed(2)}m`;
+      document.getElementById('label-height').textContent = `H: ${state.openHeight.toFixed(2)}m`;
+      document.getElementById('label-depth').textContent = `D: ${state.wallDepth.toFixed(2)}m`;
+    }
+
+    function updateLabelsOverlay() {
+      const container = document.getElementById('labels-container');
+      if (!state.showDimensions) {
+        container.style.opacity = '0';
+        return;
+      }
+      container.style.opacity = '1';
+
+      const pts = [
+        { id: 'label-width', pos: new THREE.Vector3(0, 0.25, state.wallDepth / 2 + 0.9) },
+        { id: 'label-height', pos: new THREE.Vector3(-state.openWidth / 2 - 1.4, state.openHeight / 2, 0) },
+        { id: 'label-depth', pos: new THREE.Vector3(state.openWidth / 2 + 1.4, 0.3, 0) }
+      ];
+      const rect = mount.getBoundingClientRect();
+      for (const item of pts) {
+        const v = item.pos.clone().project(camera);
+        const el = document.getElementById(item.id);
+        if (v.z > 1) {
+          el.style.opacity = '0';
+        } else {
+          el.style.opacity = '1';
+          el.style.left = `${(v.x * 0.5 + 0.5) * rect.width}px`;
+          el.style.top = `${(-(v.y * 0.5) + 0.5) * rect.height}px`;
+        }
+      }
+    }
+
+    function syncUI() {
+      const sliders = [
+        ['openWidth', ' m', 2],
+        ['openHeight', ' m', 2],
+        ['wallDepth', ' m', 2],
+        ['doorThickness', ' m', 2],
+        ['openRatio', '%', 0],
+        ['boltCount', ' bolts', 0],
+        ['panelHeight', ' m', 2],
+        ['crackDensity', '%', 0],
+        ['bumpScale', '', 2]
+      ];
+      for (const [k, unit, dec] of sliders) {
+        const input = document.getElementById(`param-${k}`);
+        const label = document.getElementById(`val-${k}`);
+        if (input) input.value = state[k];
+        if (label) label.textContent = Number(state[k]).toFixed(dec) + unit;
+      }
+      ['headerStyle', 'doorMechanism', 'switchStyle', 'surfacePalette', 'glowColor', 'exportScope'].forEach((k) => {
+        const el = document.getElementById(`param-${k}`);
+        if (el) el.value = state[k];
+      });
+      ['showVrmAvatar', 'visionGrille', 'showVaultWheel', 'showHeaderWinch', 'showDimensions', 'wireframe'].forEach((k) => {
+        const el = document.getElementById(`param-${k}`);
+        if (el) el.checked = Boolean(state[k]);
+      });
+    }
+
+    ['openWidth', 'openHeight', 'wallDepth', 'doorThickness', 'openRatio', 'boltCount', 'panelHeight', 'crackDensity', 'bumpScale'].forEach((k) => {
+      document.getElementById(`param-${k}`).addEventListener('input', (e) => {
+        state[k] = parseFloat(e.target.value);
+        if (k === 'openRatio') state.targetOpenRatio = state.openRatio;
+        syncUI();
+        buildEntranceScene();
+      });
+    });
+
+    ['headerStyle', 'doorMechanism', 'switchStyle', 'surfacePalette', 'glowColor', 'exportScope'].forEach((k) => {
+      document.getElementById(`param-${k}`).addEventListener('change', (e) => {
+        state[k] = e.target.value;
+        syncUI();
+        buildEntranceScene();
+      });
+    });
+
+    ['showVrmAvatar', 'visionGrille', 'showVaultWheel', 'showHeaderWinch', 'showDimensions', 'wireframe'].forEach((k) => {
+      document.getElementById(`param-${k}`).addEventListener('change', (e) => {
+        state[k] = e.target.checked;
+        buildEntranceScene();
+      });
+    });
+
+    document.getElementById('param-panelLegend').addEventListener('input', (e) => {
+      state.panelLegend = e.target.value.toUpperCase() || 'OPEN';
+      buildEntranceScene();
+    });
+
+    document.querySelectorAll('.tab-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach((b) => {
+          b.className = 'tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition';
+        });
+        btn.className = 'tab-btn py-2 rounded bg-slate-800 text-sky-400 shadow-sm transition';
+        document.querySelectorAll('.tab-content').forEach((p) => {
+          p.classList.toggle('hidden', p.id !== btn.dataset.tab);
+        });
+      });
+    });
+
+    document.querySelectorAll('.preset-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const p = PRESETS[btn.dataset.preset];
+        if (!p) return;
+        Object.assign(state, p);
+        syncUI();
+        buildEntranceScene();
+        document.querySelectorAll('.preset-btn').forEach((b) => {
+          b.className = 'preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition';
+        });
+        btn.className = 'preset-btn px-2.5 py-1 rounded text-xs font-medium bg-sky-500/20 text-sky-300 border border-sky-500/40 transition';
+        showToast(`Loaded ${btn.textContent} entrance preset`);
+      });
+    });
+
+    document.getElementById('btnRandomize').addEventListener('click', () => {
+      const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+      state.headerStyle = pick(['heavy-lintel', 'gothic-crown', 'vault-collar']);
+      state.doorMechanism = pick(['gear-vault', 'double-hinged', 'portcullis-winch', 'parting-slabs', 'blast-airlock']);
+      state.switchStyle = pick(['pin-keypad', 'pushbutton-cop', 'dungeon-lever', 'valve-wheel']);
+      state.surfacePalette = pick(['vault-steel', 'cathedral-oak', 'runic-obsidian', 'blood-iron']);
+      state.glowColor = pick(['amber', 'ice-blue', 'emerald', 'crimson', 'arcane-purple']);
+      state.targetOpenRatio = Math.floor(35 + Math.random() * 65);
+      syncUI();
+      buildEntranceScene();
+      showToast('Randomized Parametric Entrance Engine');
+    });
+
+    let camTarget = null;
+    let orbitTarget = null;
+    document.querySelectorAll('.cam-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const mode = btn.dataset.cam;
+        if (mode === 'iso') {
+          camTarget = new THREE.Vector3(6.2, 3.8, 7.6);
+          orbitTarget = new THREE.Vector3(0, 2.0, 0);
+        } else if (mode === 'front') {
+          camTarget = new THREE.Vector3(0, 1.70, 5.8);
+          orbitTarget = new THREE.Vector3(0, 1.70, 0);
+        } else if (mode === 'panel') {
+          camTarget = new THREE.Vector3(state.openWidth / 2 + 0.62, state.panelHeight + 0.05, 1.65);
+          orbitTarget = new THREE.Vector3(state.openWidth / 2 + 0.62, state.panelHeight, 0.4);
+        } else if (mode === 'winch') {
+          camTarget = new THREE.Vector3(1.8, state.openHeight + 1.5, 4.2);
+          orbitTarget = new THREE.Vector3(0, state.openHeight + 0.4, 0);
+        }
+        document.querySelectorAll('.cam-btn').forEach((b) => {
+          b.className = b === btn
+            ? 'cam-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-sky-500/20 text-sky-300 border border-sky-500/30 transition'
+            : 'cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition';
+        });
+      });
+    });
+    controls.addEventListener('start', () => { camTarget = null; orbitTarget = null; });
+
+    document.getElementById('btnLockEntrance').addEventListener('click', () => {
+      state.targetOpenRatio = 0;
+      document.getElementById('sim-status-text').textContent = 'SEALING ENTRANCE...';
+      showToast('Engaging Lock Bolts & Sealing Entrance');
+    });
+
+    document.getElementById('btnOpenEntrance').addEventListener('click', () => {
+      state.targetOpenRatio = 100;
+      document.getElementById('sim-status-text').textContent = 'UNSEALING ENTRANCE...';
+      showToast('Retracting Lock Bolts & Opening Entrance');
+    });
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    let downPos = { x: 0, y: 0 };
+    renderer.domElement.addEventListener('pointerdown', (e) => { downPos = { x: e.clientX, y: e.clientY }; });
+    window.addEventListener('pointerup', (e) => {
+      if (Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > 5) return;
+      const rect = renderer.domElement.getBoundingClientRect();
+      if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) return;
+      pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(clickableEntranceMeshes, false);
+      if (hits.length > 0) {
+        const hitObj = hits[0].object;
+        if (hitObj.userData.pinKey) {
+          handlePinKeyInput(hitObj.userData.pinKey);
+        } else {
+          state.targetOpenRatio = state.openRatio > 40 ? 0 : 100;
+          showToast(state.targetOpenRatio > 40 ? 'Activated Entrance — Unsealing & Opening!' : 'Activated Entrance — Sealing & Bolting!');
+        }
+      }
+    });
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast-notification');
+      document.getElementById('toast-text').textContent = msg;
+      toast.style.opacity = '1';
+      setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('btnExportPBR').addEventListener('click', () => {
+      exportPBRTexturePack('entrance_engine', 'stone', state.crackDensity);
+      showToast('Exported Seamless PBR Bump/Crack Height & Normal Maps (.PNG)!');
+    });
+
+    document.getElementById('btnExportJSON').addEventListener('click', () => {
+      downloadBlob(new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }), `parametric-entrance-engine-recipe.json`);
+      showToast('Exported Parametric Entrance Recipe (.JSON)');
+    });
+
+    document.getElementById('btnExportGLB').addEventListener('click', () => {
+      const exporter = new GLTFExporter();
+      const target = state.exportScope === 'doors-only' ? movableDoorsGroup : assetRoot;
+      exporter.parse(target, (res) => {
+        downloadBlob(new Blob([res], { type: 'application/octet-stream' }), `parametric-entrance-${state.doorMechanism}.glb`);
+        showToast('Exported 3D Entrance Engine (.GLB)');
+      }, (err) => console.error(err), { binary: true });
+    });
+
+    document.getElementById('btnExportOBJ').addEventListener('click', () => {
+      const exporter = new OBJExporter();
+      const target = state.exportScope === 'doors-only' ? movableDoorsGroup : assetRoot;
+      downloadBlob(new Blob([exporter.parse(target)], { type: 'text/plain' }), `parametric-entrance-${state.doorMechanism}.obj`);
+      showToast('Exported Wavefront 3D Mesh (.OBJ)');
+    });
+
+    const clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = Math.min(clock.getDelta(), 0.1);
+
+      if (camTarget && orbitTarget) {
+        camera.position.lerp(camTarget, dt * 5);
+        controls.target.lerp(orbitTarget, dt * 5);
+        if (camera.position.distanceTo(camTarget) < 0.06) {
+          camTarget = null;
+          orbitTarget = null;
+        }
+      }
+
+      if (Math.abs(state.openRatio - state.targetOpenRatio) > 0.4) {
+        const step = Math.sign(state.targetOpenRatio - state.openRatio) * dt * 55;
+        state.openRatio = THREE.MathUtils.clamp(state.openRatio + step, 0, 100);
+        syncUI();
+        buildEntranceScene();
+        if (Math.abs(state.openRatio - state.targetOpenRatio) <= 0.5) {
+          document.getElementById('sim-status-text').textContent = state.openRatio > 30
+            ? 'UNSEALED • PASSABLE'
+            : 'SEALED & BOLTED';
+        }
+      }
+
+      controls.update();
+      updateLabelsOverlay();
+      renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = mount.clientWidth / mount.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(mount.clientWidth, mount.clientHeight);
+    });
+
+    initSidebarKeypad();
+    syncUI();
+    buildEntranceScene();
+    animate();
+  </script>
+</body>
+</html>

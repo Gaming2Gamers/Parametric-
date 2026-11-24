@@ -1,0 +1,2682 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VOIDTRAINCAD v6.0 — .VRM Walkable Void-Train, Curved Monorail Switches & Distinct Cars</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <style>
+    * { box-sizing: border-box; user-select: none; }
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #090b10;
+      color: #e2e8f0;
+    }
+    .font-mono-tech { font-family: 'JetBrains Mono', monospace; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.4); }
+    ::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.6); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(100, 116, 139, 0.9); }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: #1e293b;
+      border-radius: 999px;
+      outline: none;
+      border: 1px solid #334155;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #a855f7;
+      cursor: pointer;
+      border: 2px solid #0f172a;
+      box-shadow: 0 0 8px rgba(168, 85, 247, 0.55);
+      transition: transform 0.1s ease, background-color 0.15s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+      background: #c084fc;
+    }
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(51, 65, 85, 0.65);
+    }
+    .dimension-badge {
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.2s ease;
+    }
+  </style>
+</head>
+<body class="h-screen w-screen flex flex-col bg-[#090b10] text-slate-100">
+
+  <!-- TOP HEADER BAR -->
+  <header class="h-14 border-b border-slate-800/80 bg-slate-950/90 px-4 flex items-center justify-between z-20 shrink-0">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-lg bg-purple-500/15 border border-purple-400/35 flex items-center justify-center text-purple-300 shadow-inner">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+        </svg>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="font-semibold text-sm tracking-tight text-white">VOIDTRAIN<span class="text-purple-400">CAD</span></h1>
+          <span class="text-[10px] font-mono-tech uppercase px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30">v6.0 • PBR Bump/Crack & Curved Track</span>
+        </div>
+        <p class="text-[11px] text-slate-400">Walk-Through .VRM Consist, Distinct Ore/Prison/Turret Cars & Curved Monorail Turnout Switches</p>
+      </div>
+    </div>
+
+    <!-- ARCHETYPE PRESETS BAR -->
+    <div class="hidden xl:flex items-center gap-1.5 bg-slate-900/90 p-1 rounded-lg border border-slate-800">
+      <span class="text-[11px] font-medium text-slate-400 px-2">Archetype:</span>
+      <button data-preset="ironclad" class="preset-btn px-2.5 py-1 rounded text-xs font-medium bg-purple-500/20 text-purple-300 border border-purple-500/40 transition">Abyssal Ironclad</button>
+      <button data-preset="monorail" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Arcane Monorail</button>
+      <button data-preset="prison" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Dungeon Prison Consist</button>
+      <button data-preset="crystal" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Crystal Ore Hauler</button>
+      <button data-preset="royal" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-amber-300 hover:bg-amber-950/40 border border-amber-500/30 transition">Astral Sovereign Express</button>
+    </div>
+
+    <!-- EXPORT ACTIONS -->
+    <div class="flex items-center gap-2">
+      <button id="btnToggleBloom" type="button" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 font-mono-tech border border-cyan-500/40 transition" title="Toggle Selective ACES Filmic HDR UnrealBloom Post-Processing">✨ Bloom: ON</button>
+      <button id="btnRandomize" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5">
+        <span>Randomize</span>
+      </button>
+      <button id="btnExportPBR" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-emerald-300 font-mono-tech border border-emerald-500/30 transition" title="Download Seamless Bump/Crack Height Map & RGB Normal Map (.PNG)">PBR .PNGs</button>
+      <button id="btnExportJSON" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5">
+        <span class="text-amber-400 font-mono-tech">.JSON</span>
+      </button>
+      <button id="btnExportOBJ" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5">
+        <span>Export .OBJ</span>
+      </button>
+      <button id="btnExportGLB" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-purple-500 hover:bg-purple-400 text-slate-950 shadow-lg shadow-purple-500/20 transition flex items-center gap-1.5">
+        <span>Export .GLB</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE -->
+  <div class="flex-1 flex relative overflow-hidden">
+
+    <!-- LEFT PANEL: PARAMETRIC CONTROLS -->
+    <aside class="w-80 md:w-96 border-r border-slate-800/80 bg-slate-950/95 flex flex-col z-10 shrink-0">
+      <!-- Category Tabs -->
+      <div class="grid grid-cols-5 border-b border-slate-800 bg-slate-900/60 p-1 gap-1 text-[11px] font-medium">
+        <button data-tab="tab-loco" class="tab-btn py-2 rounded bg-slate-800 text-purple-300 shadow-sm transition">Engine</button>
+        <button data-tab="tab-cars" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Consist</button>
+        <button data-tab="tab-rail" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Monorail</button>
+        <button data-tab="tab-materials" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Materials</button>
+        <button data-tab="tab-station" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Station</button>
+      </div>
+
+      <!-- Scrollable Parameter Form -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-5">
+
+        <!-- TAB 1: LOCOMOTIVE ENGINE & WALKABLE CAB -->
+        <div id="tab-loco" class="tab-content space-y-5">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Locomotive & .VRM Cab Envelope</h2>
+              <span class="text-[11px] font-mono-tech text-purple-400">VRM-1.70M SCALE</span>
+            </div>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Locomotive Length (Z)</label>
+                  <span id="val-locoLength" class="font-mono-tech text-purple-300">8.00 m</span>
+                </div>
+                <input id="param-locoLength" type="range" min="6.00" max="11.00" step="0.25" value="8.00">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Interior Clear Width (X)</label>
+                  <span id="val-carWidth" class="font-mono-tech text-purple-300">3.10 m</span>
+                </div>
+                <input id="param-carWidth" type="range" min="2.40" max="4.20" step="0.10" value="3.10">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Cabin Clear Height (Y)</label>
+                  <span id="val-carHeight" class="font-mono-tech text-purple-300">3.10 m</span>
+                </div>
+                <input id="param-carHeight" type="range" min="2.50" max="4.20" step="0.10" value="3.10">
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Prow Ram & Cowcatcher</label>
+                <select id="param-prowStyle" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="cowcatcher">Heavy Armored Wedge Cowcatcher</option>
+                  <option value="drill">Subterranean Boring Drill Cone</option>
+                  <option value="arcane-split">Split Runic Resonance Prongs</option>
+                  <option value="flat-bunker">Blunt Siege Bastion Shield</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Reactor Core Architecture</label>
+                <select id="param-reactorStyle" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="void-furnace">Exposed Spinning Void Furnace</option>
+                  <option value="tesla-coils">Twin Arcane Tesla Rings</option>
+                  <option value="steam-stacks">Pressurized Aether Smokestacks</option>
+                </select>
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-amber-300 block">Inspector Cutaway (Roof & Side)</span>
+                  <span class="text-[11px] text-slate-400">See inside walkable cab, seats & gangways</span>
+                </div>
+                <input id="param-cutawayHull" type="checkbox" class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-emerald-300 block">.VRM 1.70m Avatar Mannequins</span>
+                  <span class="text-[11px] text-slate-400">Show scale avatars in cab, aisle & catwalks</span>
+                </div>
+                <input id="param-showVrmDummy" type="checkbox" checked class="w-4 h-4 accent-emerald-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: ELEVATOR DOORS, WINDOWS, SEATS & DISTINCT MODULAR CARS -->
+        <div id="tab-cars" class="tab-content hidden space-y-5">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Elevator Boarding Doors & Windows</h2>
+              <span class="text-[11px] font-mono-tech text-sky-400">ELEVATECAD SPEC</span>
+            </div>
+            <div class="space-y-3.5 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1">Side Boarding Door Mechanism</label>
+                <select id="param-doorStyle" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="center-glass">2-Panel Center Parting Framed Glass</option>
+                  <option value="telescopic-4">4-Panel Telescopic Armored Pocket</option>
+                  <option value="portcullis">Forged Iron Portcullis Grate</option>
+                </select>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Elevator Boarding Door Open %</label>
+                  <span id="val-doorOpen" class="font-mono-tech text-emerald-400">85%</span>
+                </div>
+                <input id="param-doorOpen" type="range" min="0" max="100" step="5" value="85">
+              </div>
+
+              <button id="btnToggleDoors" type="button" class="w-full py-1.5 px-3 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/30 text-xs font-medium transition">
+                Cycle All Train Elevator Doors Open / Close
+              </button>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1">Side Window Fenestration</label>
+                <select id="param-windowStyle" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="panoramic">Panoramic Framed Observation Glass</option>
+                  <option value="gothic-arch">Mullioned Cathedral Transom Windows</option>
+                  <option value="armored-slit">Armored Tactical Vision Slits</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Distinct Modular Cars & .VRM Seats</h2>
+              <span class="text-[11px] font-mono-tech text-purple-300">Walkable Aisle</span>
+            </div>
+            <div class="space-y-3.5 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1">Passenger Coach Seating Layout</label>
+                <select id="param-seatLayout" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="transverse-bays">2+2 Commuter Rows + Center Walk Aisle</option>
+                  <option value="longitudinal-bench">Subway Wall Benches (Wide .VRM Aisle)</option>
+                  <option value="parlor-booths">Luxury Club Tables & High-Back Booths</option>
+                </select>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Seat Row Bays per Coach</label>
+                  <span id="val-seatRows" class="font-mono-tech text-purple-300">4 rows</span>
+                </div>
+                <input id="param-seatRows" type="range" min="2" max="6" step="1" value="4">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Trailing Car Count</label>
+                  <span id="val-carCount" class="font-mono-tech text-purple-300">3 cars</span>
+                </div>
+                <input id="param-carCount" type="range" min="1" max="4" step="1" value="3">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Modular Car Length</label>
+                  <span id="val-carLength" class="font-mono-tech text-purple-300">7.00 m</span>
+                </div>
+                <input id="param-carLength" type="range" min="5.50" max="9.50" step="0.25" value="7.00">
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-[11px] text-slate-300 font-medium mb-1">Car #1 Architecture</label>
+                  <select id="param-car1Type" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-200">
+                    <option value="parlor" selected>Passenger Coach</option>
+                    <option value="crystal">Crystal Ore Hopper</option>
+                    <option value="turret">Flak Turret Deck</option>
+                    <option value="prison">Iron Prison Cage</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[11px] text-slate-300 font-medium mb-1">Car #2 Architecture</label>
+                  <select id="param-car2Type" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-200">
+                    <option value="crystal" selected>Crystal Ore Hopper</option>
+                    <option value="parlor">Passenger Coach</option>
+                    <option value="turret">Flak Turret Deck</option>
+                    <option value="prison">Iron Prison Cage</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[11px] text-slate-300 font-medium mb-1">Car #3 Architecture</label>
+                  <select id="param-car3Type" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-200">
+                    <option value="turret" selected>Flak Turret Deck</option>
+                    <option value="parlor">Passenger Coach</option>
+                    <option value="crystal">Crystal Ore Hopper</option>
+                    <option value="prison">Iron Prison Cage</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[11px] text-slate-300 font-medium mb-1">Car #4 Architecture</label>
+                  <select id="param-car4Type" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-200">
+                    <option value="prison" selected>Iron Prison Cage</option>
+                    <option value="parlor">Passenger Coach</option>
+                    <option value="crystal">Crystal Ore Hopper</option>
+                    <option value="turret">Flak Turret Deck</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Roof Turret Azimuth Aim</label>
+                  <span id="val-turretYaw" class="font-mono-tech text-emerald-400">25°</span>
+                </div>
+                <input id="param-turretYaw" type="range" min="-180" max="180" step="5" value="25">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: CURVED MONORAIL, TRANSFER SWITCHES & GANGWAYS -->
+        <div id="tab-rail" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Curved Monorail & Track Switcher</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Track Alignment & Turnout Layout</label>
+                <select id="param-trackCurveType" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="y-turnout">Y-Turnout Switch + Diverging Curved Spur</option>
+                  <option value="s-curve">Sweeping S-Curve Chasm Viaduct</option>
+                  <option value="transfer-table">Parallel Siding + Sliding Transfer Table</option>
+                </select>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Track Curvature Radius / Offset</label>
+                  <span id="val-curveOffset" class="font-mono-tech text-purple-300">7.5 m</span>
+                </div>
+                <input id="param-curveOffset" type="range" min="0.0" max="14.0" step="0.5" value="7.5">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Track Switch / Transfer Actuation</label>
+                  <span id="val-switchState" class="font-mono-tech text-emerald-400">0% (MAIN)</span>
+                </div>
+                <input id="param-switchState" type="range" min="0" max="100" step="5" value="0">
+              </div>
+
+              <button id="btnToggleTrackSwitch" type="button" class="w-full py-1.5 px-3 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/35 text-xs font-medium transition">
+                🔀 Throw Monorail Track Switch (Main ↔ Branch)
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Gangways & Schwebebahn Suspension</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Inter-Car Vestibule Passage</label>
+                <select id="param-gangwayStyle" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="accordion-bellows">Enclosed Accordion Bellows + Walk Plate</option>
+                  <option value="ramped-bridge">Open Armored Gangway Bridge + Handrails</option>
+                  <option value="pressurized-tube">Sealed Cylindrical Airlock Tunnel</option>
+                </select>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Inter-Car Gangway Length</label>
+                  <span id="val-couplingGap" class="font-mono-tech text-purple-300">1.10 m</span>
+                </div>
+                <input id="param-couplingGap" type="range" min="0.70" max="1.80" step="0.05" value="1.10">
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Track Suspension Architecture</label>
+                <select id="param-suspensionMode" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="overhead-chain">Overhead Suspended Chasm Rail & Chains</option>
+                  <option value="bottom-monorail">Bottom Straddle Mag-Lev Monorail</option>
+                  <option value="dual-rig">Dual Top + Bottom Siege Guideway</option>
+                </select>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Track Viaduct Span</label>
+                  <span id="val-trackSpan" class="font-mono-tech text-purple-300">44.0 m</span>
+                </div>
+                <input id="param-trackSpan" type="range" min="28" max="64" step="2" value="44">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Ceiling Chain Strut Pitch</label>
+                  <span id="val-chainPitch" class="font-mono-tech text-purple-300">6.0 m</span>
+                </div>
+                <input id="param-chainPitch" type="range" min="4.0" max="10.0" step="0.5" value="6.0">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Electrified Mana Conduits</span>
+                  <span class="text-[11px] text-slate-400">Glowing third-rail induction bars</span>
+                </div>
+                <input id="param-manaConduits" type="checkbox" checked class="w-4 h-4 accent-purple-500 rounded cursor-pointer">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-purple-300 block">Schwebebahn C-Hook Bogies & Portals</span>
+                  <span class="text-[11px] text-slate-400">Double-flanged overhead rail wheels & A-frames</span>
+                </div>
+                <input id="param-schwebebahnBogies" type="checkbox" checked class="w-4 h-4 accent-purple-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: ENGINE CAB PARAMETRIC BUTTONS & MATERIALS -->
+        <div id="tab-materials" class="tab-content hidden space-y-5">
+          <div class="bg-purple-500/10 border border-purple-500/30 rounded-xl p-3 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-xs font-semibold text-purple-300 block">Main Engine Cab Control Console</span>
+                <span class="text-[11px] text-slate-400">Click 3D cab buttons or customize below</span>
+              </div>
+              <button id="btnZoomCabConsole" type="button" class="px-2.5 py-1 rounded-lg bg-purple-500 hover:bg-purple-400 text-slate-950 font-semibold text-[11px] transition">
+                Zoom to Cab Helm
+              </button>
+            </div>
+            <div class="flex flex-wrap gap-1 pt-1" id="cab-button-pills"></div>
+
+            <div class="grid grid-cols-2 gap-2 pt-2 border-t border-purple-500/20">
+              <div>
+                <label class="block text-[11px] text-slate-300 font-medium mb-1">Button Legend</label>
+                <input id="cab-btn-label" type="text" maxlength="6" value="THRTL" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono-tech text-amber-300">
+              </div>
+              <div>
+                <label class="block text-[11px] text-slate-300 font-medium mb-1">Button Shape</label>
+                <select id="cab-btn-shape" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-200">
+                  <option value="round">Round Collared</option>
+                  <option value="square">Square Tactical</option>
+                  <option value="octagon">Octagon Heavy</option>
+                  <option value="mushroom">Emergency Mushroom</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <label class="text-slate-300 font-medium">Cab Button Actuator Size</label>
+                <span id="val-cabBtnSize" class="font-mono-tech text-purple-300">44 mm</span>
+              </div>
+              <input id="param-cabBtnSize" type="range" min="26" max="72" step="2" value="44">
+            </div>
+          </div>
+
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Metallurgy & Energy Palette</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Hull Armor Metallurgy</label>
+                <select id="param-armorFinish" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="wrought-iron">Blackened Abyssal Wrought Iron</option>
+                  <option value="orichalcum">Polished Orichalcum & Brass</option>
+                  <option value="titanium">Anodized Cyber-Titanium</option>
+                  <option value="crimson-plate">Blood-Forged Dreadnought Steel</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Mana / Energy Core Glow</label>
+                <select id="param-glowColor" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="arcane-purple">Arcane Void Violet</option>
+                  <option value="ice-blue">Aetherial Cyber Blue</option>
+                  <option value="amber">Hellfire Furnace Amber</option>
+                  <option value="emerald">Fel Crystal Emerald</option>
+                  <option value="crimson">Blood-Rune Ruby</option>
+                </select>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Surface Weathering / Soot</label>
+                  <span id="val-weathering" class="font-mono-tech text-purple-300">25%</span>
+                </div>
+                <input id="param-weathering" type="range" min="0" max="100" step="5" value="25">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 5: CHASM STATION & EXPORT -->
+        <div id="tab-station" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Suspended Chasm Station</h2>
+            <div class="space-y-3.5 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Suspended Boarding Platform</span>
+                  <span class="text-[11px] text-slate-400">Level with car floors for .VRM boarding</span>
+                </div>
+                <input id="param-showStation" type="checkbox" checked class="w-4 h-4 accent-purple-500 rounded cursor-pointer">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Boarding Ramp Extension</label>
+                  <span id="val-rampOpen" class="font-mono-tech text-emerald-400">100%</span>
+                </div>
+                <input id="param-rampOpen" type="range" min="0" max="100" step="5" value="100">
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">3D Export Scope</label>
+                <select id="param-exportScope" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="full">Full Consist + Chasm Track & Station</option>
+                  <option value="train-only">Walkable Train Consist Actor Only</option>
+                </select>
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-200">3D Dimension Callouts</span>
+                <input id="param-showDimensions" type="checkbox" checked class="w-4 h-4 accent-purple-500 rounded cursor-pointer">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800">
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-emerald-300 font-medium">PBR Crack & Scar Density</label>
+                  <span id="val-crackDensity" class="font-mono-tech text-emerald-400">45%</span>
+                </div>
+                <input id="param-crackDensity" type="range" min="0" max="100" step="5" value="45">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-emerald-300 font-medium">Normal / Bump Relief Depth</label>
+                  <span id="val-bumpScale" class="font-mono-tech text-emerald-400">0.08</span>
+                </div>
+                <input id="param-bumpScale" type="range" min="0.00" max="0.25" step="0.01" value="0.08">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-200">Wireframe Overlay Pass</span>
+                <input id="param-wireframe" type="checkbox" class="w-4 h-4 accent-purple-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- BOTTOM ENGINEERING TELEMETRY -->
+      <div class="p-3.5 border-t border-slate-800 bg-slate-900/90 space-y-2">
+        <div class="flex items-center justify-between text-[11px] text-slate-400">
+          <span class="uppercase font-semibold tracking-wider">Consist Telemetry</span>
+          <span id="stat-triangles" class="font-mono-tech text-slate-300">0 tris</span>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">Total Length</span>
+            <span id="stat-length" class="font-mono-tech text-xs font-semibold text-purple-300">32.3 m</span>
+          </div>
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">.VRM Seats</span>
+            <span id="stat-tonnage" class="font-mono-tech text-xs font-semibold text-emerald-400">16 seats</span>
+          </div>
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">Thrust Output</span>
+            <span id="stat-power" class="font-mono-tech text-xs font-semibold text-amber-400">4,800 kW</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER 3D VIEWPORT -->
+    <main class="flex-1 relative bg-gradient-to-b from-[#0c0a18] via-[#090b12] to-[#05060a] overflow-hidden">
+      <div id="canvas-mount" class="w-full h-full"></div>
+
+      <!-- 3D Dimension Callout Badges -->
+      <div id="labels-container" class="absolute inset-0 pointer-events-none overflow-hidden">
+        <div id="label-length" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/90 border border-purple-500/50 text-[11px] font-mono-tech text-purple-300 shadow-lg">L: 32.3m</div>
+        <div id="label-width" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/90 border border-purple-500/50 text-[11px] font-mono-tech text-purple-300 shadow-lg">W: 3.10m</div>
+        <div id="label-height" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/90 border border-purple-500/50 text-[11px] font-mono-tech text-purple-300 shadow-lg">H: 3.10m</div>
+      </div>
+
+      <!-- TOP-LEFT CAMERA PRESETS -->
+      <div class="absolute top-4 left-4 glass-panel rounded-xl p-1.5 flex items-center gap-1 shadow-xl flex-wrap">
+        <span class="text-[10px] font-mono-tech uppercase text-slate-400 px-2">Camera:</span>
+        <button data-cam="iso" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-purple-500/20 text-purple-300 border border-purple-500/30 transition">3/4 Consist</button>
+        <button data-cam="prow" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">Locomotive Prow</button>
+        <button data-cam="aisle" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">Walk-Through Aisle</button>
+        <button data-cam="station" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">Chasm Station</button>
+        <button data-cam="side" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">Broadside Profile</button>
+      </div>
+
+      <!-- RIGHT FLOATING STRATUM DISPATCH CONTROLLER -->
+      <div class="absolute top-4 right-4 w-60 glass-panel rounded-2xl p-3.5 shadow-2xl flex flex-col gap-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-300">Chasm Line Dispatch</span>
+          <span class="w-2 h-2 rounded-full bg-purple-400 shadow-[0_0_8px_#c084fc]"></span>
+        </div>
+
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 flex items-center justify-between">
+          <div>
+            <span class="text-[10px] text-slate-400 uppercase block">Train Status</span>
+            <span id="sim-status-text" class="text-[11px] font-mono-tech text-emerald-400">BERTHED • DOORS OPEN</span>
+          </div>
+          <div class="bg-black/80 px-2.5 py-1 rounded border border-slate-800">
+            <span id="sim-stratum-readout" class="font-mono-tech text-sm font-bold text-purple-400">B10</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-1.5">
+          <button data-stratum="B10" class="stratum-btn py-1.5 rounded-lg font-mono-tech text-xs font-semibold bg-purple-500/25 text-purple-200 border border-purple-400/50 transition">B10</button>
+          <button data-stratum="B25" class="stratum-btn py-1.5 rounded-lg font-mono-tech text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 transition">B25</button>
+          <button data-stratum="B50" class="stratum-btn py-1.5 rounded-lg font-mono-tech text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 transition">B50</button>
+          <button data-stratum="B75" class="stratum-btn py-1.5 rounded-lg font-mono-tech text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 transition">B75</button>
+          <button data-stratum="B90" class="stratum-btn py-1.5 rounded-lg font-mono-tech text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 transition">B90</button>
+          <button data-stratum="B100" class="stratum-btn py-1.5 rounded-lg font-mono-tech text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-rose-300 border border-rose-500/30 transition">B100</button>
+        </div>
+
+        <button id="btnTogglePatrol" class="w-full py-1.5 px-3 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 border border-purple-500/40 text-xs font-medium transition">
+          Toggle Continuous Chasm Run
+        </button>
+      </div>
+
+      <!-- BOTTOM-LEFT HINT -->
+      <div class="absolute bottom-4 left-4 glass-panel rounded-lg px-3 py-1.5 text-[11px] text-slate-400 flex items-center gap-3 pointer-events-none">
+        <span><strong class="text-slate-200">LMB:</strong> Orbit / Click 3D Doors, Track Switch or Cab Buttons</span>
+        <span>•</span>
+        <span><strong class="text-slate-200">RMB:</strong> Pan</span>
+      </div>
+
+      <!-- TOAST -->
+      <div id="toast-notification" class="pointer-events-none opacity-0 transition-opacity duration-300 absolute bottom-4 right-4 glass-panel border-purple-500/40 bg-slate-900/95 text-purple-200 px-4 py-2.5 rounded-xl text-xs font-medium shadow-2xl flex items-center gap-2">
+        <span id="toast-text">Asset updated!</span>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+    import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+    import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+    import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+    import { OBJExporter } from 'three/addons/exporters/OBJExporter.js';
+
+    const state = {
+      locoLength: 8.00,
+      carWidth: 3.10,
+      carHeight: 3.10,
+      prowStyle: 'cowcatcher',
+      reactorStyle: 'void-furnace',
+      cutawayHull: false,
+      showVrmDummy: true,
+
+      doorStyle: 'center-glass',
+      doorOpen: 85,
+      targetDoorOpen: 85,
+      windowStyle: 'panoramic',
+      seatLayout: 'transverse-bays',
+      seatRows: 4,
+
+      carCount: 3,
+      carLength: 7.00,
+      couplingGap: 1.10,
+      gangwayStyle: 'accordion-bellows',
+      car1Type: 'parlor',
+      car2Type: 'crystal',
+      car3Type: 'turret',
+      car4Type: 'prison',
+      turretYaw: 25,
+
+      trackCurveType: 'y-turnout', // 'y-turnout' | 's-curve' | 'transfer-table'
+      curveOffset: 7.5,
+      switchState: 0,
+      targetSwitchState: 0,
+
+      suspensionMode: 'overhead-chain',
+      trackSpan: 44,
+      chainPitch: 6.0,
+      manaConduits: true,
+      schwebebahnBogies: true,
+
+      cabBtnSize: 44,
+      selectedCabBtnIdx: 0,
+      cabButtons: [
+        { label: 'THRTL', shape: 'round', action: 'patrol' },
+        { label: 'DOORS', shape: 'square', action: 'doors' },
+        { label: 'SWTCH', shape: 'octagon', action: 'switch' },
+        { label: 'B10',   shape: 'round', action: 'B10' },
+        { label: 'B100',  shape: 'octagon', action: 'B100' },
+        { label: 'STOP',  shape: 'mushroom', action: 'stop' }
+      ],
+
+      armorFinish: 'wrought-iron',
+      glowColor: 'arcane-purple',
+      weathering: 25,
+
+      showStation: true,
+      rampOpen: 100,
+      exportScope: 'full',
+      showDimensions: true,
+      crackDensity: 45,
+      bumpScale: 0.08,
+      wireframe: false,
+
+      currentStratum: 'B10',
+      trainProgress: 0.45,
+      patrolMode: false,
+      simPhase: 'berthed'
+    };
+
+    const PRESETS = {
+      ironclad: {
+        locoLength: 8.00, carWidth: 3.10, carHeight: 3.10, prowStyle: 'cowcatcher', reactorStyle: 'void-furnace',
+        doorStyle: 'center-glass', windowStyle: 'panoramic', seatLayout: 'transverse-bays', seatRows: 4,
+        carCount: 3, carLength: 7.00, couplingGap: 1.10, car1Type: 'parlor', car2Type: 'crystal', car3Type: 'turret', car4Type: 'prison',
+        trackCurveType: 'y-turnout', curveOffset: 7.5, suspensionMode: 'overhead-chain', armorFinish: 'wrought-iron', glowColor: 'arcane-purple', weathering: 25
+      },
+      monorail: {
+        locoLength: 8.50, carWidth: 2.90, carHeight: 3.00, prowStyle: 'arcane-split', reactorStyle: 'tesla-coils',
+        doorStyle: 'telescopic-4', windowStyle: 'panoramic', seatLayout: 'longitudinal-bench', seatRows: 5,
+        carCount: 3, carLength: 7.20, couplingGap: 0.95, car1Type: 'parlor', car2Type: 'parlor', car3Type: 'turret', car4Type: 'parlor',
+        trackCurveType: 's-curve', curveOffset: 9.0, suspensionMode: 'bottom-monorail', armorFinish: 'titanium', glowColor: 'ice-blue', weathering: 10
+      },
+      prison: {
+        locoLength: 7.50, carWidth: 3.20, carHeight: 3.30, prowStyle: 'flat-bunker', reactorStyle: 'steam-stacks',
+        doorStyle: 'portcullis', windowStyle: 'armored-slit', seatLayout: 'longitudinal-bench', seatRows: 4,
+        carCount: 4, carLength: 6.50, couplingGap: 1.10, car1Type: 'turret', car2Type: 'prison', car3Type: 'prison', car4Type: 'parlor',
+        trackCurveType: 'transfer-table', curveOffset: 7.0, suspensionMode: 'overhead-chain', armorFinish: 'crimson-plate', glowColor: 'crimson', weathering: 60
+      },
+      crystal: {
+        locoLength: 8.20, carWidth: 3.30, carHeight: 3.10, prowStyle: 'drill', reactorStyle: 'void-furnace',
+        doorStyle: 'telescopic-4', windowStyle: 'gothic-arch', seatLayout: 'transverse-bays', seatRows: 3,
+        carCount: 3, carLength: 7.00, couplingGap: 1.05, car1Type: 'crystal', car2Type: 'crystal', car3Type: 'turret', car4Type: 'crystal',
+        trackCurveType: 'y-turnout', curveOffset: 8.5, suspensionMode: 'dual-rig', armorFinish: 'wrought-iron', glowColor: 'emerald', weathering: 45
+      },
+      royal: {
+        locoLength: 9.00, carWidth: 3.20, carHeight: 3.30, prowStyle: 'arcane-split', reactorStyle: 'tesla-coils',
+        doorStyle: 'center-glass', windowStyle: 'gothic-arch', seatLayout: 'parlor-booths', seatRows: 4,
+        carCount: 3, carLength: 7.50, couplingGap: 1.00, car1Type: 'parlor', car2Type: 'parlor', car3Type: 'parlor', car4Type: 'turret',
+        trackCurveType: 's-curve', curveOffset: 6.5, suspensionMode: 'overhead-chain', armorFinish: 'orichalcum', glowColor: 'amber', weathering: 5
+      }
+    };
+
+    const GLOW_MAP = {
+      'arcane-purple': 0xc084fc,
+      'ice-blue': 0x38bdf8,
+      'amber': 0xf59e0b,
+      'emerald': 0x10b981,
+      'crimson': 0xf43f5e
+    };
+
+    const mount = document.getElementById('canvas-mount');
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x07080f, 0.011);
+
+    const camera = new THREE.PerspectiveCamera(45, mount.clientWidth / mount.clientHeight, 0.1, 240);
+    camera.position.set(18, 8.5, 19);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
+    renderer.setSize(mount.clientWidth, mount.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.18;
+    mount.appendChild(renderer.domElement);
+    const pmremGen = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmremGen.fromScene(new RoomEnvironment(), 0.04).texture;
+
+    // v6.0 Selective High-Threshold HDR Post-Processing (EffectComposer + UnrealBloomPass + OutputPass)
+    let bloomEnabled = true;
+    const initW = Math.max(1, mount.clientWidth || window.innerWidth);
+    const initH = Math.max(1, mount.clientHeight || window.innerHeight);
+    const composer = new EffectComposer(renderer);
+    composer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    composer.setSize(initW, initH);
+    composer.addPass(new RenderPass(scene, camera));
+    const unrealBloomPass = new UnrealBloomPass(new THREE.Vector2(initW, initH), 0.42, 0.55, 0.85);
+    composer.addPass(unrealBloomPass);
+    composer.addPass(new OutputPass());
+
+
+    // v6.0 Subtle Atmospheric Floating Ember / Mana Mote Field (in scene, outside assetRoot so GLB export stays clean)
+    const MOTE_COUNT = 56;
+    const motePositions = new Float32Array(MOTE_COUNT * 3);
+    for (let mi = 0; mi < MOTE_COUNT; mi++) {
+      motePositions[mi * 3]     = (Math.sin(mi * 73.1) * 0.5) * 22.0;
+      motePositions[mi * 3 + 1] = 0.25 + ((mi * 0.618034) % 1.0) * 9.0;
+      motePositions[mi * 3 + 2] = (Math.cos(mi * 41.7) * 0.5) * 22.0;
+    }
+    const moteGeo = new THREE.BufferGeometry();
+    moteGeo.setAttribute('position', new THREE.BufferAttribute(motePositions, 3));
+    const moteMat = new THREE.PointsMaterial({
+      color: 0xc084fc,
+      size: 0.055,
+      transparent: true,
+      opacity: 0.58,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+    const atmosphericMotes = new THREE.Points(moteGeo, moteMat);
+    atmosphericMotes.name = 'Viewport_Atmospheric_Motes';
+    scene.add(atmosphericMotes);
+
+    const btnToggleBloomEl = document.getElementById('btnToggleBloom');
+    if (btnToggleBloomEl) {
+      btnToggleBloomEl.addEventListener('click', () => {
+        bloomEnabled = !bloomEnabled;
+        unrealBloomPass.enabled = bloomEnabled;
+        btnToggleBloomEl.textContent = bloomEnabled ? '✨ Bloom: ON' : '✨ Bloom: OFF';
+        btnToggleBloomEl.className = bloomEnabled
+          ? 'px-2.5 py-1.5 rounded-lg text-xs font-medium bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 font-mono-tech border border-cyan-500/40 transition'
+          : 'px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-400 font-mono-tech border border-slate-700 transition';
+      });
+    }
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.target.set(0, 1.8, -2);
+
+    scene.add(new THREE.HemisphereLight(0xe2e8f0, 0x090d16, 0.95));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.9);
+    dirLight.position.set(18, 28, 22);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.set(2048, 2048);
+    dirLight.shadow.bias = -0.0005;
+    dirLight.shadow.normalBias = 0.02;
+    dirLight.shadow.camera.near = 0.5;
+    dirLight.shadow.camera.far = 85;
+    dirLight.shadow.camera.left = -24.0;
+    dirLight.shadow.camera.right = 24.0;
+    dirLight.shadow.camera.top = 24.0;
+    dirLight.shadow.camera.bottom = -24.0;
+    scene.add(dirLight);
+
+    const rimLight = new THREE.DirectionalLight(0xa855f7, 0.85);
+    rimLight.position.set(-18, 6, -14);
+    scene.add(rimLight);
+
+    const gridHelper = new THREE.GridHelper(72, 72, 0x6b21a8, 0x1e293b);
+    gridHelper.position.y = -4.5;
+    scene.add(gridHelper);
+
+    const assetRoot = new THREE.Group();
+    assetRoot.name = 'Abyssal_Void_Train_VRM_Scene';
+    scene.add(assetRoot);
+
+    const trainConsistGroup = new THREE.Group();
+    trainConsistGroup.name = 'Walkable_Train_Consist_Actor';
+    assetRoot.add(trainConsistGroup);
+
+    const stationAndTrackGroup = new THREE.Group();
+    stationAndTrackGroup.name = 'Chasm_Track_And_Station';
+    assetRoot.add(stationAndTrackGroup);
+
+    const spinningNodes = [];
+    const clickableMeshes = [];
+    const articulatedCarActors = [];
+    let activeMainCurve = null;
+
+    function createButtonLabelTexture(text, hexColor) {
+      const c = document.createElement('canvas');
+      c.width = 128; c.height = 128;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, 128, 128);
+      ctx.strokeStyle = hexColor;
+      ctx.lineWidth = 8;
+      ctx.strokeRect(8, 8, 112, 112);
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 30px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, 64, 64);
+      return new THREE.CanvasTexture(c);
+    }
+
+    
+    // =========================================================================
+    // PROCEDURAL PBR ALBEDO, BUMP/CRACK HEIGHT & TANGENT-SPACE NORMAL MAP ENGINE
+    // =========================================================================
+    const pbrMapCache = {};
+
+    // Helper: Compute 3x3 Sobel Tangent-Space Normal Map Texture from a Height Canvas
+    function computeSobelNormalTexture(heightCanvas, bevelStrength = 3.4) {
+      const w = heightCanvas.width;
+      const h = heightCanvas.height;
+      const hCtx = heightCanvas.getContext('2d');
+      const src = hCtx.getImageData(0, 0, w, h).data;
+
+      const normCanvas = document.createElement('canvas');
+      normCanvas.width = w;
+      normCanvas.height = h;
+      const nCtx = normCanvas.getContext('2d');
+      const dstImg = nCtx.createImageData(w, h);
+      const dst = dstImg.data;
+
+      const sample = (x, y) => {
+        const cx = (x + w) % w;
+        const cy = (y + h) % h;
+        return src[(cy * w + cx) * 4] / 255.0;
+      };
+
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const tl = sample(x - 1, y - 1), t = sample(x, y - 1), tr = sample(x + 1, y - 1);
+          const l  = sample(x - 1, y),                           r  = sample(x + 1, y);
+          const bl = sample(x - 1, y + 1), b = sample(x, y + 1), br = sample(x + 1, y + 1);
+
+          const dX = (tr + 2 * r + br) - (tl + 2 * l + bl);
+          const dY = (bl + 2 * b + br) - (tl + 2 * t + tr);
+          let vx = -dX * bevelStrength;
+          let vy = -dY * bevelStrength;
+          let vz = 1.0;
+          const inv = 1.0 / (Math.sqrt(vx * vx + vy * vy + vz * vz) || 1.0);
+          const idx = (y * w + x) * 4;
+          dst[idx]     = Math.floor((vx * inv * 0.5 + 0.5) * 255);
+          dst[idx + 1] = Math.floor((vy * inv * 0.5 + 0.5) * 255);
+          dst[idx + 2] = Math.floor((vz * inv * 0.5 + 0.5) * 255);
+          dst[idx + 3] = 255;
+        }
+      }
+      nCtx.putImageData(dstImg, 0, 0);
+      return { normCanvas, normalTex: new THREE.CanvasTexture(normCanvas) };
+    }
+
+    // ULTRA-CRISP BEZIER VECTOR INDUSTRIAL NAMEPLATE GENERATOR ('manthrax/JSlug' pattern, 1024x256 + Normal Bevel)
+    const stampedPlateCache = {};
+    function createStampedPlateTexture(text, subtext, accentHex = '#38bdf8') {
+      const key = `${text}_${subtext}_${accentHex}`;
+      if (stampedPlateCache[key]) return stampedPlateCache[key];
+
+      const W = 1024, H = 256;
+      const c = document.createElement('canvas');
+      c.width = W; c.height = H;
+      const ctx = c.getContext('2d');
+
+      const hc = document.createElement('canvas');
+      hc.width = W; hc.height = H;
+      const hCtx = hc.getContext('2d');
+      hCtx.fillStyle = 'rgb(128,128,128)';
+      hCtx.fillRect(0, 0, W, H);
+
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+      bgGrad.addColorStop(0.0, '#1e293b');
+      bgGrad.addColorStop(0.5, '#0f172a');
+      bgGrad.addColorStop(1.0, '#090d16');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, W, H);
+
+      for (let y = 0; y < H; y += 3) {
+        ctx.fillStyle = y % 6 === 0 ? 'rgba(255,255,255,0.025)' : 'rgba(0,0,0,0.04)';
+        ctx.fillRect(0, y, W, 1.5);
+      }
+
+      const drawBezierFrame = (targetCtx, strokeCol, lineW, inset = 14, ch = 28) => {
+        targetCtx.strokeStyle = strokeCol;
+        targetCtx.lineWidth = lineW;
+        targetCtx.lineJoin = 'round';
+        targetCtx.beginPath();
+        targetCtx.moveTo(inset + ch, inset);
+        targetCtx.lineTo(W - inset - ch, inset);
+        targetCtx.bezierCurveTo(W - inset, inset, W - inset, inset, W - inset, inset + ch);
+        targetCtx.lineTo(W - inset, H - inset - ch);
+        targetCtx.bezierCurveTo(W - inset, H - inset, W - inset, H - inset, W - inset - ch, H - inset);
+        targetCtx.lineTo(inset + ch, H - inset);
+        targetCtx.bezierCurveTo(inset, H - inset, inset, H - inset, inset, H - inset - ch);
+        targetCtx.lineTo(inset, inset + ch);
+        targetCtx.bezierCurveTo(inset, inset, inset, inset, inset + ch, inset);
+        targetCtx.closePath();
+        targetCtx.stroke();
+      };
+
+      drawBezierFrame(hCtx, 'rgb(45,45,45)', 22, 16, 28);
+      drawBezierFrame(hCtx, 'rgb(240,240,240)', 10, 16, 28);
+      drawBezierFrame(ctx, '#475569', 12, 16, 28);
+      drawBezierFrame(ctx, accentHex, 5, 22, 24);
+
+      for (const [rx, ry] of [[52, 52], [W - 52, 52], [52, H - 52], [W - 52, H - 52]]) {
+        hCtx.fillStyle = 'rgb(40,40,40)';
+        hCtx.beginPath(); hCtx.arc(rx, ry, 20, 0, Math.PI * 2); hCtx.fill();
+        hCtx.fillStyle = 'rgb(245,245,245)';
+        hCtx.beginPath(); hCtx.arc(rx, ry, 15, 0, Math.PI * 2); hCtx.fill();
+
+        const rGrad = ctx.createRadialGradient(rx - 4, ry - 4, 2, rx, ry, 16);
+        rGrad.addColorStop(0.0, '#f8fafc');
+        rGrad.addColorStop(0.6, '#94a3b8');
+        rGrad.addColorStop(1.0, '#1e293b');
+        ctx.fillStyle = rGrad;
+        ctx.beginPath(); ctx.arc(rx, ry, 15, 0, Math.PI * 2); ctx.fill();
+      }
+
+      const renderStampedVectorText = (str, yPos, fontSize, fillHex, isMain) => {
+        const fontSpec = `900 ${fontSize}px "JetBrains Mono", "Inter", monospace`;
+        ctx.font = fontSpec;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+
+        hCtx.font = fontSpec;
+        hCtx.textAlign = 'center';
+        hCtx.textBaseline = 'middle';
+        hCtx.lineJoin = 'round';
+        hCtx.lineCap = 'round';
+
+        hCtx.strokeStyle = 'rgb(38,38,38)';
+        hCtx.lineWidth = isMain ? 18 : 12;
+        hCtx.strokeText(str, W / 2, yPos);
+
+        hCtx.strokeStyle = 'rgb(205,205,205)';
+        hCtx.lineWidth = isMain ? 9 : 6;
+        hCtx.strokeText(str, W / 2, yPos);
+
+        hCtx.fillStyle = 'rgb(255,255,255)';
+        hCtx.fillText(str, W / 2, yPos);
+
+        ctx.strokeStyle = '#020617';
+        ctx.lineWidth = isMain ? 12 : 8;
+        ctx.strokeText(str, W / 2 + 2.5, yPos + 2.5);
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+        ctx.lineWidth = isMain ? 4 : 2.5;
+        ctx.strokeText(str, W / 2 - 1.5, yPos - 1.5);
+
+        ctx.fillStyle = fillHex;
+        ctx.fillText(str, W / 2, yPos);
+      };
+
+      renderStampedVectorText(text, 102, 74, '#f8fafc', true);
+      renderStampedVectorText(subtext, 188, 44, accentHex, false);
+
+      const colorTex = new THREE.CanvasTexture(c);
+      colorTex.anisotropy = 8;
+      const { normalTex } = computeSobelNormalTexture(hc, 3.6);
+      normalTex.anisotropy = 8;
+      const bumpTex = new THREE.CanvasTexture(hc);
+      bumpTex.anisotropy = 8;
+
+      colorTex.normalMap = normalTex;
+      colorTex.bumpMap = bumpTex;
+      colorTex.createMaterial = () => new THREE.MeshStandardMaterial({
+        map: colorTex,
+        normalMap: normalTex,
+        normalScale: new THREE.Vector2(1.85, 1.85),
+        bumpMap: bumpTex,
+        bumpScale: 0.035,
+        metalness: 0.86,
+        roughness: 0.24,
+        envMapIntensity: 1.65
+      });
+
+      stampedPlateCache[key] = colorTex;
+      return colorTex;
+    }
+
+    // mrdoob/harmony Proximity-History Stress-Fracture, Cross-Hatch & Weld-Bead Pass in generatePBRMaps
+    function generatePBRMaps(kind, crackPct) {
+      const key = `${kind}_${Math.round(crackPct)}`;
+      if (pbrMapCache[key]) return pbrMapCache[key];
+      const size = 256;
+      const bumpCanvas = document.createElement('canvas');
+      bumpCanvas.width = size; bumpCanvas.height = size;
+      const bCtx = bumpCanvas.getContext('2d');
+      bCtx.fillStyle = 'rgb(175,175,175)';
+      bCtx.fillRect(0, 0, size, size);
+
+      let seed = 911 + kind.charCodeAt(0) * 37;
+      const rand = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+      const crackFactor = Math.max(0.05, crackPct / 100);
+
+      for (let i = 0; i < 2200; i++) {
+        const v = Math.floor(145 + rand() * 68);
+        bCtx.fillStyle = `rgb(${v},${v},${v})`;
+        bCtx.fillRect(rand() * size, rand() * size, 2, 2);
+      }
+
+      // Plate seams + Raised TIG/MIG Stacked-Dime Weld Beads along seams
+      bCtx.strokeStyle = 'rgb(42,42,42)';
+      bCtx.lineWidth = 3;
+      for (let y = 0; y < size; y += 64) {
+        bCtx.beginPath(); bCtx.moveTo(0, y); bCtx.lineTo(size, y); bCtx.stroke();
+        for (let wx = 4; wx < size - 4; wx += 5) {
+          bCtx.fillStyle = 'rgba(238,238,238,0.58)';
+          bCtx.beginPath(); bCtx.arc(wx, y, 2.5, 0, Math.PI * 2); bCtx.fill();
+        }
+      }
+
+      // Cross-Hatched Machining Micro-Scratches (+32 deg / -58 deg)
+      bCtx.lineCap = 'round';
+      const scratchCount = Math.floor(16 + crackFactor * 38);
+      for (let i = 0; i < scratchCount; i++) {
+        const sx = rand() * size, sy = rand() * size;
+        const ang = (i % 2 === 0 ? 0.56 : -1.01) + (rand() - 0.5) * 0.18;
+        const len = 10 + rand() * 24;
+        const ex = sx + Math.cos(ang) * len;
+        const ey = sy + Math.sin(ang) * len;
+        bCtx.strokeStyle = `rgba(22,22,22,${0.20 + crackFactor * 0.25})`;
+        bCtx.lineWidth = 0.8;
+        bCtx.beginPath(); bCtx.moveTo(sx, sy); bCtx.lineTo(ex, ey); bCtx.stroke();
+      }
+
+      // mrdoob/harmony Proximity-History Branching Stress-Fracture Web
+      const harmonyHistory = [];
+      const maxDist = 24;
+      const maxDistSq = maxDist * maxDist;
+      const walkerCount = Math.floor(3 + crackFactor * 10);
+      const stepsPerWalker = Math.floor(14 + crackFactor * 24);
+
+      for (let w = 0; w < walkerCount; w++) {
+        let cx = rand() * size, cy = rand() * size;
+        let dir = rand() * Math.PI * 2;
+        for (let s = 0; s < stepsPerWalker; s++) {
+          dir += (rand() - 0.5) * 1.15;
+          const stepLen = 4.5 + rand() * 7.5;
+          const nx = Math.max(2, Math.min(size - 2, cx + Math.cos(dir) * stepLen));
+          const ny = Math.max(2, Math.min(size - 2, cy + Math.sin(dir) * stepLen));
+          const ctrlX = (cx + nx) * 0.5 + (rand() - 0.5) * 4.5;
+          const ctrlY = (cy + ny) * 0.5 + (rand() - 0.5) * 4.5;
+
+          bCtx.strokeStyle = `rgba(12,12,12,${0.45 + crackFactor * 0.45})`;
+          bCtx.lineWidth = 1.2 + (1 - s / stepsPerWalker) * 0.85;
+          bCtx.beginPath();
+          bCtx.moveTo(cx, cy);
+          bCtx.quadraticCurveTo(ctrlX, ctrlY, nx, ny);
+          bCtx.stroke();
+
+          for (let h = 0; h < harmonyHistory.length; h++) {
+            const hp = harmonyHistory[h];
+            const dx = nx - hp.x, dy = ny - hp.y;
+            const dSq = dx * dx + dy * dy;
+            if (dSq > 5 && dSq < maxDistSq) {
+              const proxAlpha = (1.0 - dSq / maxDistSq) * 0.38 * crackFactor;
+              bCtx.strokeStyle = `rgba(18,18,18,${proxAlpha.toFixed(3)})`;
+              bCtx.lineWidth = 0.65;
+              bCtx.beginPath();
+              bCtx.moveTo(nx, ny);
+              bCtx.lineTo(hp.x, hp.y);
+              bCtx.stroke();
+            }
+          }
+          harmonyHistory.push({ x: nx, y: ny });
+          cx = nx; cy = ny;
+        }
+      }
+
+      const { normCanvas, normalTex } = computeSobelNormalTexture(bumpCanvas, 3.4);
+      const bumpTex = new THREE.CanvasTexture(bumpCanvas);
+      bumpTex.wrapS = THREE.RepeatWrapping; bumpTex.wrapT = THREE.RepeatWrapping; bumpTex.repeat.set(2, 2);
+      normalTex.wrapS = THREE.RepeatWrapping; normalTex.wrapT = THREE.RepeatWrapping; normalTex.repeat.set(2, 2);
+      // v6.0 Specular Micro-Roughness & Cavity Occlusion Map (shiny raised welds/rivets, matte cracks)
+      const roughCanvas = document.createElement('canvas');
+      roughCanvas.width = size; roughCanvas.height = size;
+      const rCtx = roughCanvas.getContext('2d');
+      const bPixels = bumpCanvas.getContext('2d').getImageData(0, 0, size, size).data;
+      const rImg = rCtx.createImageData(size, size);
+      const rData = rImg.data;
+      for (let i = 0; i < size * size; i++) {
+        const hVal = bPixels[i * 4] / 255.0;
+        // Invert height: raised weld beads & rivets (h>0.72) -> smooth shiny (low roughness ~55), cracks (h<0.45) -> matte oxidized (~238)
+        const rough = Math.max(38, Math.min(246, Math.round((1.08 - hVal * 0.86) * 235)));
+        rData[i * 4] = rough;
+        rData[i * 4 + 1] = rough;
+        rData[i * 4 + 2] = rough;
+        rData[i * 4 + 3] = 255;
+      }
+      rCtx.putImageData(rImg, 0, 0);
+      const roughnessTex = new THREE.CanvasTexture(roughCanvas);
+      roughnessTex.wrapS = THREE.RepeatWrapping; roughnessTex.wrapT = THREE.RepeatWrapping; roughnessTex.repeat.set(2, 2);
+      const entry = { bumpCanvas, normCanvas, roughCanvas, bumpTex, normalTex, roughnessTex };
+      pbrMapCache[key] = entry;
+      return entry;
+    }
+
+    function exportPBRTexturePack(prefix, kind, crackPct) {
+      const maps = generatePBRMaps(kind, crackPct);
+      maps.bumpCanvas.toBlob((blob) => {
+        if (blob) downloadBlob(blob, `${prefix}_${kind}_bump_cracks_height.png`);
+      });
+      setTimeout(() => {
+        maps.normCanvas.toBlob((blob) => {
+          if (blob) downloadBlob(blob, `${prefix}_${kind}_normal_map_rgb.png`);
+        });
+      }, 220);
+      setTimeout(() => {
+        if (maps.roughCanvas) maps.roughCanvas.toBlob((blob) => {
+          if (blob) downloadBlob(blob, `${prefix}_${kind}_roughness_cavity.png`);
+        });
+      }, 440);
+    }
+
+    function getMaterials() {
+      const wf = state.wireframe;
+      const wear = state.weathering / 100;
+      const finishMap = {
+        'wrought-iron':   { color: 0x282d3a, metalness: 0.80, roughness: 0.38 },
+        'orichalcum':     { color: 0xd4af37, metalness: 0.90, roughness: 0.22 },
+        'titanium':       { color: 0x475569, metalness: 0.86, roughness: 0.25 },
+        'crimson-plate':  { color: 0x581c24, metalness: 0.78, roughness: 0.36 }
+      };
+      const f = finishMap[state.armorFinish] || finishMap['wrought-iron'];
+      const glowHex = GLOW_MAP[state.glowColor] || 0xc084fc;
+
+      const armorPBR = generatePBRMaps('armor', state.crackDensity);
+      const stonePBR = generatePBRMaps('stone', state.crackDensity);
+      const nScale = new THREE.Vector2(state.bumpScale * 2.5, state.bumpScale * 2.5);
+      return {
+        hullArmor: new THREE.MeshStandardMaterial({
+          color: f.color,
+          metalness: Math.max(0.25, f.metalness - wear * 0.22),
+          roughness: Math.min(0.88, f.roughness + wear * 0.32),
+          bumpMap: armorPBR.bumpTex,
+          bumpScale: state.bumpScale,
+          normalMap: armorPBR.normalTex, roughnessMap: armorPBR.roughnessTex,
+          normalScale: nScale,
+          envMapIntensity: 1.55,
+          wireframe: wf
+        }),
+        darkChassis: new THREE.MeshStandardMaterial({
+          color: 0x151922,
+          metalness: 0.82,
+          roughness: 0.36,
+          bumpMap: armorPBR.bumpTex,
+          bumpScale: state.bumpScale * 0.6,
+          normalMap: armorPBR.normalTex, roughnessMap: armorPBR.roughnessTex,
+          normalScale: nScale,
+          envMapIntensity: 1.45,
+          wireframe: wf
+        }),
+        interiorFloor: new THREE.MeshStandardMaterial({
+          color: 0x222734,
+          roughness: 0.42,
+          metalness: 0.35,
+          bumpMap: armorPBR.bumpTex,
+          bumpScale: state.bumpScale * 0.4,
+          normalMap: armorPBR.normalTex, roughnessMap: armorPBR.roughnessTex,
+          normalScale: nScale,
+          envMapIntensity: 1.25,
+          wireframe: wf
+        }),
+        brassTrim: new THREE.MeshStandardMaterial({
+          color: 0xd4a349,
+          metalness: 0.94,
+          roughness: 0.18,
+          bumpMap: armorPBR.bumpTex,
+          bumpScale: state.bumpScale * 0.35,
+          normalMap: armorPBR.normalTex, roughnessMap: armorPBR.roughnessTex,
+          normalScale: nScale,
+          envMapIntensity: 1.85,
+          wireframe: wf
+        }),
+        seatCushion: new THREE.MeshStandardMaterial({
+          color: 0x4c1d95,
+          roughness: 0.55,
+          metalness: 0.1,
+          wireframe: wf
+        }),
+        glass: new THREE.MeshPhysicalMaterial({
+          color: 0xbae6fd,
+          transparent: true,
+          opacity: 0.30,
+          roughness: 0.06,
+          metalness: 0.1,
+          transmission: 0.65,
+          wireframe: wf
+        }),
+        glowCore: new THREE.MeshStandardMaterial({
+          color: glowHex,
+          emissive: glowHex,
+          emissiveIntensity: 2.4,
+          roughness: 0.15,
+          wireframe: wf
+        }),
+        crystalOre: new THREE.MeshStandardMaterial({
+          color: glowHex,
+          emissive: glowHex,
+          emissiveIntensity: 1.65,
+          roughness: 0.12,
+          metalness: 0.3,
+          wireframe: wf
+        }),
+        vrmAvatar: new THREE.MeshStandardMaterial({
+          color: 0x38bdf8,
+          emissive: 0x0284c7,
+          emissiveIntensity: 0.4,
+          roughness: 0.3,
+          wireframe: wf
+        }),
+        stationStone: new THREE.MeshStandardMaterial({
+          color: 0x1e2330,
+          roughness: 0.75,
+          metalness: 0.15,
+          bumpMap: stonePBR.bumpTex,
+          bumpScale: state.bumpScale * 1.2,
+          normalMap: stonePBR.normalTex, roughnessMap: stonePBR.roughnessTex,
+          wireframe: wf
+        })
+      };
+    }
+
+    function clearGroup(group) {
+      while (group.children.length > 0) {
+        const c = group.children[0];
+        group.remove(c);
+        if (c.geometry) c.geometry.dispose();
+      }
+    }
+
+    function buildVrmScaleAvatar(mats) {
+      const av = new THREE.Group();
+      av.name = 'VRM_170cm_Avatar_Reference';
+      const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.18, 0.58, 8, 12), mats.vrmAvatar);
+      torso.position.y = 1.05;
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 14, 14), mats.vrmAvatar);
+      head.position.y = 1.56;
+      for (const s of [-0.10, 0.10]) {
+        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.055, 0.76, 8), mats.vrmAvatar);
+        leg.position.set(s, 0.38, 0);
+        av.add(leg);
+      }
+      av.add(torso, head);
+      return av;
+    }
+
+    function buildWalkthroughBulkhead(W, H, zPos, mats) {
+      const bh = new THREE.Group();
+      const doorW = 1.25;
+      const doorH = 2.20;
+      const sideW = Math.max(0.2, (W - doorW) / 2);
+
+      for (const s of [-1, 1]) {
+        const pillar = new THREE.Mesh(new THREE.BoxGeometry(sideW, H, 0.12), mats.hullArmor);
+        pillar.position.set(s * (doorW / 2 + sideW / 2), H / 2, zPos);
+        bh.add(pillar);
+      }
+      const header = new THREE.Mesh(new THREE.BoxGeometry(doorW, H - doorH, 0.12), mats.hullArmor);
+      header.position.set(0, doorH + (H - doorH) / 2, zPos);
+
+      const frameL = new THREE.Mesh(new THREE.BoxGeometry(0.08, doorH, 0.16), mats.brassTrim);
+      frameL.position.set(-doorW / 2, doorH / 2, zPos);
+      const frameR = frameL.clone();
+      frameR.position.x = doorW / 2;
+      const frameTop = new THREE.Mesh(new THREE.BoxGeometry(doorW + 0.16, 0.08, 0.16), mats.brassTrim);
+      frameTop.position.set(0, doorH, zPos);
+
+      bh.add(header, frameL, frameR, frameTop);
+      return bh;
+    }
+
+    function buildInterCarGangway(gapLen, mats) {
+      const gw = new THREE.Group();
+      gw.name = 'Walkable_InterCar_Gangway';
+      const gangwayW = 1.45;
+      const gangwayH = 2.32;
+
+      const walkPlate = new THREE.Mesh(new THREE.BoxGeometry(gangwayW, 0.10, gapLen + 0.24), mats.brassTrim);
+      walkPlate.position.set(0, 0.26, 0);
+      gw.add(walkPlate);
+
+      for (const s of [-1, 1]) {
+        const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, gapLen + 0.15, 8), mats.brassTrim);
+        rail.rotation.x = Math.PI / 2;
+        rail.position.set(s * (gangwayW * 0.45), 1.15, 0);
+        gw.add(rail);
+      }
+
+      if (state.gangwayStyle === 'accordion-bellows') {
+        const folds = 5;
+        const step = gapLen / folds;
+        for (let i = 0; i < folds; i++) {
+          const fz = -gapLen / 2 + (i + 0.5) * step;
+          for (const s of [-1, 1]) {
+            const sideRib = new THREE.Mesh(new THREE.BoxGeometry(0.12, gangwayH, step * 0.78), mats.darkChassis);
+            sideRib.position.set(s * (gangwayW / 2 + 0.05), 0.25 + gangwayH / 2, fz);
+            gw.add(sideRib);
+          }
+          if (!state.cutawayHull) {
+            const topRib = new THREE.Mesh(new THREE.BoxGeometry(gangwayW + 0.2, 0.12, step * 0.78), mats.darkChassis);
+            topRib.position.set(0, 0.25 + gangwayH, fz);
+            gw.add(topRib);
+          }
+        }
+      } else if (state.gangwayStyle === 'pressurized-tube') {
+        for (const s of [-1, 1]) {
+          const wall = new THREE.Mesh(new THREE.BoxGeometry(0.14, gangwayH, gapLen), mats.hullArmor);
+          wall.position.set(s * (gangwayW / 2 + 0.06), 0.25 + gangwayH / 2, 0);
+          gw.add(wall);
+        }
+      }
+
+      return gw;
+    }
+
+    function buildSideWallWithElevatorDoorAndWindows(carLen, H, xSideSign, mats) {
+      const sideGroup = new THREE.Group();
+      const xPos = xSideSign * (state.carWidth / 2);
+      const wallThick = 0.09;
+      const doorClearW = 1.40;
+      const doorClearH = 2.25;
+      const openRatio = state.doorOpen / 100;
+
+      const wingLen = (carLen - doorClearW) / 2;
+      const dadoH = state.windowStyle === 'armored-slit' ? H * 0.58 : 0.95;
+      const winH = state.windowStyle === 'armored-slit' ? 0.42 : 1.05;
+      const headerH = H - dadoH - winH;
+
+      for (const zDir of [-1, 1]) {
+        const wingCenterZ = zDir * (doorClearW / 2 + wingLen / 2);
+        const dado = new THREE.Mesh(new THREE.BoxGeometry(wallThick, dadoH, wingLen), mats.hullArmor);
+        dado.position.set(xPos, 0.25 + dadoH / 2, wingCenterZ);
+        sideGroup.add(dado);
+
+        const frieze = new THREE.Mesh(new THREE.BoxGeometry(wallThick, headerH, wingLen), mats.hullArmor);
+        frieze.position.set(xPos, 0.25 + dadoH + winH + headerH / 2, wingCenterZ);
+        sideGroup.add(frieze);
+
+        const glassPane = new THREE.Mesh(new THREE.BoxGeometry(0.025, winH, wingLen - 0.16), mats.glass);
+        glassPane.position.set(xPos, 0.25 + dadoH + winH / 2, wingCenterZ);
+        sideGroup.add(glassPane);
+
+        for (let m = -1; m <= 1; m++) {
+          const post = new THREE.Mesh(new THREE.BoxGeometry(wallThick + 0.03, winH + 0.06, 0.12), mats.brassTrim);
+          post.position.set(xPos, 0.25 + dadoH + winH / 2, wingCenterZ + m * (wingLen * 0.42));
+          sideGroup.add(post);
+        }
+      }
+
+      const doorHeaderH = H - doorClearH;
+      const doorTransom = new THREE.Mesh(new THREE.BoxGeometry(wallThick, doorHeaderH, doorClearW), mats.hullArmor);
+      doorTransom.position.set(xPos, 0.25 + doorClearH + doorHeaderH / 2, 0);
+
+      const sill = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.05, doorClearW + 0.12), mats.brassTrim);
+      sill.position.set(xPos, 0.26, 0);
+      sideGroup.add(doorTransom, sill);
+
+      const leafW = doorClearW / 2 + 0.02;
+      for (const leafDir of [-1, 1]) {
+        const closedZ = leafDir * (doorClearW / 4);
+        const openZ = leafDir * (doorClearW / 4 + (doorClearW / 2) * 0.92);
+        const curZ = THREE.MathUtils.lerp(closedZ, openZ, openRatio);
+
+        const leafGroup = new THREE.Group();
+        leafGroup.position.set(xPos + xSideSign * 0.05, 0.25 + doorClearH / 2, curZ);
+
+        if (state.doorStyle === 'portcullis') {
+          const topBar = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.10, leafW), mats.brassTrim);
+          topBar.position.y = doorClearH / 2 - 0.05;
+          leafGroup.add(topBar);
+          for (let b = -2; b <= 2; b++) {
+            const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, doorClearH, 8), mats.brassTrim);
+            bar.position.z = b * (leafW * 0.2);
+            leafGroup.add(bar);
+          }
+        } else {
+          const frame = new THREE.Mesh(new THREE.BoxGeometry(0.045, doorClearH, leafW), mats.brassTrim);
+          const visionGlass = new THREE.Mesh(new THREE.BoxGeometry(0.055, doorClearH * 0.52, leafW * 0.68), mats.glass);
+          visionGlass.position.y = doorClearH * 0.12;
+          leafGroup.add(frame, visionGlass);
+        }
+
+        leafGroup.traverse((c) => {
+          if (c.isMesh) {
+            c.userData.action = 'toggleDoors';
+            clickableMeshes.push(c);
+          }
+        });
+        sideGroup.add(leafGroup);
+      }
+
+      return sideGroup;
+    }
+
+    function buildParametricSeats(carLen, W, mats) {
+      const seatsGroup = new THREE.Group();
+      seatsGroup.name = 'Parametric_VRM_Seats';
+      const rows = state.seatRows;
+      const usableZ = carLen - 1.6;
+
+      if (state.seatLayout === 'transverse-bays') {
+        for (let r = 0; r < rows; r++) {
+          const rz = -usableZ / 2 + (r / Math.max(1, rows - 1)) * usableZ;
+          if (Math.abs(rz) < 0.75) continue;
+          for (const side of [-1, 1]) {
+            const sx = side * (W * 0.31);
+            const base = new THREE.Mesh(new THREE.BoxGeometry(0.76, 0.42, 0.55), mats.darkChassis);
+            base.position.set(sx, 0.46, rz);
+            const cushion = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.10, 0.58), mats.seatCushion);
+            cushion.position.set(sx, 0.70, rz);
+            const backrest = new THREE.Mesh(new THREE.BoxGeometry(0.76, 0.68, 0.12), mats.seatCushion);
+            backrest.position.set(sx, 1.05, rz - 0.24);
+            const headrest = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.16, 0.14), mats.brassTrim);
+            headrest.position.set(sx, 1.42, rz - 0.24);
+            seatsGroup.add(base, cushion, backrest, headrest);
+          }
+        }
+      } else if (state.seatLayout === 'longitudinal-bench') {
+        for (const zHalf of [-1, 1]) {
+          const benchLen = (carLen - 2.2) / 2;
+          const bz = zHalf * (0.9 + benchLen / 2);
+          for (const side of [-1, 1]) {
+            const sx = side * (W / 2 - 0.36);
+            const bench = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.45, benchLen), mats.seatCushion);
+            bench.position.set(sx, 0.48, bz);
+            const back = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.62, benchLen), mats.brassTrim);
+            back.position.set(side * (W / 2 - 0.14), 0.95, bz);
+            seatsGroup.add(bench, back);
+          }
+        }
+      } else if (state.seatLayout === 'parlor-booths') {
+        for (const zHalf of [-1, 1]) {
+          const bz = zHalf * (carLen * 0.28);
+          for (const side of [-1, 1]) {
+            const sx = side * (W * 0.30);
+            const table = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.06, 0.65), mats.brassTrim);
+            table.position.set(sx, 0.98, bz);
+            const post = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 0.72, 8), mats.darkChassis);
+            post.position.set(sx, 0.62, bz);
+            seatsGroup.add(table, post);
+            for (const dir of [-0.58, 0.58]) {
+              const booth = new THREE.Mesh(new THREE.BoxGeometry(0.76, 0.95, 0.42), mats.seatCushion);
+              booth.position.set(sx, 0.72, bz + dir);
+              seatsGroup.add(booth);
+            }
+          }
+        }
+      }
+
+      return seatsGroup;
+    }
+
+    function buildSuspensionHanger(zCenter, length, mats) {
+      const hanger = new THREE.Group();
+      const W = state.carWidth;
+      const H = state.carHeight;
+
+      if (state.suspensionMode === 'overhead-chain' || state.suspensionMode === 'dual-rig') {
+        for (const zOff of [-length * 0.32, length * 0.32]) {
+          // Overhead gantry arch so open-top Crystal Hoppers and Turret Cars still hang cleanly from the monorail!
+          for (const s of [-1, 1]) {
+            const sidePost = new THREE.Mesh(new THREE.BoxGeometry(0.14, H + 0.35, 0.24), mats.brassTrim);
+            sidePost.position.set(s * (W / 2 + 0.04), (H + 0.35) / 2, zCenter + zOff);
+            hanger.add(sidePost);
+          }
+          const yoke = new THREE.Mesh(new THREE.BoxGeometry(W + 0.22, 0.28, 0.45), mats.brassTrim);
+          yoke.position.set(0, H + 0.55, zCenter + zOff);
+          const strut = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.6, 12), mats.darkChassis);
+          strut.position.set(0, H + 0.35, zCenter + zOff);
+          hanger.add(yoke, strut);
+
+          if (state.schwebebahnBogies) {
+            const cHookVert = new THREE.Mesh(new THREE.BoxGeometry(0.22, 1.15, 0.95), mats.brassTrim);
+            cHookVert.position.set(0.62, H + 1.05, zCenter + zOff);
+            const cHookTop = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.22, 1.15), mats.brassTrim);
+            cHookTop.position.set(0.28, H + 1.52, zCenter + zOff);
+            hanger.add(cHookVert, cHookTop);
+
+            for (const wOff of [-0.36, 0.36]) {
+              const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.18, 16), mats.glowCore);
+              wheel.rotation.z = Math.PI / 2;
+              wheel.position.set(0, H + 1.32, zCenter + zOff + wOff);
+              spinningNodes.push({ mesh: wheel, axis: 'x', speed: 5.5 });
+              hanger.add(wheel);
+            }
+          }
+        }
+      }
+      // Roof-Mounted Diamond Pantograph Current Collector with Ribbed Ceramic Standoff Insulators & Horned Collector Head
+      if (state.suspensionMode === 'overhead-chain' || state.suspensionMode === 'dual-rig') {
+        const pantoGroup = new THREE.Group();
+        pantoGroup.position.set(0, H + 0.32, zCenter);
+        for (const ix of [-0.42, 0.42]) {
+          for (const iz of [-0.28, 0.28]) {
+            const insulator = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.065, 0.18, 12), mats.glowCore);
+            insulator.position.set(ix, 0.09, iz);
+            pantoGroup.add(insulator);
+          }
+          // Articulated Diamond Scissor Arms
+          const lowerArm = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.52, 8), mats.brassTrim);
+          lowerArm.position.set(ix * 0.75, 0.28, -0.18);
+          lowerArm.rotation.x = 0.52;
+          const upperArm = new THREE.Mesh(new THREE.CylinderGeometry(0.020, 0.020, 0.52, 8), mats.brassTrim);
+          upperArm.position.set(ix * 0.75, 0.28, 0.18);
+          upperArm.rotation.x = -0.52;
+          pantoGroup.add(lowerArm, upperArm);
+        }
+        // Dual Carbon Contact Collector Strips with Curved Aerodynamic End-Horns
+        for (const cz of [-0.10, 0.10]) {
+          const strip = new THREE.Mesh(new THREE.BoxGeometry(1.18, 0.035, 0.055), mats.brassTrim);
+          strip.position.set(0, 0.52, cz);
+          pantoGroup.add(strip);
+        }
+        hanger.add(pantoGroup);
+      }
+
+      // Two-Stage Bolster Bogie with Flanged Wheelsets, Primary/Secondary Helical Coil Springs & Hydraulic Anti-Yaw Dampers
+      if (state.suspensionMode === 'bottom-monorail' || state.suspensionMode === 'dual-rig') {
+        for (const zOff of [-length * 0.32, length * 0.32]) {
+          const bogieGroup = new THREE.Group();
+          bogieGroup.position.set(0, -0.35, zCenter + zOff);
+
+          const bogieFrame = new THREE.Mesh(new THREE.BoxGeometry(W * 0.74, 0.28, 1.35), mats.darkChassis);
+          bogieGroup.add(bogieFrame);
+
+          // Secondary Bolster Beam & Helical Coil Springs
+          const bolster = new THREE.Mesh(new THREE.BoxGeometry(W * 0.82, 0.14, 0.36), mats.brassTrim);
+          bolster.position.y = 0.16;
+          bogieGroup.add(bolster);
+
+          for (const sx of [-W * 0.34, W * 0.34]) {
+            // Hydraulic Anti-Yaw Damper Cylinder along bogie side-frame
+            const yawDamper = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.78, 10), mats.brassTrim);
+            yawDamper.rotation.x = Math.PI / 2;
+            yawDamper.position.set(sx * 1.08, 0.12, 0);
+            bogieGroup.add(yawDamper);
+
+            // Primary Helical Coil Spring Stacks over Axle-Box Journals
+            for (const wz of [-0.42, 0.42]) {
+              for (let c = 0; c < 3; c++) {
+                const coil = new THREE.Mesh(new THREE.TorusGeometry(0.065, 0.018, 8, 14), mats.brassTrim);
+                coil.rotation.x = Math.PI / 2;
+                coil.position.set(sx, -0.04 + c * 0.045, wz);
+                bogieGroup.add(coil);
+              }
+            }
+          }
+
+          // Twin Rotating Flanged Steel Wheelsets
+          for (const wz of [-0.42, 0.42]) {
+            const wheelset = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, W * 0.78, 16), mats.brassTrim);
+            wheelset.rotation.z = Math.PI / 2;
+            wheelset.position.set(0, -0.14, wz);
+            spinningNodes.push({ mesh: wheelset, axis: 'x', speed: 5.5 });
+            bogieGroup.add(wheelset);
+          }
+
+          hanger.add(bogieGroup);
+        }
+      }
+      return hanger;
+    }
+
+    function buildLocomotive(mats) {
+      const loco = new THREE.Group();
+      loco.name = 'Walkable_Void_Locomotive_Cab';
+      const L = state.locoLength;
+      const W = state.carWidth;
+      const H = state.carHeight;
+
+      const baseDeck = new THREE.Mesh(new THREE.BoxGeometry(W + 0.16, 0.26, L), mats.darkChassis);
+      baseDeck.position.set(0, 0.13, 0);
+      const cabFloor = new THREE.Mesh(new THREE.BoxGeometry(W - 0.1, 0.04, L - 0.2), mats.interiorFloor);
+      cabFloor.position.set(0, 0.26, 0);
+      loco.add(baseDeck, cabFloor);
+
+      loco.add(buildWalkthroughBulkhead(W, H, -L / 2 + 0.08, mats));
+      loco.add(buildSideWallWithElevatorDoorAndWindows(L * 0.86, H, -1, mats));
+
+      if (!state.cutawayHull) {
+        loco.add(buildSideWallWithElevatorDoorAndWindows(L * 0.86, H, 1, mats));
+        const roof = new THREE.Mesh(new THREE.BoxGeometry(W + 0.1, 0.14, L * 0.9), mats.hullArmor);
+        roof.position.set(0, H + 0.25, -L * 0.03);
+        loco.add(roof);
+      }
+
+      const frontZ = L * 0.42;
+      const lowerFront = new THREE.Mesh(new THREE.BoxGeometry(W, 1.15, 0.18), mats.hullArmor);
+      lowerFront.position.set(0, 0.25 + 0.575, frontZ);
+      const windshieldGlass = new THREE.Mesh(new THREE.BoxGeometry(W * 0.86, 0.95, 0.06), mats.glass);
+      windshieldGlass.position.set(0, 0.25 + 1.62, frontZ);
+      const upperBrow = new THREE.Mesh(new THREE.BoxGeometry(W, H - 2.1, 0.22), mats.hullArmor);
+      upperBrow.position.set(0, 0.25 + 2.1 + (H - 2.1) / 2, frontZ);
+      loco.add(lowerFront, windshieldGlass, upperBrow);
+
+      // Slotted Wedge Cowcatcher / Deflector Plow & Twin High-Intensity Headlight Pods
+      const plow = new THREE.Mesh(new THREE.ConeGeometry(W * 0.52, 0.65, 4), mats.brassTrim);
+      plow.rotation.x = Math.PI / 2;
+      plow.rotation.z = Math.PI / 4;
+      plow.scale.set(1.0, 1.0, 0.42);
+      plow.position.set(0, 0.24, frontZ + 0.28);
+      loco.add(plow);
+
+      for (const hx of [-W * 0.32, W * 0.32]) {
+        const lampHousing = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.16, 0.16, 16), mats.brassTrim);
+        lampHousing.rotation.x = Math.PI / 2;
+        lampHousing.position.set(hx, 0.95, frontZ + 0.10);
+        const lampLens = new THREE.Mesh(new THREE.CircleGeometry(0.12, 16), mats.glowCore);
+        lampLens.position.set(hx, 0.95, frontZ + 0.185);
+        loco.add(lampHousing, lampLens);
+      }
+
+      // v5.5 Bezeled Stamped Bezier Vector Industrial Nameplate on Locomotive Nose
+      const plaqueTex = createStampedPlateTexture(
+        'VOIDTRAIN_MK5',
+        `${state.carCount + 1} CARS • ${state.suspensionMode.toUpperCase()}`,
+        '#38bdf8'
+      );
+      const plaqueBezel = new THREE.Mesh(new THREE.BoxGeometry(0.76, 0.20, 0.04), mats.brassTrim);
+      plaqueBezel.position.set(0, 0.56, frontZ + 0.10);
+      const plaqueMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.72, 0.17), plaqueTex.createMaterial());
+      plaqueMesh.position.set(0, 0.56, frontZ + 0.122);
+      plaqueMesh.name = 'Stamped_Bezier_Nameplate';
+      loco.add(plaqueBezel, plaqueMesh);
+
+      const consoleZ = frontZ - 0.55;
+      const desk = new THREE.Mesh(new THREE.BoxGeometry(W * 0.76, 0.88, 0.62), mats.darkChassis);
+      desk.position.set(0, 0.25 + 0.44, consoleZ);
+      const slopedTop = new THREE.Mesh(new THREE.BoxGeometry(W * 0.74, 0.12, 0.58), mats.brassTrim);
+      slopedTop.position.set(0, 0.25 + 0.92, consoleZ - 0.02);
+      slopedTop.rotation.x = -0.32;
+      loco.add(desk, slopedTop);
+
+      const throttleShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.34, 8), mats.brassTrim);
+      throttleShaft.position.set(-0.55, 0.25 + 1.08, consoleZ - 0.05);
+      throttleShaft.rotation.x = state.patrolMode ? 0.35 : -0.25;
+      const throttleGrip = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.18, 10), mats.glowCore);
+      throttleGrip.rotation.z = Math.PI / 2;
+      throttleGrip.position.set(-0.55, 0.25 + 1.24, consoleZ - 0.05);
+      loco.add(throttleShaft, throttleGrip);
+
+      const btnSizeM = (state.cabBtnSize || 44) / 1000;
+      state.cabButtons.forEach((bSpec, bIdx) => {
+        const bx = (bIdx - 2.5) * (btnSizeM * 2.35) + 0.15;
+        const by = 0.25 + 0.99;
+        const bz = consoleZ - 0.04;
+        const tex = createButtonLabelTexture(bSpec.label, '#c084fc');
+        const btnMat = new THREE.MeshStandardMaterial({
+          map: tex,
+          emissive: 0xc084fc,
+          emissiveMap: tex,
+          emissiveIntensity: bIdx === state.selectedCabBtnIdx ? 1.8 : 0.9
+        });
+
+        let btnMesh;
+        if (bSpec.shape === 'square') {
+          btnMesh = new THREE.Mesh(new THREE.BoxGeometry(btnSizeM * 1.4, 0.05, btnSizeM * 1.4), btnMat);
+        } else if (bSpec.shape === 'octagon') {
+          btnMesh = new THREE.Mesh(new THREE.CylinderGeometry(btnSizeM * 0.85, btnSizeM * 0.95, 0.055, 8), btnMat);
+        } else if (bSpec.shape === 'mushroom') {
+          btnMesh = new THREE.Mesh(new THREE.CylinderGeometry(btnSizeM * 1.1, btnSizeM * 0.7, 0.075, 16), btnMat);
+        } else {
+          btnMesh = new THREE.Mesh(new THREE.CylinderGeometry(btnSizeM * 0.85, btnSizeM * 0.95, 0.05, 18), btnMat);
+        }
+        btnMesh.position.set(bx, by, bz);
+        btnMesh.rotation.x = -0.32;
+        btnMesh.userData.cabBtnIndex = bIdx;
+        clickableMeshes.push(btnMesh);
+        loco.add(btnMesh);
+      });
+
+      const helmSeat = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.95, 0.55), mats.seatCushion);
+      helmSeat.position.set(0, 0.25 + 0.48, consoleZ - 0.82);
+      loco.add(helmSeat);
+
+      if (state.showVrmDummy) {
+        const driverVrm = buildVrmScaleAvatar(mats);
+        driverVrm.position.set(0.68, 0.26, consoleZ - 0.65);
+        loco.add(driverVrm);
+      }
+
+      const prowZ = L / 2;
+      if (state.prowStyle === 'cowcatcher') {
+        const plow = new THREE.Mesh(new THREE.ConeGeometry(W * 0.58, 1.8, 4), mats.brassTrim);
+        plow.rotation.x = Math.PI / 2;
+        plow.rotation.z = Math.PI / 4;
+        plow.position.set(0, 0.75, prowZ + 0.75);
+        loco.add(plow);
+      } else if (state.prowStyle === 'drill') {
+        const drill = new THREE.Mesh(new THREE.ConeGeometry(W * 0.44, 2.2, 16), mats.brassTrim);
+        drill.rotation.x = Math.PI / 2;
+        drill.position.set(0, 0.95, prowZ + 1.0);
+        spinningNodes.push({ mesh: drill, axis: 'z', speed: 4.5 });
+        loco.add(drill);
+      } else if (state.prowStyle === 'arcane-split') {
+        for (const s of [-1, 1]) {
+          const prong = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.95, 1.9), mats.brassTrim);
+          prong.position.set(s * (W * 0.34), 0.75, prowZ + 0.8);
+          loco.add(prong);
+        }
+      } else {
+        const shield = new THREE.Mesh(new THREE.BoxGeometry(W * 1.04, 1.35, 0.42), mats.brassTrim);
+        shield.position.set(0, 0.85, prowZ + 0.15);
+        loco.add(shield);
+      }
+
+      if (state.reactorStyle === 'void-furnace') {
+        const coreRing = new THREE.Mesh(new THREE.TorusGeometry(0.65, 0.11, 12, 24), mats.glowCore);
+        coreRing.rotation.x = Math.PI / 2;
+        coreRing.position.set(0, H + 0.55, 0);
+        spinningNodes.push({ mesh: coreRing, axis: 'z', speed: 2.2 });
+        loco.add(coreRing);
+      } else if (state.reactorStyle === 'tesla-coils') {
+        for (let c = 0; c < 2; c++) {
+          const coil = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.09, 10, 20), mats.glowCore);
+          coil.rotation.x = Math.PI / 2;
+          coil.position.set(0, H + 0.45 + c * 0.30, 0);
+          loco.add(coil);
+        }
+      } else {
+        for (let s = 0; s < 2; s++) {
+          const stack = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.34, 0.95, 12), mats.darkChassis);
+          stack.position.set(0, H + 0.55, -0.4 + s * 0.85);
+          loco.add(stack);
+        }
+      }
+
+      loco.add(buildSuspensionHanger(0, L, mats));
+      return loco;
+    }
+
+    // Build Distinct Modular Car Architectures (Crystal Ore Hopper, Flak Turret Car, Prison Cage Car, or Passenger Coach)
+    function buildModularCar(carIdx, carType, mats) {
+      const car = new THREE.Group();
+      car.name = `Modular_Car_${carIdx}_${carType}`;
+      const L = state.carLength;
+      const W = state.carWidth;
+      const H = state.carHeight;
+
+      const chassis = new THREE.Mesh(new THREE.BoxGeometry(W + 0.12, 0.25, L), mats.darkChassis);
+      chassis.position.set(0, 0.125, 0);
+      const finishFloor = new THREE.Mesh(new THREE.BoxGeometry(W - 0.08, 0.04, L - 0.1), mats.interiorFloor);
+      finishFloor.position.set(0, 0.25, 0);
+      car.add(chassis, finishFloor);
+
+      if (carType === 'crystal') {
+        // DISTINCT ARCHITECTURE 1: Open-Top Ribbed Industrial Crystal Ore Hopper + Central .VRM Catwalk!
+        const hopperH = H * 0.44;
+        for (const s of [-1, 1]) {
+          if (s === 1 && state.cutawayHull) continue;
+          const bulwark = new THREE.Mesh(new THREE.BoxGeometry(0.18, hopperH, L - 0.24), mats.hullArmor);
+          bulwark.position.set(s * (W / 2 - 0.08), 0.25 + hopperH / 2, 0);
+          bulwark.rotation.z = -s * 0.12;
+          car.add(bulwark);
+
+          // Exterior heavy steel hopper ribs
+          for (let r = -2; r <= 2; r++) {
+            const rib = new THREE.Mesh(new THREE.BoxGeometry(0.24, hopperH + 0.12, 0.18), mats.brassTrim);
+            rib.position.set(s * (W / 2 - 0.02), 0.25 + hopperH / 2, r * (L * 0.19));
+            car.add(rib);
+          }
+        }
+
+        // Low End-Hopper Bulkheads with Open .VRM Catwalk Archway
+        for (const zEnd of [-L / 2 + 0.08, L / 2 - 0.08]) {
+          for (const s of [-1, 1]) {
+            const endWall = new THREE.Mesh(new THREE.BoxGeometry((W - 1.25) / 2, hopperH + 0.25, 0.14), mats.hullArmor);
+            endWall.position.set(s * (1.25 / 2 + (W - 1.25) / 4), 0.25 + (hopperH + 0.25) / 2, zEnd);
+            car.add(endWall);
+          }
+        }
+
+        // Central Walkable .VRM Catwalk Grate & Handrails through the Crystal Gondola
+        const catwalk = new THREE.Mesh(new THREE.BoxGeometry(1.18, 0.08, L), mats.brassTrim);
+        catwalk.position.set(0, 0.29, 0);
+        car.add(catwalk);
+        for (const s of [-1, 1]) {
+          const handrail = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, L - 0.3, 8), mats.brassTrim);
+          handrail.rotation.x = Math.PI / 2;
+          handrail.position.set(s * 0.56, 1.12, 0);
+          car.add(handrail);
+        }
+
+        // Raw Mana Crystal Shard Clusters & Ore Boulders in Left & Right Hoppers
+        for (const s of [-1, 1]) {
+          for (let c = -2; c <= 2; c++) {
+            const bz = c * (L * 0.18);
+            const oreRock = new THREE.Mesh(new THREE.DodecahedronGeometry(0.42, 0), mats.darkChassis);
+            oreRock.position.set(s * (W * 0.31), 0.55, bz);
+            const shard1 = new THREE.Mesh(new THREE.OctahedronGeometry(0.36, 0), mats.crystalOre);
+            shard1.scale.set(0.65, 2.3, 0.65);
+            shard1.position.set(s * (W * 0.30), 1.05, bz);
+            shard1.rotation.z = s * 0.28;
+            shard1.rotation.x = (c % 2) * 0.22;
+            car.add(oreRock, shard1);
+          }
+        }
+      } else if (carType === 'turret') {
+        // DISTINCT ARCHITECTURE 2: Low-Profile Sloped Armored Casemate + Rotating Twin Flak Battery
+        const casemateH = H * 0.52;
+        for (const s of [-1, 1]) {
+          if (s === 1 && state.cutawayHull) continue;
+          const armorWall = new THREE.Mesh(new THREE.BoxGeometry(0.22, casemateH, L - 0.2), mats.hullArmor);
+          armorWall.position.set(s * (W / 2 - 0.10), 0.25 + casemateH / 2, 0);
+          car.add(armorWall);
+
+          // Sloped Upper Glacis Armor Plates leaving a walkable central corridor
+          const glacis = new THREE.Mesh(new THREE.BoxGeometry(W * 0.34, 0.14, L - 0.3), mats.brassTrim);
+          glacis.position.set(s * (W * 0.33), 0.25 + casemateH + 0.18, 0);
+          glacis.rotation.z = s * 0.38;
+          car.add(glacis);
+        }
+
+        car.add(buildWalkthroughBulkhead(W, casemateH + 0.55, L / 2 - 0.06, mats));
+        car.add(buildWalkthroughBulkhead(W, casemateH + 0.55, -L / 2 + 0.06, mats));
+
+        // Elevated Twin-Barrel Flak Turret Ring on Bridge Pedestal over the Walkable Aisle
+        const turretBridge = new THREE.Mesh(new THREE.BoxGeometry(W * 0.88, 0.22, 2.4), mats.darkChassis);
+        turretBridge.position.set(0, 2.35, 0);
+        car.add(turretBridge);
+
+        const turretGroup = new THREE.Group();
+        turretGroup.position.set(0, 2.46, 0);
+        turretGroup.rotation.y = THREE.MathUtils.degToRad(state.turretYaw);
+
+        const dome = new THREE.Mesh(new THREE.CylinderGeometry(W * 0.32, W * 0.40, 0.68, 16), mats.brassTrim);
+        dome.position.y = 0.34;
+        turretGroup.add(dome);
+        for (const s of [-0.28, 0.28]) {
+          const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.12, 2.5, 12), mats.darkChassis);
+          barrel.rotation.x = Math.PI / 2;
+          barrel.position.set(s, 0.42, 1.2);
+          const brake = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.22, 0.32), mats.glowCore);
+          brake.position.set(s, 0.42, 2.45);
+          turretGroup.add(barrel, brake);
+        }
+        car.add(turretGroup);
+      } else if (carType === 'prison') {
+        // DISTINCT ARCHITECTURE 3: Forged Iron Barred Prison Cage Car with Cell Partitions & Guard Catwalk
+        car.add(buildWalkthroughBulkhead(W, H, L / 2 - 0.06, mats));
+        car.add(buildWalkthroughBulkhead(W, H, -L / 2 + 0.06, mats));
+
+        const roof = new THREE.Mesh(new THREE.BoxGeometry(W + 0.06, 0.14, L), mats.hullArmor);
+        roof.position.set(0, H + 0.25, 0);
+        car.add(roof);
+
+        const barCount = 16;
+        for (let b = 0; b <= barCount; b++) {
+          const bz = -L * 0.46 + (b / barCount) * (L * 0.92);
+          for (const s of [-1, 1]) {
+            if (s === 1 && state.cutawayHull) continue;
+            const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.038, H, 8), mats.brassTrim);
+            bar.position.set(s * (W / 2 - 0.06), 0.25 + H / 2, bz);
+            car.add(bar);
+          }
+        }
+        // Horizontal Iron Cross-Straps & Hanging Containment Lanterns
+        for (const yStrap of [1.1, 2.2]) {
+          for (const s of [-1, 1]) {
+            if (s === 1 && state.cutawayHull) continue;
+            const strap = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.10, L - 0.2), mats.hullArmor);
+            strap.position.set(s * (W / 2 - 0.06), yStrap, 0);
+            car.add(strap);
+          }
+        }
+        const cageLantern = new THREE.Mesh(new THREE.OctahedronGeometry(0.28, 0), mats.glowCore);
+        cageLantern.position.set(0, H - 0.25, 0);
+        car.add(cageLantern);
+      } else {
+        // ARCHITECTURE 4: Enclosed First-Class Passenger Coach with Elevator Doors, Windows & Parametric Seats
+        car.add(buildWalkthroughBulkhead(W, H, L / 2 - 0.06, mats));
+        car.add(buildWalkthroughBulkhead(W, H, -L / 2 + 0.06, mats));
+        car.add(buildSideWallWithElevatorDoorAndWindows(L, H, -1, mats));
+
+        if (!state.cutawayHull) {
+          car.add(buildSideWallWithElevatorDoorAndWindows(L, H, 1, mats));
+          const roof = new THREE.Mesh(new THREE.BoxGeometry(W + 0.08, 0.12, L), mats.hullArmor);
+          roof.position.set(0, H + 0.25, 0);
+          car.add(roof);
+        }
+        car.add(buildParametricSeats(L, W, mats));
+      }
+
+      if (state.showVrmDummy && carIdx === 1) {
+        const passengerVrm = buildVrmScaleAvatar(mats);
+        passengerVrm.position.set(0, 0.26, 0.2);
+        car.add(passengerVrm);
+      }
+
+      car.add(buildSuspensionHanger(0, L, mats));
+      return car;
+    }
+
+    // Build Track Curves & Turnout Switch Geometry
+    function createTrackCurves() {
+      const span = state.trackSpan;
+      const offset = state.curveOffset;
+      const sw = state.switchState / 100;
+
+      // Straight Main Line Curve
+      const straightPts = [
+        new THREE.Vector3(0, 0, -span / 2 - 4),
+        new THREE.Vector3(0, 0, -10),
+        new THREE.Vector3(0, 0, 2),
+        new THREE.Vector3(0, 0, span / 2 - 2)
+      ];
+
+      // Diverging Curved Branch Line
+      const branchPts = [
+        new THREE.Vector3(0, 0, -span / 2 - 4),
+        new THREE.Vector3(0, 0, -10),
+        new THREE.Vector3(offset * 0.45, 0, 2),
+        new THREE.Vector3(offset, 0, span / 2 - 2)
+      ];
+
+      // Sweeping S-Curve Viaduct
+      const sCurvePts = [
+        new THREE.Vector3(-offset * 0.6, 0, -span / 2 - 4),
+        new THREE.Vector3(-offset * 0.35, 0, -10),
+        new THREE.Vector3(offset * 0.35, 0, 2),
+        new THREE.Vector3(offset * 0.6, 0, span / 2 - 2)
+      ];
+
+      if (state.trackCurveType === 's-curve') {
+        const main = new THREE.CatmullRomCurve3(sCurvePts);
+        return { activeCurve: main, mainCurve: main, branchCurve: null };
+      } else if (state.trackCurveType === 'transfer-table') {
+        const xShift = sw * offset;
+        const shiftedPts = straightPts.map((p) => new THREE.Vector3(p.x + xShift, p.y, p.z));
+        const active = new THREE.CatmullRomCurve3(shiftedPts);
+        const main = new THREE.CatmullRomCurve3(straightPts);
+        const siding = new THREE.CatmullRomCurve3(straightPts.map((p) => new THREE.Vector3(p.x + offset, p.y, p.z)));
+        return { activeCurve: active, mainCurve: main, branchCurve: siding };
+      } else {
+        // Y-Turnout Switch: active train curve interpolates smoothly between Straight Main and Curved Branch!
+        const activePts = straightPts.map((p, i) => p.clone().lerp(branchPts[i], sw));
+        return {
+          activeCurve: new THREE.CatmullRomCurve3(activePts),
+          mainCurve: new THREE.CatmullRomCurve3(straightPts),
+          branchCurve: new THREE.CatmullRomCurve3(branchPts)
+        };
+      }
+    }
+
+    function buildCurvedMonorailBeam(curve, railY, mats, isBranch = false) {
+      const group = new THREE.Group();
+      const tubeGeom = new THREE.TubeGeometry(curve, 48, 0.36, 8, false);
+      const beam = new THREE.Mesh(tubeGeom, isBranch ? mats.hullArmor : mats.darkChassis);
+      beam.position.y = railY;
+      group.add(beam);
+
+      if (state.manaConduits) {
+        const condGeom = new THREE.TubeGeometry(curve, 48, 0.08, 6, false);
+        const cond = new THREE.Mesh(condGeom, mats.glowCore);
+        cond.position.y = railY - 0.32;
+        group.add(cond);
+      }
+
+      // Periodic Ceiling Hangers & Schwebebahn A-Frame Portals along the Curve
+      const divisions = 7;
+      for (let i = 0; i <= divisions; i++) {
+        const u = i / divisions;
+        const pt = curve.getPointAt(u);
+        const tan = curve.getTangentAt(u).normalize();
+        const yaw = Math.atan2(tan.x, tan.z);
+
+        const portal = new THREE.Group();
+        portal.position.set(pt.x, 0, pt.z);
+        portal.rotation.y = yaw;
+
+        if (railY > 1.0) {
+          const crossGantry = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.35, 0.45), mats.hullArmor);
+          crossGantry.position.y = railY + 0.35;
+          portal.add(crossGantry);
+
+          for (const s of [-1.2, 1.2]) {
+            const chainPillar = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 7.5, 8), mats.brassTrim);
+            chainPillar.position.set(s, railY + 4.1, 0);
+            portal.add(chainPillar);
+          }
+
+          if (state.schwebebahnBogies && !isBranch) {
+            for (const s of [-1, 1]) {
+              const aLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.20, 9.5, 8), mats.darkChassis);
+              aLeg.position.set(s * 3.2, railY - 3.1, 0);
+              aLeg.rotation.z = s * 0.32;
+              portal.add(aLeg);
+            }
+          }
+        }
+        group.add(portal);
+      }
+
+      return group;
+    }
+
+    function positionConsistAlongCurve() {
+      if (!activeMainCurve || articulatedCarActors.length === 0) return;
+      const totalCurveLen = activeMainCurve.getLength();
+
+      for (const actor of articulatedCarActors) {
+        const distFromLoco = actor.offsetMeters;
+        const u = THREE.MathUtils.clamp(state.trainProgress - distFromLoco / totalCurveLen, 0.04, 0.96);
+        const pt = activeMainCurve.getPointAt(u);
+        const tan = activeMainCurve.getTangentAt(u).normalize();
+        actor.mesh.position.set(pt.x, 0, pt.z);
+        actor.mesh.rotation.y = Math.atan2(tan.x, tan.z);
+      }
+    }
+
+    function buildScene() {
+      clearGroup(trainConsistGroup);
+      clearGroup(stationAndTrackGroup);
+      spinningNodes.length = 0;
+      clickableMeshes.length = 0;
+      articulatedCarActors.length = 0;
+
+      const mats = getMaterials();
+      const curves = createTrackCurves();
+      activeMainCurve = curves.activeCurve;
+
+      // 1. Build Main Walkable Locomotive + Modular Trailing Cars + Inter-Car Gangways
+      const loco = buildLocomotive(mats);
+      trainConsistGroup.add(loco);
+      articulatedCarActors.push({ mesh: loco, offsetMeters: 0 });
+
+      const carTypes = [state.car1Type, state.car2Type, state.car3Type, state.car4Type];
+      let distCursor = state.locoLength / 2;
+
+      for (let i = 0; i < state.carCount; i++) {
+        const gwOffset = distCursor + state.couplingGap / 2;
+        const gw = buildInterCarGangway(state.couplingGap, mats);
+        trainConsistGroup.add(gw);
+        articulatedCarActors.push({ mesh: gw, offsetMeters: gwOffset });
+
+        const carOffset = distCursor + state.couplingGap + state.carLength / 2;
+        const carGroup = buildModularCar(i + 1, carTypes[i], mats);
+        trainConsistGroup.add(carGroup);
+        articulatedCarActors.push({ mesh: carGroup, offsetMeters: carOffset });
+
+        distCursor += state.couplingGap + state.carLength;
+      }
+
+      positionConsistAlongCurve();
+
+      // 2. Build Curved / Switched Overhead & Bottom Monorail Tracks
+      const H = state.carHeight;
+      const W = state.carWidth;
+
+      if (state.suspensionMode === 'overhead-chain' || state.suspensionMode === 'dual-rig') {
+        stationAndTrackGroup.add(buildCurvedMonorailBeam(curves.mainCurve, H + 0.95, mats, false));
+        if (curves.branchCurve && state.curveOffset > 0.2) {
+          stationAndTrackGroup.add(buildCurvedMonorailBeam(curves.branchCurve, H + 0.95, mats, true));
+
+          // Mechanical Swing-Type Turnout Switch Frog / Transfer Bridge at z = -10
+          const frog = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.48, 3.8), mats.brassTrim);
+          frog.position.set((state.switchState / 100) * (state.curveOffset * 0.22), H + 1.02, -8.5);
+          frog.rotation.y = (state.switchState / 100) * 0.25;
+          frog.userData.action = 'toggleSwitch';
+          clickableMeshes.push(frog);
+          stationAndTrackGroup.add(frog);
+        }
+      }
+
+      if (state.suspensionMode === 'bottom-monorail' || state.suspensionMode === 'dual-rig') {
+        stationAndTrackGroup.add(buildCurvedMonorailBeam(curves.mainCurve, -0.55, mats, false));
+        if (curves.branchCurve && state.curveOffset > 0.2) {
+          stationAndTrackGroup.add(buildCurvedMonorailBeam(curves.branchCurve, -0.55, mats, true));
+        }
+      }
+
+      // 3. Suspended Chasm Boarding Station Platform
+      if (state.showStation) {
+        const stationGroup = new THREE.Group();
+        const platW = 3.8;
+        const platL = 26.0;
+        const platX = -(W / 2 + platW / 2 + 0.75);
+
+        const deck = new THREE.Mesh(new THREE.BoxGeometry(platW, 0.45, platL), mats.stationStone);
+        deck.position.set(platX, 0.02, -4);
+        stationGroup.add(deck);
+
+        const rampRatio = state.rampOpen / 100;
+        if (rampRatio > 0.02) {
+          for (let r = 0; r < state.carCount; r++) {
+            const rz = -1.5 - r * (state.carLength + state.couplingGap);
+            const ramp = new THREE.Mesh(
+              new THREE.BoxGeometry(0.85 * rampRatio, 0.06, 1.55),
+              mats.brassTrim
+            );
+            ramp.position.set(platX + platW / 2 + (0.42 * rampRatio), 0.24, rz);
+            stationGroup.add(ramp);
+          }
+        }
+
+        stationAndTrackGroup.add(stationGroup);
+      }
+
+
+      updateTelemetry();
+    }
+
+    function renderCabButtonsUI() {
+      const container = document.getElementById('cab-button-pills');
+      if (!container) return;
+      container.innerHTML = '';
+      state.cabButtons.forEach((b, idx) => {
+        const pill = document.createElement('button');
+        pill.type = 'button';
+        const isSel = idx === state.selectedCabBtnIdx;
+        pill.className = isSel
+          ? 'px-2 py-0.5 rounded text-[11px] font-mono-tech font-semibold bg-purple-500/30 text-purple-200 border border-purple-400'
+          : 'px-2 py-0.5 rounded text-[11px] font-mono-tech bg-slate-950 text-slate-300 border border-slate-800 hover:bg-slate-800';
+        pill.textContent = b.label;
+        pill.addEventListener('click', () => {
+          state.selectedCabBtnIdx = idx;
+          document.getElementById('cab-btn-label').value = b.label;
+          document.getElementById('cab-btn-shape').value = b.shape;
+          renderCabButtonsUI();
+          buildScene();
+        });
+        container.appendChild(pill);
+      });
+    }
+
+    function updateTelemetry() {
+      const totalLen = state.locoLength + state.carCount * (state.carLength + state.couplingGap);
+      const carTypes = [state.car1Type, state.car2Type, state.car3Type, state.car4Type].slice(0, state.carCount);
+      const parlorCars = carTypes.filter((t) => t === 'parlor').length;
+      const seatCount = parlorCars * state.seatRows * 4;
+      const power = Math.round(totalLen * 150);
+
+      document.getElementById('stat-length').textContent = `${totalLen.toFixed(1)} m`;
+      document.getElementById('stat-tonnage').textContent = `${seatCount} seats`;
+      document.getElementById('stat-power').textContent = `${power.toLocaleString()} kW`;
+
+      let tris = 0;
+      assetRoot.traverse((obj) => {
+        if (obj.isMesh && obj.geometry) {
+          const g = obj.geometry;
+          tris += g.index ? g.index.count / 3 : g.attributes.position.count / 3;
+        }
+      });
+      document.getElementById('stat-triangles').textContent = `${Math.round(tris).toLocaleString()} tris`;
+
+      document.getElementById('label-length').textContent = `L: ${totalLen.toFixed(1)}m`;
+      document.getElementById('label-width').textContent = `W: ${state.carWidth.toFixed(2)}m`;
+      document.getElementById('label-height').textContent = `H: ${state.carHeight.toFixed(2)}m`;
+    }
+
+    function updateLabelsOverlay() {
+      const container = document.getElementById('labels-container');
+      if (!state.showDimensions) {
+        container.style.opacity = '0';
+        return;
+      }
+      container.style.opacity = '1';
+
+      const totalLen = state.locoLength + state.carCount * (state.carLength + state.couplingGap);
+      const pts = [
+        { id: 'label-length', pos: new THREE.Vector3(state.carWidth / 2 + 1.2, 0.2, 7 - totalLen / 2) },
+        { id: 'label-width', pos: new THREE.Vector3(0, -0.5, 7 + state.locoLength / 2 + 1.2) },
+        { id: 'label-height', pos: new THREE.Vector3(state.carWidth / 2 + 0.8, state.carHeight / 2, 7) }
+      ];
+
+      const rect = mount.getBoundingClientRect();
+      for (const item of pts) {
+        const v = item.pos.clone().project(camera);
+        const el = document.getElementById(item.id);
+        if (v.z > 1) {
+          el.style.opacity = '0';
+        } else {
+          el.style.opacity = '1';
+          el.style.left = `${(v.x * 0.5 + 0.5) * rect.width}px`;
+          el.style.top = `${(-(v.y * 0.5) + 0.5) * rect.height}px`;
+        }
+      }
+    }
+
+    function syncUI() {
+      const sliders = [
+        ['locoLength', ' m', 2],
+        ['carWidth', ' m', 2],
+        ['carHeight', ' m', 2],
+        ['doorOpen', '%', 0],
+        ['seatRows', ' rows', 0],
+        ['carCount', ' cars', 0],
+        ['carLength', ' m', 2],
+        ['couplingGap', ' m', 2],
+        ['turretYaw', '°', 0],
+        ['curveOffset', ' m', 1],
+        ['switchState', '%', 0],
+        ['trackSpan', ' m', 1],
+        ['chainPitch', ' m', 1],
+        ['cabBtnSize', ' mm', 0],
+        ['weathering', '%', 0],
+        ['rampOpen', '%', 0],
+        ['crackDensity', '%', 0],
+        ['bumpScale', '', 2]
+      ];
+      for (const [k, unit, dec] of sliders) {
+        const input = document.getElementById(`param-${k}`);
+        const label = document.getElementById(`val-${k}`);
+        if (input) input.value = state[k];
+        if (label) {
+          if (k === 'switchState') {
+            label.textContent = `${Math.round(state.switchState)}% (${state.switchState > 50 ? 'BRANCH' : 'MAIN'})`;
+          } else {
+            label.textContent = Number(state[k]).toFixed(dec) + unit;
+          }
+        }
+      }
+
+      ['prowStyle', 'reactorStyle', 'doorStyle', 'windowStyle', 'seatLayout', 'trackCurveType', 'gangwayStyle', 'car1Type', 'car2Type', 'car3Type', 'car4Type', 'suspensionMode', 'armorFinish', 'glowColor', 'exportScope'].forEach((k) => {
+        const el = document.getElementById(`param-${k}`);
+        if (el) el.value = state[k];
+      });
+
+      ['cutawayHull', 'showVrmDummy', 'manaConduits', 'schwebebahnBogies', 'showStation', 'showDimensions', 'wireframe'].forEach((k) => {
+        const el = document.getElementById(`param-${k}`);
+        if (el) el.checked = Boolean(state[k]);
+      });
+
+      renderCabButtonsUI();
+    }
+
+    ['locoLength', 'carWidth', 'carHeight', 'doorOpen', 'seatRows', 'carCount', 'carLength', 'couplingGap', 'turretYaw', 'curveOffset', 'switchState', 'trackSpan', 'chainPitch', 'cabBtnSize', 'weathering', 'rampOpen', 'crackDensity', 'bumpScale'].forEach((k) => {
+      document.getElementById(`param-${k}`).addEventListener('input', (e) => {
+        state[k] = parseFloat(e.target.value);
+        if (k === 'doorOpen') state.targetDoorOpen = state.doorOpen;
+        if (k === 'switchState') state.targetSwitchState = state.switchState;
+        syncUI();
+        buildScene();
+      });
+    });
+
+    ['prowStyle', 'reactorStyle', 'doorStyle', 'windowStyle', 'seatLayout', 'trackCurveType', 'gangwayStyle', 'car1Type', 'car2Type', 'car3Type', 'car4Type', 'suspensionMode', 'armorFinish', 'glowColor', 'exportScope'].forEach((k) => {
+      document.getElementById(`param-${k}`).addEventListener('change', (e) => {
+        state[k] = e.target.value;
+        syncUI();
+        buildScene();
+      });
+    });
+
+    ['cutawayHull', 'showVrmDummy', 'manaConduits', 'schwebebahnBogies', 'showStation', 'showDimensions', 'wireframe'].forEach((k) => {
+      document.getElementById(`param-${k}`).addEventListener('change', (e) => {
+        state[k] = e.target.checked;
+        buildScene();
+      });
+    });
+
+    document.getElementById('btnToggleDoors').addEventListener('click', () => {
+      state.targetDoorOpen = state.doorOpen > 40 ? 0 : 95;
+      showToast(state.targetDoorOpen > 40 ? 'Opening All Train Elevator Boarding Doors' : 'Closing All Train Elevator Boarding Doors');
+    });
+
+    document.getElementById('btnToggleTrackSwitch').addEventListener('click', () => {
+      state.targetSwitchState = state.switchState > 50 ? 0 : 100;
+      showToast(state.targetSwitchState > 50 ? 'Throwing Monorail Turnout to Diverging Curved Branch!' : 'Returning Monorail Turnout to Straight Main Line');
+    });
+
+    document.getElementById('cab-btn-label').addEventListener('input', (e) => {
+      state.cabButtons[state.selectedCabBtnIdx].label = e.target.value.toUpperCase() || 'BTN';
+      renderCabButtonsUI();
+      buildScene();
+    });
+
+    document.getElementById('cab-btn-shape').addEventListener('change', (e) => {
+      state.cabButtons[state.selectedCabBtnIdx].shape = e.target.value;
+      buildScene();
+    });
+
+    document.querySelectorAll('.tab-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach((b) => {
+          b.className = 'tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition';
+        });
+        btn.className = 'tab-btn py-2 rounded bg-slate-800 text-purple-300 shadow-sm transition';
+        document.querySelectorAll('.tab-content').forEach((p) => {
+          p.classList.toggle('hidden', p.id !== btn.dataset.tab);
+        });
+      });
+    });
+
+    document.querySelectorAll('.preset-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const p = PRESETS[btn.dataset.preset];
+        if (!p) return;
+        Object.assign(state, p);
+        syncUI();
+        buildScene();
+        document.querySelectorAll('.preset-btn').forEach((b) => {
+          b.className = 'preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition';
+        });
+        btn.className = 'preset-btn px-2.5 py-1 rounded text-xs font-medium bg-purple-500/20 text-purple-300 border border-purple-500/40 transition';
+        showToast(`Loaded ${btn.textContent} consist preset`);
+      });
+    });
+
+    document.getElementById('btnRandomize').addEventListener('click', () => {
+      const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+      state.prowStyle = pick(['cowcatcher', 'drill', 'arcane-split', 'flat-bunker']);
+      state.doorStyle = pick(['center-glass', 'telescopic-4', 'portcullis']);
+      state.windowStyle = pick(['panoramic', 'gothic-arch', 'armored-slit']);
+      state.seatLayout = pick(['transverse-bays', 'longitudinal-bench', 'parlor-booths']);
+      state.trackCurveType = pick(['y-turnout', 's-curve', 'transfer-table']);
+      state.car1Type = pick(['parlor', 'crystal', 'turret', 'prison']);
+      state.car2Type = pick(['crystal', 'parlor', 'turret', 'prison']);
+      state.car3Type = pick(['turret', 'crystal', 'prison', 'parlor']);
+      state.armorFinish = pick(['wrought-iron', 'orichalcum', 'titanium', 'crimson-plate']);
+      state.glowColor = pick(['arcane-purple', 'ice-blue', 'amber', 'emerald', 'crimson']);
+      syncUI();
+      buildScene();
+      showToast('Randomized .VRM Walkable Void-Train Consist');
+    });
+
+    let camTarget = null;
+    let orbitTarget = null;
+    function setCamMode(mode) {
+      const locoPos = articulatedCarActors[0]?.mesh.position || new THREE.Vector3(0, 0, 5);
+      if (mode === 'iso') {
+        camTarget = new THREE.Vector3(18, 8.5, 19);
+        orbitTarget = new THREE.Vector3(0, 1.8, -2);
+      } else if (mode === 'prow') {
+        camTarget = new THREE.Vector3(locoPos.x, 1.95, locoPos.z + state.locoLength * 0.12);
+        orbitTarget = new THREE.Vector3(locoPos.x, 1.35, locoPos.z + state.locoLength * 0.42);
+      } else if (mode === 'aisle') {
+        camTarget = new THREE.Vector3(0, 1.85, -9.5);
+        orbitTarget = new THREE.Vector3(locoPos.x, 1.75, locoPos.z);
+      } else if (mode === 'station') {
+        camTarget = new THREE.Vector3(-8.5, 2.8, 2.0);
+        orbitTarget = new THREE.Vector3(0, 1.5, -1.5);
+      } else if (mode === 'side') {
+        camTarget = new THREE.Vector3(24, 3.0, -3);
+        orbitTarget = new THREE.Vector3(0, 1.8, -3);
+      }
+      document.querySelectorAll('.cam-btn').forEach((b) => {
+        b.className = b.dataset.cam === mode
+          ? 'cam-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-purple-500/20 text-purple-300 border border-purple-500/30 transition'
+          : 'cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition';
+      });
+    }
+
+    document.querySelectorAll('.cam-btn').forEach((btn) => {
+      btn.addEventListener('click', () => setCamMode(btn.dataset.cam));
+    });
+    document.getElementById('btnZoomCabConsole').addEventListener('click', () => setCamMode('prow'));
+    controls.addEventListener('start', () => { camTarget = null; orbitTarget = null; });
+
+    document.querySelectorAll('.stratum-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        state.currentStratum = btn.dataset.stratum;
+        document.getElementById('sim-stratum-readout').textContent = state.currentStratum;
+        document.querySelectorAll('.stratum-btn').forEach((b) => {
+          b.className = b === btn
+            ? 'stratum-btn py-1.5 rounded-lg font-mono-tech text-xs font-semibold bg-purple-500/25 text-purple-200 border border-purple-400/50 transition'
+            : 'stratum-btn py-1.5 rounded-lg font-mono-tech text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 transition';
+        });
+        state.simPhase = 'departing';
+        state.targetDoorOpen = 0;
+        state.rampOpen = 0;
+        syncUI();
+        buildScene();
+        showToast(`Closing Elevator Doors & Dispatching along Track to ${state.currentStratum}`);
+      });
+    });
+
+    document.getElementById('btnTogglePatrol').addEventListener('click', () => {
+      state.patrolMode = !state.patrolMode;
+      if (state.patrolMode) state.targetDoorOpen = 0;
+      document.getElementById('sim-status-text').textContent = state.patrolMode
+        ? 'CONTINUOUS CURVE RUN'
+        : 'BERTHED • DOORS OPEN';
+      showToast(state.patrolMode ? 'Enabled articulated curved-track transit run' : 'Returned train to station berth');
+    });
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    let downPos = { x: 0, y: 0 };
+    renderer.domElement.addEventListener('pointerdown', (e) => { downPos = { x: e.clientX, y: e.clientY }; });
+    window.addEventListener('pointerup', (e) => {
+      if (Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > 5) return;
+      const rect = renderer.domElement.getBoundingClientRect();
+      if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) return;
+      pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(clickableMeshes, false);
+      if (hits.length > 0) {
+        const obj = hits[0].object;
+        if (obj.userData.action === 'toggleDoors') {
+          state.targetDoorOpen = state.doorOpen > 40 ? 0 : 95;
+          showToast(state.targetDoorOpen > 40 ? 'Opening Train Elevator Boarding Doors' : 'Closing Train Elevator Boarding Doors');
+        } else if (obj.userData.action === 'toggleSwitch') {
+          state.targetSwitchState = state.switchState > 50 ? 0 : 100;
+          showToast(state.targetSwitchState > 50 ? 'Switched Track to Curved Branch!' : 'Switched Track to Straight Main Line!');
+        } else if (obj.userData.cabBtnIndex !== undefined) {
+          const idx = obj.userData.cabBtnIndex;
+          state.selectedCabBtnIdx = idx;
+          const b = state.cabButtons[idx];
+          document.getElementById('cab-btn-label').value = b.label;
+          document.getElementById('cab-btn-shape').value = b.shape;
+          renderCabButtonsUI();
+          if (b.action === 'doors') {
+            state.targetDoorOpen = state.doorOpen > 40 ? 0 : 95;
+            showToast(`Pressed Cab Button [${b.label}] — Cycling Elevator Doors`);
+          } else if (b.action === 'switch') {
+            state.targetSwitchState = state.switchState > 50 ? 0 : 100;
+            showToast(`Pressed Cab Button [${b.label}] — Throwing Track Switch!`);
+          } else if (b.action === 'patrol') {
+            state.patrolMode = !state.patrolMode;
+            showToast(`Pressed Cab Button [${b.label}] — Throttle ${state.patrolMode ? 'ENGAGED' : 'IDLE'}`);
+          } else if (b.action === 'stop') {
+            state.patrolMode = false;
+            state.simPhase = 'berthed';
+            state.targetDoorOpen = 95;
+            showToast(`Pressed Emergency Stop [${b.label}]!`);
+          } else {
+            state.currentStratum = b.action;
+            document.getElementById('sim-stratum-readout').textContent = b.action;
+            state.simPhase = 'departing';
+            state.targetDoorOpen = 0;
+            showToast(`Pressed Cab Button [${b.label}] — Dispatching to ${b.action}`);
+          }
+          buildScene();
+        }
+      }
+    });
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast-notification');
+      document.getElementById('toast-text').textContent = msg;
+      toast.style.opacity = '1';
+      setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('btnExportPBR').addEventListener('click', () => {
+      exportPBRTexturePack('voidtrain', 'armor', state.crackDensity);
+      showToast('Exported Seamless PBR Bump/Crack Height & Normal Maps (.PNG)!');
+    });
+
+    document.getElementById('btnExportJSON').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      downloadBlob(blob, `void-train-vrm-recipe-${state.currentStratum}.json`);
+      showToast('Exported Parametric .VRM Void-Train Recipe (.JSON)');
+    });
+
+    document.getElementById('btnExportGLB').addEventListener('click', () => {
+      const exporter = new GLTFExporter();
+      const target = state.exportScope === 'train-only' ? trainConsistGroup : assetRoot;
+      exporter.parse(target, (res) => {
+        downloadBlob(new Blob([res], { type: 'application/octet-stream' }), `abyssal-void-train-vrm-${state.exportScope}.glb`);
+        showToast('Exported Walkable .VRM Void-Train (.GLB)');
+      }, (err) => console.error(err), { binary: true });
+    });
+
+    document.getElementById('btnExportOBJ').addEventListener('click', () => {
+      const exporter = new OBJExporter();
+      const target = state.exportScope === 'train-only' ? trainConsistGroup : assetRoot;
+      downloadBlob(new Blob([exporter.parse(target)], { type: 'text/plain' }), `abyssal-void-train-vrm.obj`);
+      showToast('Exported Wavefront 3D Mesh (.OBJ)');
+    });
+
+    const clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = Math.min(clock.getDelta(), 0.1);
+
+      if (camTarget && orbitTarget) {
+        camera.position.lerp(camTarget, dt * 5);
+        controls.target.lerp(orbitTarget, dt * 5);
+        if (camera.position.distanceTo(camTarget) < 0.08) {
+          camTarget = null;
+          orbitTarget = null;
+        }
+      }
+
+      let needsRebuild = false;
+      if (Math.abs(state.doorOpen - state.targetDoorOpen) > 0.5) {
+        const step = Math.sign(state.targetDoorOpen - state.doorOpen) * dt * 65;
+        state.doorOpen = THREE.MathUtils.clamp(state.doorOpen + step, 0, 100);
+        needsRebuild = true;
+      }
+
+      if (Math.abs(state.switchState - state.targetSwitchState) > 0.5) {
+        const step = Math.sign(state.targetSwitchState - state.switchState) * dt * 60;
+        state.switchState = THREE.MathUtils.clamp(state.switchState + step, 0, 100);
+        needsRebuild = true;
+      }
+
+      if (needsRebuild) {
+        syncUI();
+        buildScene();
+      }
+
+      for (const item of spinningNodes) {
+        item.mesh.rotation[item.axis] += dt * item.speed;
+      }
+
+      // Articulated Spline Transit along Curved / Switched Monorail
+      if (state.patrolMode) {
+        state.trainProgress += dt * 0.14;
+        if (state.trainProgress > 0.94) state.trainProgress = 0.35;
+        positionConsistAlongCurve();
+      } else if (state.simPhase === 'departing') {
+        state.trainProgress += dt * 0.18;
+        positionConsistAlongCurve();
+        document.getElementById('sim-status-text').textContent = `IN TRANSIT TO ${state.currentStratum}`;
+        if (state.trainProgress > 0.92) {
+          state.trainProgress = 0.32;
+          state.simPhase = 'arriving';
+        }
+      } else if (state.simPhase === 'arriving') {
+        state.trainProgress = THREE.MathUtils.lerp(state.trainProgress, 0.58, dt * 2.8);
+        positionConsistAlongCurve();
+        if (Math.abs(state.trainProgress - 0.58) < 0.01) {
+          state.trainProgress = 0.58;
+          positionConsistAlongCurve();
+          state.simPhase = 'berthed';
+          state.targetDoorOpen = 90;
+          state.rampOpen = 100;
+          document.getElementById('sim-status-text').textContent = 'BERTHED • DOORS OPEN';
+          syncUI();
+          buildScene();
+        }
+      } else {
+        state.trainProgress = THREE.MathUtils.lerp(state.trainProgress, 0.58, dt * 3.0);
+        positionConsistAlongCurve();
+      }
+
+      controls.update();
+      updateLabelsOverlay();
+      const mPos = atmosphericMotes.geometry.attributes.position;
+      for (let mi = 0; mi < MOTE_COUNT; mi++) {
+        let my = mPos.getY(mi) + 0.0045;
+        if (my > 9.0) my = 0.15;
+        mPos.setY(mi, my);
+      }
+      mPos.needsUpdate = true;
+      if (bloomEnabled) composer.render();
+      else renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+      const rw = Math.max(1, mount.clientWidth);
+      const rh = Math.max(1, mount.clientHeight);
+      camera.aspect = rw / rh;
+      camera.updateProjectionMatrix();
+      renderer.setSize(rw, rh);
+      composer.setSize(rw, rh);
+    });
+
+    window.__STUDIO_E2E__ = {
+      studioCode: 'VOIDTRAINCAD',
+      version: '6.0',
+      scene, camera, renderer, composer, unrealBloomPass, assetRoot,
+      getBloomEnabled: () => bloomEnabled
+    };
+
+    syncUI();
+    buildScene();
+    animate();
+  </script>
+</body>
+</html>

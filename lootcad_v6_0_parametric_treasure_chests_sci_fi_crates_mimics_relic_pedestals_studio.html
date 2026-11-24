@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LOOTCAD v6.0 — Parametric Treasure Chests, Sci-Fi Crates, Mimics & Relic Pedestals Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <style>
+    * { box-sizing: border-box; user-select: none; }
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #09080e;
+      color: #e2e8f0;
+    }
+    .font-mono-tech { font-family: 'JetBrains Mono', monospace; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.4); }
+    ::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.6); border-radius: 3px; }
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: #1e293b;
+      border-radius: 999px;
+      outline: none;
+      border: 1px solid #334155;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #eab308;
+      cursor: pointer;
+      border: 2px solid #0f172a;
+      box-shadow: 0 0 8px rgba(234, 179, 8, 0.55);
+      transition: transform 0.1s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(51, 65, 85, 0.65);
+    }
+    .dimension-badge {
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.2s ease;
+    }
+  </style>
+</head>
+<body class="h-screen w-screen flex flex-col bg-[#09080e] text-slate-100">
+
+  <!-- TOP HEADER BAR -->
+  <header class="h-14 border-b border-slate-800/80 bg-slate-950/90 px-4 flex items-center justify-between z-20 shrink-0">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-lg bg-amber-500/15 border border-amber-400/35 flex items-center justify-center text-amber-400 shadow-inner">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+        </svg>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="font-semibold text-sm tracking-tight text-white">LOOT<span class="text-amber-400">CAD</span></h1>
+          <span class="text-[10px] font-mono-tech uppercase px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">v6.0 • Chests, Crates, Mimics & Relics</span>
+        </div>
+        <p class="text-[11px] text-slate-400">Parametric Treasure Chests, Sci-Fi Supply Crates, Awakened Mimic Jaws & Boss Relic Pedestals</p>
+      </div>
+    </div>
+
+    <!-- ARCHETYPE PRESETS -->
+    <div class="hidden xl:flex items-center gap-1.5 bg-slate-900/90 p-1 rounded-lg border border-slate-800">
+      <span class="text-[11px] font-medium text-slate-400 px-2">Archetype:</span>
+      <button data-preset="royal" class="preset-btn px-2.5 py-1 rounded text-xs font-medium bg-amber-500/20 text-amber-300 border border-amber-500/40 transition">Royal Banded Chest</button>
+      <button data-preset="mimic" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-rose-300 hover:bg-rose-950/40 border border-rose-500/30 transition">100F Awakened Mimic</button>
+      <button data-preset="scifi" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Sci-Fi Supply Crate</button>
+      <button data-preset="pedestal" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Boss Relic Pedestal</button>
+      <button data-preset="strongbox" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Iron Vault Coffer</button>
+    </div>
+
+    <!-- EXPORT ACTIONS -->
+    <div class="flex items-center gap-2">
+      <button id="btnToggleBloom" type="button" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 font-mono-tech border border-cyan-500/40 transition" title="Toggle Selective ACES Filmic HDR UnrealBloom Post-Processing">✨ Bloom: ON</button>
+      <button id="btnRandomize" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">Randomize</button>
+      <button id="btnExportPBR" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-emerald-300 font-mono-tech border border-emerald-500/30 transition">PBR .PNGs</button>
+      <button id="btnExportJSON" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-amber-400 font-mono-tech border border-slate-700 transition">.JSON</button>
+      <button id="btnExportOBJ" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">Export .OBJ</button>
+      <button id="btnExportGLB" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-lg shadow-amber-500/20 transition">Export .GLB</button>
+    </div>
+  </header>
+
+  <div class="flex-1 flex relative overflow-hidden">
+
+    <!-- LEFT PANEL -->
+    <aside class="w-80 md:w-96 border-r border-slate-800/80 bg-slate-950/95 flex flex-col z-10 shrink-0">
+      <div class="grid grid-cols-5 border-b border-slate-800 bg-slate-900/60 p-1 gap-1 text-[11px] font-medium">
+        <button data-tab="tab-chest" class="tab-btn py-2 rounded bg-slate-800 text-amber-400 shadow-sm transition">Chest/Lid</button>
+        <button data-tab="tab-locks" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Locks</button>
+        <button data-tab="tab-loot" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Loot</button>
+        <button data-tab="tab-mimic" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Mimic</button>
+        <button data-tab="tab-finish" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Materials</button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-4 space-y-5">
+
+        <!-- TAB 1: CHEST, CRATE OR PEDESTAL ENVELOPE -->
+        <div id="tab-chest" class="tab-content space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Container & Lid Architecture</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Container Archetype</label>
+                <select id="param-containerType" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="vaulted-chest">Barrel-Vaulted Dungeon Treasure Chest</option>
+                  <option value="beveled-crate">Chamfered Sci-Fi / Tactical Supply Crate</option>
+                  <option value="relic-pedestal">Stepped Boss Relic Display Altar</option>
+                </select>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Chest Width (X)</label>
+                  <span id="val-chestWidth" class="font-mono-tech text-amber-400">1.35 m</span>
+                </div>
+                <input id="param-chestWidth" type="range" min="0.70" max="2.40" step="0.05" value="1.35">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Chest Depth (Z)</label>
+                  <span id="val-chestDepth" class="font-mono-tech text-amber-400">0.85 m</span>
+                </div>
+                <input id="param-chestDepth" type="range" min="0.50" max="1.60" step="0.05" value="0.85">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Base Box Height (Y)</label>
+                  <span id="val-chestHeight" class="font-mono-tech text-amber-400">0.68 m</span>
+                </div>
+                <input id="param-chestHeight" type="range" min="0.40" max="1.40" step="0.04" value="0.68">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Lid Open Angle</label>
+                  <span id="val-lidOpenDeg" class="font-mono-tech text-emerald-400">55°</span>
+                </div>
+                <input id="param-lidOpenDeg" type="range" min="0" max="110" step="1" value="55">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-emerald-300 block">Show .VRM 1.70m Scale Avatar</span>
+                  <span class="text-[11px] text-slate-400">Verify chest waist height for interaction</span>
+                </div>
+                <input id="param-showVrmAvatar" type="checkbox" checked class="w-4 h-4 accent-emerald-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: IRON STRAPS, PADLOCKS & HANDLES -->
+        <div id="tab-locks" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Straps, Locks & Chains</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Reinforcement Iron Bands</label>
+                  <span id="val-bandCount" class="font-mono-tech text-amber-400">4 bands</span>
+                </div>
+                <input id="param-bandCount" type="range" min="2" max="6" step="1" value="4">
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Front Lock Mechanism</label>
+                <select id="param-lockStyle" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="heavy-padlock">Forged Shield Escutcheon & Padlock</option>
+                  <option value="rotary-wheel">Vault Combination Wheel Lock</option>
+                  <option value="holo-keypad">Illuminated Cyber-Rune Latch</option>
+                </select>
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Side Carry Ring Handles</span>
+                  <span class="text-[11px] text-slate-400">Heavy iron rings on left & right ends</span>
+                </div>
+                <input id="param-sideHandles" type="checkbox" checked class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: INTERIOR LOOT & RELIC SOCKET -->
+        <div id="tab-loot" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Interior Treasure & Item Socket</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Interior Payload Type</label>
+                <select id="param-lootPayload" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="gold-crystals">Gold Coin Mound + Glowing Mana Gems</option>
+                  <option value="boss-relic">Levitating Sovereign Relic Sword</option>
+                  <option value="empty-socket">Empty Lined Interior (Loot_Item_Socket)</option>
+                </select>
+              </div>
+              <p class="text-[11px] text-slate-400">
+                Includes an exported <code class="text-amber-300">Loot_Item_Socket</code> 3D node centered inside the coffer so your game engine can spawn dynamic drops!
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: 100F AWAKENED MIMIC MONSTER RIG -->
+        <div id="tab-mimic" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-rose-400 mb-3">100F Awakened Mimic Monster Rig</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-rose-500/30">
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-semibold text-rose-300 block">Enable Mimic Monster Transformation</span>
+                  <span class="text-[11px] text-slate-400">Articulated fangs, abyssal eyes & tongue</span>
+                </div>
+                <input id="param-mimicMode" type="checkbox" class="w-4 h-4 accent-rose-500 rounded cursor-pointer">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Fang Tooth Count per Jaw</label>
+                  <span id="val-fangCount" class="font-mono-tech text-rose-400">10 fangs</span>
+                </div>
+                <input id="param-fangCount" type="range" min="4" max="16" step="2" value="10">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Tongue Reach Extension</label>
+                  <span id="val-tongueReach" class="font-mono-tech text-rose-400">0.85 m</span>
+                </div>
+                <input id="param-tongueReach" type="range" min="0.30" max="1.60" step="0.05" value="0.85">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 5: MATERIALS & PBR BUMP/CRACKS -->
+        <div id="tab-finish" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Materials & PBR Relief</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Body & Trim Palette</label>
+                <select id="param-materialPalette" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="oak-gold">Royal Aged Oak & Gilded Orichalcum</option>
+                  <option value="iron-dark">Blackened Dungeon Wrought Iron</option>
+                  <option value="cyber-titanium">Tactical Gunmetal & Cyan Trim</option>
+                  <option value="crimson-flesh">Abyssal Blood-Wood & Bone</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Crystal / Relic Glow Color</label>
+                <select id="param-glowColor" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="amber">Legendary Gold</option>
+                  <option value="arcane-purple">Epic Arcane Violet</option>
+                  <option value="ice-blue">Rare Astral Cyan</option>
+                  <option value="crimson">Mimic Blood Ruby</option>
+                </select>
+              </div>
+
+              <div class="pt-2 border-t border-slate-800">
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-emerald-300 font-medium">PBR Crack & Scar Density</label>
+                  <span id="val-crackDensity" class="font-mono-tech text-emerald-400">40%</span>
+                </div>
+                <input id="param-crackDensity" type="range" min="0" max="100" step="5" value="40">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-emerald-300 font-medium">Normal / Bump Relief Depth</label>
+                  <span id="val-bumpScale" class="font-mono-tech text-emerald-400">0.08</span>
+                </div>
+                <input id="param-bumpScale" type="range" min="0.00" max="0.25" step="0.01" value="0.08">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-200">3D Dimension Callouts</span>
+                <input id="param-showDimensions" type="checkbox" checked class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-200">Wireframe Overlay Pass</span>
+                <input id="param-wireframe" type="checkbox" class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- TELEMETRY FOOTER -->
+      <div class="p-3.5 border-t border-slate-800 bg-slate-900/90 space-y-2">
+        <div class="flex items-center justify-between text-[11px] text-slate-400">
+          <span class="uppercase font-semibold tracking-wider">Interactable Telemetry</span>
+          <span id="stat-triangles" class="font-mono-tech text-slate-300">0 tris</span>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">Footprint</span>
+            <span id="stat-size" class="font-mono-tech text-xs font-semibold text-amber-400">1.35×0.85m</span>
+          </div>
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">Lid Angle</span>
+            <span id="stat-angle" class="font-mono-tech text-xs font-semibold text-emerald-400">55°</span>
+          </div>
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">Entity Mode</span>
+            <span id="stat-mode" class="font-mono-tech text-xs font-semibold text-sky-400">CHEST</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- VIEWPORT -->
+    <main class="flex-1 relative bg-gradient-to-b from-[#141009] via-[#090b12] to-[#050609] overflow-hidden">
+      <div id="canvas-mount" class="w-full h-full"></div>
+
+      <div id="labels-container" class="absolute inset-0 pointer-events-none overflow-hidden">
+        <div id="label-width" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/90 border border-amber-500/50 text-[11px] font-mono-tech text-amber-300 shadow-lg">W: 1.35m</div>
+        <div id="label-depth" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/90 border border-amber-500/50 text-[11px] font-mono-tech text-amber-300 shadow-lg">D: 0.85m</div>
+        <div id="label-height" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/90 border border-amber-500/50 text-[11px] font-mono-tech text-amber-300 shadow-lg">H: 0.68m</div>
+      </div>
+
+      <!-- CAMERA PRESETS -->
+      <div class="absolute top-4 left-4 glass-panel rounded-xl p-1.5 flex items-center gap-1 shadow-xl">
+        <span class="text-[10px] font-mono-tech uppercase text-slate-400 px-2">Camera:</span>
+        <button data-cam="iso" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-500/20 text-amber-300 border border-amber-500/30 transition">3/4 Hero View</button>
+        <button data-cam="front" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">Lock & Teeth</button>
+        <button data-cam="loot" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">Interior Loot</button>
+        <button data-cam="vrm" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">.VRM Scale View</button>
+      </div>
+
+      <!-- LOOT / MIMIC CONTROLLER -->
+      <div class="absolute top-4 right-4 w-60 glass-panel rounded-2xl p-3.5 shadow-2xl flex flex-col gap-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-300">Chest & Mimic Test</span>
+          <span class="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_#f59e0b]"></span>
+        </div>
+
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 flex items-center justify-between">
+          <div>
+            <span class="text-[10px] text-slate-400 uppercase block">Coffer State</span>
+            <span id="sim-status-text" class="text-[11px] font-mono-tech text-emerald-400">UNLATCHED • 55°</span>
+          </div>
+          <span id="sim-deg-readout" class="font-mono-tech text-sm font-bold text-amber-400">55°</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-1.5">
+          <button id="btnCloseChest" class="py-1.5 px-2 rounded-lg text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 transition">
+            🔒 Latch Shut
+          </button>
+          <button id="btnOpenChest" class="py-1.5 px-2 rounded-lg text-xs font-semibold bg-amber-500/25 hover:bg-amber-500/35 text-amber-200 border border-amber-500/40 transition">
+            ✨ Pop Open
+          </button>
+        </div>
+
+        <button id="btnToggleMimicBite" class="w-full py-1.5 px-3 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/35 text-xs font-medium transition">
+          👹 Toggle Mimic Chomp Mode
+        </button>
+      </div>
+
+      <!-- BOTTOM-LEFT HINT -->
+      <div class="absolute bottom-4 left-4 glass-panel rounded-lg px-3 py-1.5 text-[11px] text-slate-400 flex items-center gap-3 pointer-events-none">
+        <span><strong class="text-slate-200">LMB:</strong> Orbit / Click 3D Chest Lid or Lock to Open/Close</span>
+        <span>•</span>
+        <span><strong class="text-slate-200">RMB:</strong> Pan</span>
+      </div>
+
+      <!-- TOAST -->
+      <div id="toast-notification" class="pointer-events-none opacity-0 transition-opacity duration-300 absolute bottom-4 right-4 glass-panel border-amber-500/40 bg-slate-900/95 text-amber-200 px-4 py-2.5 rounded-xl text-xs font-medium shadow-2xl">
+        <span id="toast-text">Chest updated!</span>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+    import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+    import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+    import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+    import { OBJExporter } from 'three/addons/exporters/OBJExporter.js';
+
+    const state = {
+      containerType: 'vaulted-chest',
+      chestWidth: 1.35,
+      chestDepth: 0.85,
+      chestHeight: 0.68,
+      lidOpenDeg: 55,
+      targetLidOpenDeg: 55,
+      showVrmAvatar: true,
+
+      bandCount: 4,
+      lockStyle: 'heavy-padlock',
+      sideHandles: true,
+
+      lootPayload: 'gold-crystals',
+
+      mimicMode: false,
+      fangCount: 10,
+      tongueReach: 0.85,
+
+      materialPalette: 'oak-gold',
+      glowColor: 'amber',
+      crackDensity: 40,
+      bumpScale: 0.08,
+      showDimensions: true,
+      wireframe: false
+    };
+
+    const PRESETS = {
+      royal: {
+        containerType: 'vaulted-chest', chestWidth: 1.35, chestDepth: 0.85, chestHeight: 0.68,
+        lidOpenDeg: 55, targetLidOpenDeg: 55, bandCount: 4, lockStyle: 'heavy-padlock',
+        lootPayload: 'gold-crystals', mimicMode: false, materialPalette: 'oak-gold', glowColor: 'amber'
+      },
+      mimic: {
+        containerType: 'vaulted-chest', chestWidth: 1.45, chestDepth: 0.90, chestHeight: 0.72,
+        lidOpenDeg: 75, targetLidOpenDeg: 75, bandCount: 4, lockStyle: 'heavy-padlock',
+        lootPayload: 'gold-crystals', mimicMode: true, fangCount: 12, tongueReach: 1.05,
+        materialPalette: 'crimson-flesh', glowColor: 'crimson'
+      },
+      scifi: {
+        containerType: 'beveled-crate', chestWidth: 1.50, chestDepth: 0.95, chestHeight: 0.65,
+        lidOpenDeg: 65, targetLidOpenDeg: 65, bandCount: 3, lockStyle: 'holo-keypad',
+        lootPayload: 'gold-crystals', mimicMode: false, materialPalette: 'cyber-titanium', glowColor: 'ice-blue'
+      },
+      pedestal: {
+        containerType: 'relic-pedestal', chestWidth: 1.20, chestDepth: 1.20, chestHeight: 1.15,
+        lidOpenDeg: 0, targetLidOpenDeg: 0, bandCount: 2, lockStyle: 'rotary-wheel',
+        lootPayload: 'boss-relic', mimicMode: false, materialPalette: 'iron-dark', glowColor: 'arcane-purple'
+      },
+      strongbox: {
+        containerType: 'beveled-crate', chestWidth: 1.10, chestDepth: 0.75, chestHeight: 0.60,
+        lidOpenDeg: 45, targetLidOpenDeg: 45, bandCount: 5, lockStyle: 'rotary-wheel',
+        lootPayload: 'gold-crystals', mimicMode: false, materialPalette: 'iron-dark', glowColor: 'amber'
+      }
+    };
+
+    const GLOW_MAP = {
+      'amber': 0xf59e0b,
+      'arcane-purple': 0xc084fc,
+      'ice-blue': 0x38bdf8,
+      'crimson': 0xf43f5e
+    };
+
+    const pbrMapCache = {};
+
+    // Helper: Compute 3x3 Sobel Tangent-Space Normal Map Texture from a Height Canvas
+    function computeSobelNormalTexture(heightCanvas, bevelStrength = 3.4) {
+      const w = heightCanvas.width;
+      const h = heightCanvas.height;
+      const hCtx = heightCanvas.getContext('2d');
+      const src = hCtx.getImageData(0, 0, w, h).data;
+
+      const normCanvas = document.createElement('canvas');
+      normCanvas.width = w;
+      normCanvas.height = h;
+      const nCtx = normCanvas.getContext('2d');
+      const dstImg = nCtx.createImageData(w, h);
+      const dst = dstImg.data;
+
+      const sample = (x, y) => {
+        const cx = (x + w) % w;
+        const cy = (y + h) % h;
+        return src[(cy * w + cx) * 4] / 255.0;
+      };
+
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const tl = sample(x - 1, y - 1), t = sample(x, y - 1), tr = sample(x + 1, y - 1);
+          const l  = sample(x - 1, y),                           r  = sample(x + 1, y);
+          const bl = sample(x - 1, y + 1), b = sample(x, y + 1), br = sample(x + 1, y + 1);
+
+          const dX = (tr + 2 * r + br) - (tl + 2 * l + bl);
+          const dY = (bl + 2 * b + br) - (tl + 2 * t + tr);
+          let vx = -dX * bevelStrength;
+          let vy = -dY * bevelStrength;
+          let vz = 1.0;
+          const inv = 1.0 / (Math.sqrt(vx * vx + vy * vy + vz * vz) || 1.0);
+          const idx = (y * w + x) * 4;
+          dst[idx]     = Math.floor((vx * inv * 0.5 + 0.5) * 255);
+          dst[idx + 1] = Math.floor((vy * inv * 0.5 + 0.5) * 255);
+          dst[idx + 2] = Math.floor((vz * inv * 0.5 + 0.5) * 255);
+          dst[idx + 3] = 255;
+        }
+      }
+      nCtx.putImageData(dstImg, 0, 0);
+      return { normCanvas, normalTex: new THREE.CanvasTexture(normCanvas) };
+    }
+
+    // ULTRA-CRISP BEZIER VECTOR INDUSTRIAL NAMEPLATE GENERATOR ('manthrax/JSlug' pattern, 1024x256 + Normal Bevel)
+    const stampedPlateCache = {};
+    function createStampedPlateTexture(text, subtext, accentHex = '#38bdf8') {
+      const key = `${text}_${subtext}_${accentHex}`;
+      if (stampedPlateCache[key]) return stampedPlateCache[key];
+
+      const W = 1024, H = 256;
+      const c = document.createElement('canvas');
+      c.width = W; c.height = H;
+      const ctx = c.getContext('2d');
+
+      const hc = document.createElement('canvas');
+      hc.width = W; hc.height = H;
+      const hCtx = hc.getContext('2d');
+      hCtx.fillStyle = 'rgb(128,128,128)';
+      hCtx.fillRect(0, 0, W, H);
+
+      // 1. Brushed Anodized Metallic Plate Background
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+      bgGrad.addColorStop(0.0, '#1e293b');
+      bgGrad.addColorStop(0.5, '#0f172a');
+      bgGrad.addColorStop(1.0, '#090d16');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, W, H);
+
+      for (let y = 0; y < H; y += 3) {
+        ctx.fillStyle = y % 6 === 0 ? 'rgba(255,255,255,0.025)' : 'rgba(0,0,0,0.04)';
+        ctx.fillRect(0, y, W, 1.5);
+      }
+
+      // 2. Cubic Bezier Chamfered Industrial Frame Border
+      const drawBezierFrame = (targetCtx, strokeCol, lineW, inset = 14, ch = 28) => {
+        targetCtx.strokeStyle = strokeCol;
+        targetCtx.lineWidth = lineW;
+        targetCtx.lineJoin = 'round';
+        targetCtx.beginPath();
+        targetCtx.moveTo(inset + ch, inset);
+        targetCtx.lineTo(W - inset - ch, inset);
+        targetCtx.bezierCurveTo(W - inset, inset, W - inset, inset, W - inset, inset + ch);
+        targetCtx.lineTo(W - inset, H - inset - ch);
+        targetCtx.bezierCurveTo(W - inset, H - inset, W - inset, H - inset, W - inset - ch, H - inset);
+        targetCtx.lineTo(inset + ch, H - inset);
+        targetCtx.bezierCurveTo(inset, H - inset, inset, H - inset, inset, H - inset - ch);
+        targetCtx.lineTo(inset, inset + ch);
+        targetCtx.bezierCurveTo(inset, inset, inset, inset, inset + ch, inset);
+        targetCtx.closePath();
+        targetCtx.stroke();
+      };
+
+      drawBezierFrame(hCtx, 'rgb(45,45,45)', 22, 16, 28);
+      drawBezierFrame(hCtx, 'rgb(240,240,240)', 10, 16, 28);
+      drawBezierFrame(ctx, '#475569', 12, 16, 28);
+      drawBezierFrame(ctx, accentHex, 5, 22, 24);
+
+      // 3. Stamped Hex Corner Rivets
+      for (const [rx, ry] of [[52, 52], [W - 52, 52], [52, H - 52], [W - 52, H - 52]]) {
+        hCtx.fillStyle = 'rgb(40,40,40)';
+        hCtx.beginPath(); hCtx.arc(rx, ry, 20, 0, Math.PI * 2); hCtx.fill();
+        hCtx.fillStyle = 'rgb(245,245,245)';
+        hCtx.beginPath(); hCtx.arc(rx, ry, 15, 0, Math.PI * 2); hCtx.fill();
+
+        const rGrad = ctx.createRadialGradient(rx - 4, ry - 4, 2, rx, ry, 16);
+        rGrad.addColorStop(0.0, '#f8fafc');
+        rGrad.addColorStop(0.6, '#94a3b8');
+        rGrad.addColorStop(1.0, '#1e293b');
+        ctx.fillStyle = rGrad;
+        ctx.beginPath(); ctx.arc(rx, ry, 15, 0, Math.PI * 2); ctx.fill();
+      }
+
+      // 4. Stamped Bezier Vector Typography Pass
+      const renderStampedVectorText = (str, yPos, fontSize, fillHex, isMain) => {
+        const fontSpec = `900 ${fontSize}px "JetBrains Mono", "Inter", monospace`;
+        ctx.font = fontSpec;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+
+        hCtx.font = fontSpec;
+        hCtx.textAlign = 'center';
+        hCtx.textBaseline = 'middle';
+        hCtx.lineJoin = 'round';
+        hCtx.lineCap = 'round';
+
+        hCtx.strokeStyle = 'rgb(38,38,38)';
+        hCtx.lineWidth = isMain ? 18 : 12;
+        hCtx.strokeText(str, W / 2, yPos);
+
+        hCtx.strokeStyle = 'rgb(205,205,205)';
+        hCtx.lineWidth = isMain ? 9 : 6;
+        hCtx.strokeText(str, W / 2, yPos);
+
+        hCtx.fillStyle = 'rgb(255,255,255)';
+        hCtx.fillText(str, W / 2, yPos);
+
+        ctx.strokeStyle = '#020617';
+        ctx.lineWidth = isMain ? 12 : 8;
+        ctx.strokeText(str, W / 2 + 2.5, yPos + 2.5);
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+        ctx.lineWidth = isMain ? 4 : 2.5;
+        ctx.strokeText(str, W / 2 - 1.5, yPos - 1.5);
+
+        ctx.fillStyle = fillHex;
+        ctx.fillText(str, W / 2, yPos);
+      };
+
+      renderStampedVectorText(text, 102, 74, '#f8fafc', true);
+      renderStampedVectorText(subtext, 188, 44, accentHex, false);
+
+      const colorTex = new THREE.CanvasTexture(c);
+      colorTex.anisotropy = 8;
+      const { normalTex } = computeSobelNormalTexture(hc, 3.6);
+      normalTex.anisotropy = 8;
+      const bumpTex = new THREE.CanvasTexture(hc);
+      bumpTex.anisotropy = 8;
+
+      colorTex.normalMap = normalTex;
+      colorTex.bumpMap = bumpTex;
+      colorTex.createMaterial = () => new THREE.MeshStandardMaterial({
+        map: colorTex,
+        normalMap: normalTex,
+        normalScale: new THREE.Vector2(1.85, 1.85),
+        bumpMap: bumpTex,
+        bumpScale: 0.035,
+        metalness: 0.86,
+        roughness: 0.24,
+        envMapIntensity: 1.65
+      });
+
+      stampedPlateCache[key] = colorTex;
+      return colorTex;
+    }
+
+    // mrdoob/harmony Proximity-History Stress-Fracture, Cross-Hatch & Weld-Bead Pass in generatePBRMaps
+    function generatePBRMaps(kind, crackPct) {
+      const key = `${kind}_${Math.round(crackPct)}`;
+      if (pbrMapCache[key]) return pbrMapCache[key];
+      const size = 256;
+      const bumpCanvas = document.createElement('canvas');
+      bumpCanvas.width = size; bumpCanvas.height = size;
+      const bCtx = bumpCanvas.getContext('2d');
+      bCtx.fillStyle = 'rgb(175,175,175)';
+      bCtx.fillRect(0, 0, size, size);
+
+      let seed = 911 + kind.charCodeAt(0) * 37;
+      const rand = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+      const crackFactor = Math.max(0.05, crackPct / 100);
+
+      // Base surface micro-grain
+      for (let i = 0; i < 2200; i++) {
+        const v = Math.floor(145 + rand() * 68);
+        bCtx.fillStyle = `rgb(${v},${v},${v})`;
+        bCtx.fillRect(rand() * size, rand() * size, 2, 2);
+      }
+
+      // Plate seams + Raised TIG/MIG Stacked-Dime Weld Beads along seams
+      bCtx.strokeStyle = 'rgb(42,42,42)';
+      bCtx.lineWidth = 3;
+      for (let y = 0; y < size; y += 64) {
+        bCtx.beginPath(); bCtx.moveTo(0, y); bCtx.lineTo(size, y); bCtx.stroke();
+        for (let wx = 4; wx < size - 4; wx += 5) {
+          bCtx.fillStyle = 'rgba(238,238,238,0.58)';
+          bCtx.beginPath(); bCtx.arc(wx, y, 2.5, 0, Math.PI * 2); bCtx.fill();
+        }
+      }
+
+      // Cross-Hatched Machining Micro-Scratches (+32 deg / -58 deg)
+      bCtx.lineCap = 'round';
+      const scratchCount = Math.floor(16 + crackFactor * 38);
+      for (let i = 0; i < scratchCount; i++) {
+        const sx = rand() * size, sy = rand() * size;
+        const ang = (i % 2 === 0 ? 0.56 : -1.01) + (rand() - 0.5) * 0.18;
+        const len = 10 + rand() * 24;
+        const ex = sx + Math.cos(ang) * len;
+        const ey = sy + Math.sin(ang) * len;
+        bCtx.strokeStyle = `rgba(22,22,22,${0.20 + crackFactor * 0.25})`;
+        bCtx.lineWidth = 0.8;
+        bCtx.beginPath(); bCtx.moveTo(sx, sy); bCtx.lineTo(ex, ey); bCtx.stroke();
+      }
+
+      // mrdoob/harmony Proximity-History Branching Stress-Fracture Web
+      const harmonyHistory = [];
+      const maxDist = 24;
+      const maxDistSq = maxDist * maxDist;
+      const walkerCount = Math.floor(3 + crackFactor * 10);
+      const stepsPerWalker = Math.floor(14 + crackFactor * 24);
+
+      for (let w = 0; w < walkerCount; w++) {
+        let cx = rand() * size, cy = rand() * size;
+        let dir = rand() * Math.PI * 2;
+        for (let s = 0; s < stepsPerWalker; s++) {
+          dir += (rand() - 0.5) * 1.15;
+          const stepLen = 4.5 + rand() * 7.5;
+          const nx = Math.max(2, Math.min(size - 2, cx + Math.cos(dir) * stepLen));
+          const ny = Math.max(2, Math.min(size - 2, cy + Math.sin(dir) * stepLen));
+          const ctrlX = (cx + nx) * 0.5 + (rand() - 0.5) * 4.5;
+          const ctrlY = (cy + ny) * 0.5 + (rand() - 0.5) * 4.5;
+
+          bCtx.strokeStyle = `rgba(12,12,12,${0.45 + crackFactor * 0.45})`;
+          bCtx.lineWidth = 1.2 + (1 - s / stepsPerWalker) * 0.85;
+          bCtx.beginPath();
+          bCtx.moveTo(cx, cy);
+          bCtx.quadraticCurveTo(ctrlX, ctrlY, nx, ny);
+          bCtx.stroke();
+
+          for (let h = 0; h < harmonyHistory.length; h++) {
+            const hp = harmonyHistory[h];
+            const dx = nx - hp.x, dy = ny - hp.y;
+            const dSq = dx * dx + dy * dy;
+            if (dSq > 5 && dSq < maxDistSq) {
+              const proxAlpha = (1.0 - dSq / maxDistSq) * 0.38 * crackFactor;
+              bCtx.strokeStyle = `rgba(18,18,18,${proxAlpha.toFixed(3)})`;
+              bCtx.lineWidth = 0.65;
+              bCtx.beginPath();
+              bCtx.moveTo(nx, ny);
+              bCtx.lineTo(hp.x, hp.y);
+              bCtx.stroke();
+            }
+          }
+          harmonyHistory.push({ x: nx, y: ny });
+          cx = nx; cy = ny;
+        }
+      }
+
+      const { normCanvas, normalTex } = computeSobelNormalTexture(bumpCanvas, 3.4);
+      const bumpTex = new THREE.CanvasTexture(bumpCanvas);
+      bumpTex.wrapS = THREE.RepeatWrapping; bumpTex.wrapT = THREE.RepeatWrapping; bumpTex.repeat.set(2, 2);
+      normalTex.wrapS = THREE.RepeatWrapping; normalTex.wrapT = THREE.RepeatWrapping; normalTex.repeat.set(2, 2);
+      // v6.0 Specular Micro-Roughness & Cavity Occlusion Map (shiny raised welds/rivets, matte cracks)
+      const roughCanvas = document.createElement('canvas');
+      roughCanvas.width = size; roughCanvas.height = size;
+      const rCtx = roughCanvas.getContext('2d');
+      const bPixels = bumpCanvas.getContext('2d').getImageData(0, 0, size, size).data;
+      const rImg = rCtx.createImageData(size, size);
+      const rData = rImg.data;
+      for (let i = 0; i < size * size; i++) {
+        const hVal = bPixels[i * 4] / 255.0;
+        // Invert height: raised weld beads & rivets (h>0.72) -> smooth shiny (low roughness ~55), cracks (h<0.45) -> matte oxidized (~238)
+        const rough = Math.max(38, Math.min(246, Math.round((1.08 - hVal * 0.86) * 235)));
+        rData[i * 4] = rough;
+        rData[i * 4 + 1] = rough;
+        rData[i * 4 + 2] = rough;
+        rData[i * 4 + 3] = 255;
+      }
+      rCtx.putImageData(rImg, 0, 0);
+      const roughnessTex = new THREE.CanvasTexture(roughCanvas);
+      roughnessTex.wrapS = THREE.RepeatWrapping; roughnessTex.wrapT = THREE.RepeatWrapping; roughnessTex.repeat.set(2, 2);
+      const entry = { bumpCanvas, normCanvas, roughCanvas, bumpTex, normalTex, roughnessTex };
+      pbrMapCache[key] = entry;
+      return entry;
+    }
+
+    function exportPBRTexturePack(prefix, kind, crackPct) {
+      const maps = generatePBRMaps(kind, crackPct);
+      maps.bumpCanvas.toBlob((b) => b && downloadBlob(b, `${prefix}_bump_cracks.png`));
+      setTimeout(() => maps.normCanvas.toBlob((b) => b && downloadBlob(b, `${prefix}_normal_rgb.png`)), 220);
+      setTimeout(() => maps.roughCanvas && maps.roughCanvas.toBlob((b) => b && downloadBlob(b, `${prefix}_roughness_cavity.png`)), 440);
+    }
+
+    const mount = document.getElementById('canvas-mount');
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x07060b, 0.015);
+
+    const camera = new THREE.PerspectiveCamera(44, mount.clientWidth / mount.clientHeight, 0.1, 100);
+    camera.position.set(2.4, 1.8, 2.8);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
+    renderer.setSize(mount.clientWidth, mount.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
+    mount.appendChild(renderer.domElement);
+    const pmremGen = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmremGen.fromScene(new RoomEnvironment(), 0.04).texture;
+
+    // v6.0 Selective High-Threshold HDR Post-Processing (EffectComposer + UnrealBloomPass + OutputPass)
+    let bloomEnabled = true;
+    const initW = Math.max(1, mount.clientWidth || window.innerWidth);
+    const initH = Math.max(1, mount.clientHeight || window.innerHeight);
+    const composer = new EffectComposer(renderer);
+    composer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    composer.setSize(initW, initH);
+    composer.addPass(new RenderPass(scene, camera));
+    const unrealBloomPass = new UnrealBloomPass(new THREE.Vector2(initW, initH), 0.42, 0.55, 0.85);
+    composer.addPass(unrealBloomPass);
+    composer.addPass(new OutputPass());
+
+    // v6.0 Studio Shadow-Catcher Deck & Soft Radial Contact AO Grounding (in scene, outside assetRoot)
+    const studioFloor = new THREE.Mesh(
+      new THREE.CircleGeometry(28, 64),
+      new THREE.MeshStandardMaterial({ color: 0x060911, roughness: 0.76, metalness: 0.28, envMapIntensity: 0.6 })
+    );
+    studioFloor.rotation.x = -Math.PI / 2;
+    studioFloor.position.y = -0.014;
+    studioFloor.receiveShadow = true;
+    scene.add(studioFloor);
+
+    const aoCanvas = document.createElement('canvas');
+    aoCanvas.width = 256; aoCanvas.height = 256;
+    const aoCtx = aoCanvas.getContext('2d');
+    const aoGrad = aoCtx.createRadialGradient(128, 128, 10, 128, 128, 124);
+    aoGrad.addColorStop(0.0, 'rgba(0,0,0,0.82)');
+    aoGrad.addColorStop(0.55, 'rgba(0,0,0,0.42)');
+    aoGrad.addColorStop(1.0, 'rgba(0,0,0,0.0)');
+    aoCtx.fillStyle = aoGrad;
+    aoCtx.fillRect(0, 0, 256, 256);
+    const contactAoPlane = new THREE.Mesh(
+      new THREE.PlaneGeometry(3.4, 3.4),
+      new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(aoCanvas), transparent: true, depthWrite: false, opacity: 0.88 })
+    );
+    contactAoPlane.rotation.x = -Math.PI / 2;
+    contactAoPlane.position.y = 0.003;
+    scene.add(contactAoPlane);
+
+    // v6.0 Subtle Atmospheric Floating Ember / Mana Mote Field (in scene, outside assetRoot so GLB export stays clean)
+    const MOTE_COUNT = 56;
+    const motePositions = new Float32Array(MOTE_COUNT * 3);
+    for (let mi = 0; mi < MOTE_COUNT; mi++) {
+      motePositions[mi * 3]     = (Math.sin(mi * 73.1) * 0.5) * 5.0;
+      motePositions[mi * 3 + 1] = 0.25 + ((mi * 0.618034) % 1.0) * 3.2;
+      motePositions[mi * 3 + 2] = (Math.cos(mi * 41.7) * 0.5) * 5.0;
+    }
+    const moteGeo = new THREE.BufferGeometry();
+    moteGeo.setAttribute('position', new THREE.BufferAttribute(motePositions, 3));
+    const moteMat = new THREE.PointsMaterial({
+      color: 0xfacc15,
+      size: 0.055,
+      transparent: true,
+      opacity: 0.58,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+    const atmosphericMotes = new THREE.Points(moteGeo, moteMat);
+    atmosphericMotes.name = 'Viewport_Atmospheric_Motes';
+    scene.add(atmosphericMotes);
+
+    const btnToggleBloomEl = document.getElementById('btnToggleBloom');
+    if (btnToggleBloomEl) {
+      btnToggleBloomEl.addEventListener('click', () => {
+        bloomEnabled = !bloomEnabled;
+        unrealBloomPass.enabled = bloomEnabled;
+        btnToggleBloomEl.textContent = bloomEnabled ? '✨ Bloom: ON' : '✨ Bloom: OFF';
+        btnToggleBloomEl.className = bloomEnabled
+          ? 'px-2.5 py-1.5 rounded-lg text-xs font-medium bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 font-mono-tech border border-cyan-500/40 transition'
+          : 'px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-400 font-mono-tech border border-slate-700 transition';
+      });
+    }
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.target.set(0, 0.65, 0);
+
+    scene.add(new THREE.HemisphereLight(0xfef3c7, 0x090d16, 0.95));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 2.0);
+    dirLight.position.set(6, 12, 8);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.set(2048, 2048);
+    dirLight.shadow.bias = -0.0005;
+    dirLight.shadow.normalBias = 0.02;
+    dirLight.shadow.camera.near = 0.5;
+    dirLight.shadow.camera.far = 85;
+    dirLight.shadow.camera.left = -7.0;
+    dirLight.shadow.camera.right = 7.0;
+    dirLight.shadow.camera.top = 7.0;
+    dirLight.shadow.camera.bottom = -7.0;
+    scene.add(dirLight);
+
+    const gridHelper = new THREE.GridHelper(16, 16, 0xd97706, 0x1e293b);
+    gridHelper.position.y = 0;
+    scene.add(gridHelper);
+
+    const assetRoot = new THREE.Group();
+    assetRoot.name = 'Parametric_Loot_Chest_Asset';
+    scene.add(assetRoot);
+
+    const clickableChestMeshes = [];
+    let lidPivotRef = null;
+    let tongueGroupRef = null;
+    let relicSwordRef = null;
+
+    function getMaterials() {
+      const wf = state.wireframe;
+      const palMap = {
+        'oak-gold':       { body: 0x5c3a21, band: 0xd4af37, kind: 'timber' },
+        'iron-dark':      { body: 0x222630, band: 0x94a3b8, kind: 'armor' },
+        'cyber-titanium': { body: 0x334155, band: 0x38bdf8, kind: 'armor' },
+        'crimson-flesh':  { body: 0x451a23, band: 0xb48a3e, kind: 'timber' }
+      };
+      const pal = palMap[state.materialPalette] || palMap['oak-gold'];
+      const pbr = generatePBRMaps(pal.kind, state.crackDensity);
+      const glowHex = GLOW_MAP[state.glowColor] || 0xf59e0b;
+
+      const nScale = new THREE.Vector2(state.bumpScale * 2.5, state.bumpScale * 2.5);
+      const armorPbr = generatePBRMaps('armor', state.crackDensity);
+      return {
+        body: new THREE.MeshStandardMaterial({
+          color: pal.body, roughness: 0.48, metalness: 0.32,
+          bumpMap: pbr.bumpTex, bumpScale: state.bumpScale, normalMap: pbr.normalTex, roughnessMap: pbr.roughnessTex, normalScale: nScale, envMapIntensity: 1.4, wireframe: wf
+        }),
+        band: new THREE.MeshStandardMaterial({
+          color: pal.band, roughness: 0.20, metalness: 0.92,
+          bumpMap: armorPbr.bumpTex, bumpScale: state.bumpScale * 0.45, normalMap: armorPbr.normalTex, roughnessMap: armorPbr.roughnessTex, normalScale: nScale, envMapIntensity: 1.75, wireframe: wf
+        }),
+        darkInterior: new THREE.MeshStandardMaterial({
+          color: state.mimicMode ? 0x3b0a14 : 0x11151d, roughness: 0.75, wireframe: wf
+        }),
+        fangBone: new THREE.MeshStandardMaterial({
+          color: 0xf8fafc, roughness: 0.22, metalness: 0.15, bumpMap: pbr.bumpTex, bumpScale: 0.03, envMapIntensity: 1.3, wireframe: wf
+        }),
+        tongueFlesh: new THREE.MeshPhysicalMaterial({
+          color: 0xe11d48, roughness: 0.22, metalness: 0.10, clearcoat: 0.95, clearcoatRoughness: 0.12, bumpMap: pbr.bumpTex, bumpScale: 0.05, wireframe: wf
+        }),
+        goldCoin: new THREE.MeshStandardMaterial({
+          color: 0xfacc15, roughness: 0.14, metalness: 0.98, bumpMap: armorPbr.bumpTex, bumpScale: 0.04, envMapIntensity: 1.9, wireframe: wf
+        }),
+        glow: new THREE.MeshStandardMaterial({
+          color: glowHex, emissive: glowHex, emissiveIntensity: 2.6, wireframe: wf
+        }),
+        vrmAvatar: new THREE.MeshStandardMaterial({
+          color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.35, roughness: 0.3, wireframe: wf
+        })
+      };
+    }
+
+    function clearGroup(group) {
+      while (group.children.length > 0) {
+        const c = group.children[0];
+        group.remove(c);
+        if (c.geometry) c.geometry.dispose();
+      }
+    }
+
+    function buildChestScene() {
+      clearGroup(assetRoot);
+      clickableChestMeshes.length = 0;
+      lidPivotRef = null;
+      tongueGroupRef = null;
+      relicSwordRef = null;
+
+      const mats = getMaterials();
+      const W = state.chestWidth;
+      const D = state.chestDepth;
+      const H = state.chestHeight;
+      const wallT = 0.06;
+
+      // Named Attachment Socket for Game Engine Item Spawning
+      const lootSocket = new THREE.Object3D();
+      lootSocket.name = 'Loot_Item_Socket';
+      lootSocket.position.set(0, H * 0.65, 0);
+      assetRoot.add(lootSocket);
+
+      if (state.containerType === 'relic-pedestal') {
+        // Stepped Boss Relic Altar Pedestal + Floating Sword
+        for (let s = 0; s < 3; s++) {
+          const r = (W * 0.65) * (1 - s * 0.18);
+          const step = new THREE.Mesh(new THREE.CylinderGeometry(r, r + 0.08, 0.14, 8), mats.body);
+          step.position.y = s * 0.14 + 0.07;
+          assetRoot.add(step);
+        }
+        const pillar = new THREE.Mesh(new THREE.CylinderGeometry(W * 0.28, W * 0.34, H, 8), mats.body);
+        pillar.position.y = 0.42 + H / 2;
+        const altarTop = new THREE.Mesh(new THREE.CylinderGeometry(W * 0.44, W * 0.32, 0.18, 8), mats.band);
+        altarTop.position.y = 0.42 + H + 0.09;
+        assetRoot.add(pillar, altarTop);
+
+        relicSwordRef = new THREE.Group();
+        relicSwordRef.position.set(0, 0.42 + H + 0.95, 0);
+        const blade = new THREE.Mesh(new THREE.BoxGeometry(0.14, 1.25, 0.03), mats.glow);
+        const guard = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.08, 0.08), mats.band);
+        guard.position.y = 0.42;
+        const hilt = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.32, 10), mats.body);
+        hilt.position.y = 0.62;
+        relicSwordRef.add(blade, guard, hilt);
+        assetRoot.add(relicSwordRef);
+      } else {
+        // 1. Hollow Base Chest Coffer (Floor + 4 Walls so interior loot/mimic is visible!)
+        const bottom = new THREE.Mesh(new THREE.BoxGeometry(W, wallT, D), mats.body);
+        bottom.position.y = wallT / 2;
+        const frontWall = new THREE.Mesh(new THREE.BoxGeometry(W, H, wallT), mats.body);
+        frontWall.position.set(0, H / 2, D / 2 - wallT / 2);
+        const backWall = frontWall.clone();
+        backWall.position.z = -D / 2 + wallT / 2;
+        const leftWall = new THREE.Mesh(new THREE.BoxGeometry(wallT, H, D - wallT * 2), mats.body);
+        leftWall.position.set(-W / 2 + wallT / 2, H / 2, 0);
+        const rightWall = leftWall.clone();
+        rightWall.position.x = W / 2 - wallT / 2;
+
+        assetRoot.add(bottom, frontWall, backWall, leftWall, rightWall);
+
+        // Iron Reinforcement Bands around Base Box
+        const bCount = state.bandCount;
+        for (let b = 0; b < bCount; b++) {
+          const bx = -W * 0.44 + (b / Math.max(1, bCount - 1)) * (W * 0.88);
+          const fStrap = new THREE.Mesh(new THREE.BoxGeometry(0.07, H + 0.02, 0.03), mats.band);
+          fStrap.position.set(bx, H / 2, D / 2 + 0.01);
+          const bStrap = fStrap.clone();
+          bStrap.position.z = -D / 2 - 0.01;
+          assetRoot.add(fStrap, bStrap);
+
+          // 3D Domed Rivet Studs along Front & Back Reinforcement Straps + Rear Barrel Hinge
+          for (let r = 0; r < 3; r++) {
+            const ry = 0.12 + (r / 2) * (H - 0.24);
+            const fRivet = new THREE.Mesh(new THREE.SphereGeometry(0.022, 10, 10), mats.goldCoin);
+            fRivet.position.set(bx, ry, D / 2 + 0.028);
+            const bRivet = fRivet.clone();
+            bRivet.position.z = -D / 2 - 0.028;
+            assetRoot.add(fRivet, bRivet);
+          }
+          const hingeBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.038, 0.12, 14), mats.band);
+          hingeBarrel.rotation.z = Math.PI / 2;
+          hingeBarrel.position.set(bx, H, -D / 2 - 0.02);
+          assetRoot.add(hingeBarrel);
+        }
+
+        // Side Carry Ring Handles
+        if (state.sideHandles) {
+          for (const s of [-1, 1]) {
+            const ring = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.022, 10, 20), mats.band);
+            ring.rotation.y = Math.PI / 2;
+            ring.position.set(s * (W / 2 + 0.03), H * 0.55, 0);
+            assetRoot.add(ring);
+          }
+        }
+
+        // Front Lock Escutcheon / Wheel / Keypad
+        const lockZ = D / 2 + 0.03;
+        const escutcheon = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.28, 0.04), mats.band);
+        escutcheon.position.set(0, H - 0.08, lockZ);
+        escutcheon.userData.isLidToggle = true;
+        clickableChestMeshes.push(escutcheon);
+        assetRoot.add(escutcheon);
+
+        if (state.lockStyle === 'heavy-padlock') {
+          const padlock = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.16, 0.06), mats.band);
+          padlock.position.set(0, H - 0.14, lockZ + 0.04);
+          assetRoot.add(padlock);
+        } else if (state.lockStyle === 'rotary-wheel') {
+          const wheel = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.02, 8, 20), mats.glow);
+          wheel.position.set(0, H - 0.08, lockZ + 0.04);
+          assetRoot.add(wheel);
+        } else {
+          const screen = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.10, 0.03), mats.glow);
+          screen.position.set(0, H - 0.08, lockZ + 0.03);
+          assetRoot.add(screen);
+        }
+
+        // Armada Chest Horizontal Wrought-Iron Cross-Band & Forged Corner Armor Bosses
+        const hBandFront = new THREE.Mesh(new THREE.BoxGeometry(W + 0.03, 0.065, 0.028), mats.band);
+        hBandFront.position.set(0, H * 0.52, D / 2 + 0.012);
+        const hBandBack = hBandFront.clone();
+        hBandBack.position.z = -D / 2 - 0.012;
+        assetRoot.add(hBandFront, hBandBack);
+
+        // Interior Loot Payload OR Awakened Mimic Throat/Tongue/Fangs!
+        if (state.mimicMode) {
+          // Lower Jaw Fangs along Front & Lateral Side Rims
+          const fCount = state.fangCount;
+          for (let f = 0; f < fCount; f++) {
+            const fx = -W * 0.42 + (f / (fCount - 1)) * (W * 0.84);
+            const fang = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.18, 8), mats.fangBone);
+            fang.position.set(fx, H + 0.07, D / 2 - 0.05);
+            fang.rotation.x = 0.18;
+            assetRoot.add(fang);
+          }
+          for (const sx of [-W / 2 + 0.05, W / 2 - 0.05]) {
+            for (const sz of [-D * 0.22, D * 0.18]) {
+              const sFang = new THREE.Mesh(new THREE.ConeGeometry(0.036, 0.16, 8), mats.fangBone);
+              sFang.position.set(sx, H + 0.06, sz);
+              assetRoot.add(sFang);
+            }
+          }
+          // Central Stalked Abyssal Eye with Slitted Iris Ring inside Mimic Maw
+          const mawEye = new THREE.Mesh(new THREE.SphereGeometry(0.11, 16, 16), mats.glow);
+          mawEye.position.set(0, H * 0.78, -D * 0.12);
+          const irisRing = new THREE.Mesh(new THREE.TorusGeometry(0.115, 0.016, 8, 20), mats.band);
+          irisRing.position.set(0, H * 0.78, -D * 0.10);
+          assetRoot.add(mawEye, irisRing);
+
+          // Lashing Articulated Mimic Tongue
+          tongueGroupRef = new THREE.Group();
+          tongueGroupRef.position.set(0, H * 0.55, 0);
+          const tReach = state.tongueReach;
+          for (let seg = 0; seg < 5; seg++) {
+            const frac = seg / 4;
+            const tPiece = new THREE.Mesh(
+              new THREE.CapsuleGeometry(0.09 * (1 - frac * 0.45), tReach * 0.22, 8, 12),
+              mats.tongueFlesh
+            );
+            tPiece.rotation.x = Math.PI / 2 - 0.35 + seg * 0.15;
+            tPiece.position.set(0, 0.15 + seg * 0.08, seg * (tReach * 0.22));
+            tongueGroupRef.add(tPiece);
+          }
+          assetRoot.add(tongueGroupRef);
+        } else if (state.lootPayload === 'gold-crystals') {
+          const goldMound = new THREE.Mesh(new THREE.SphereGeometry(W * 0.44, 24, 16), mats.goldCoin);
+          goldMound.scale.set(1.0, 0.38, (D / W) * 0.85);
+          goldMound.position.set(0, H * 0.52, 0);
+          assetRoot.add(goldMound);
+
+          for (let g = -2; g <= 2; g++) {
+            const gem = new THREE.Mesh(new THREE.OctahedronGeometry(0.11, 0), mats.glow);
+            gem.position.set(g * (W * 0.15), H * 0.72, (g % 2) * 0.12);
+            const ingot = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.06, 0.08), mats.goldCoin);
+            ingot.position.set(g * (W * 0.14), H * 0.66, -0.08);
+            ingot.rotation.y = g * 0.28;
+            assetRoot.add(gem, ingot);
+          }
+        } else if (state.lootPayload === 'boss-relic') {
+          relicSwordRef = new THREE.Mesh(new THREE.OctahedronGeometry(0.24, 0), mats.glow);
+          relicSwordRef.position.set(0, H + 0.22, 0);
+          assetRoot.add(relicSwordRef);
+        }
+
+        // 2. Hinged Lid Group Pivoting around Rear Top Edge (-D/2, H)
+        lidPivotRef = new THREE.Group();
+        lidPivotRef.name = 'Chest_Hinged_Lid_Pivot';
+        lidPivotRef.position.set(0, H, -D / 2);
+        lidPivotRef.rotation.x = -THREE.MathUtils.degToRad(state.lidOpenDeg);
+        assetRoot.add(lidPivotRef);
+
+        if (state.containerType === 'vaulted-chest') {
+          const vaultLid = new THREE.Mesh(
+            new THREE.CylinderGeometry(D / 2, D / 2, W, 32, 1, false, 0, Math.PI),
+            mats.body
+          );
+          vaultLid.rotation.z = Math.PI / 2;
+          vaultLid.position.set(0, 0, D / 2);
+          vaultLid.castShadow = true;
+          vaultLid.userData.isLidToggle = true;
+          clickableChestMeshes.push(vaultLid);
+          lidPivotRef.add(vaultLid);
+
+          for (let b = 0; b < bCount; b++) {
+            const bx = -W * 0.44 + (b / Math.max(1, bCount - 1)) * (W * 0.88);
+            const lidBand = new THREE.Mesh(
+              new THREE.CylinderGeometry(D / 2 + 0.015, D / 2 + 0.015, 0.07, 32, 1, false, 0, Math.PI),
+              mats.band
+            );
+            lidBand.rotation.z = Math.PI / 2;
+            lidBand.position.set(bx, 0, D / 2);
+            lidPivotRef.add(lidBand);
+          }
+        } else {
+          const flatLid = new THREE.Mesh(new THREE.BoxGeometry(W + 0.04, 0.22, D + 0.04), mats.body);
+          flatLid.position.set(0, 0.11, D / 2);
+          flatLid.userData.isLidToggle = true;
+          clickableChestMeshes.push(flatLid);
+          lidPivotRef.add(flatLid);
+        }
+
+        // Upper Jaw Fangs & Glowing Mimic Eyes attached to Hinged Lid!
+        if (state.mimicMode) {
+          const fCount = state.fangCount;
+          for (let f = 0; f < fCount; f++) {
+            const fx = -W * 0.42 + (f / (fCount - 1)) * (W * 0.84);
+            const uFang = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.18, 6), mats.fangBone);
+            uFang.rotation.x = Math.PI - 0.18;
+            uFang.position.set(fx, -0.07, D - 0.05);
+            lidPivotRef.add(uFang);
+          }
+          for (const ex of [-W * 0.24, W * 0.24]) {
+            const eye = new THREE.Mesh(new THREE.SphereGeometry(0.065, 14, 14), mats.glow);
+            eye.position.set(ex, 0.22, D * 0.88);
+            lidPivotRef.add(eye);
+          }
+        }
+      }
+
+      if (state.showVrmAvatar) {
+        const av = new THREE.Group();
+        const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.18, 0.58, 10, 14), mats.vrmAvatar);
+        torso.position.y = 1.05;
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 16), mats.vrmAvatar);
+        head.position.y = 1.56;
+        av.add(torso, head);
+        av.position.set(-W / 2 - 0.65, 0, 0.35);
+        assetRoot.add(av);
+      }
+
+
+      // v5.2 Bezeled Stamped Bezier Vector Industrial Nameplate ('manthrax/JSlug' pattern)
+      const plaqueTex = createStampedPlateTexture(
+        state.mimicMode ? 'DANGER_MIMIC' : 'VAULT_100F',
+        state.mimicMode ? 'CLASS-V PREDATOR' : state.containerType.toUpperCase(),
+        state.mimicMode ? '#f43f5e' : '#f59e0b'
+      );
+      const plaqueGroup = new THREE.Group();
+      plaqueGroup.name = 'Stamped_Bezier_Nameplate';
+      const plaqueBezel = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.15, 0.03), mats.band);
+      const plaqueMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.50, 0.125), plaqueTex.createMaterial());
+      plaqueMesh.position.z = 0.018;
+      plaqueGroup.add(plaqueBezel, plaqueMesh);
+      const pz = state.containerType === 'relic-pedestal' ? (W * 0.68) : (D / 2 + 0.032);
+      plaqueGroup.position.set(0, 0.18, pz);
+      assetRoot.add(plaqueGroup);
+      updateTelemetry();
+    }
+
+    function updateTelemetry() {
+      document.getElementById('stat-size').textContent = `${state.chestWidth.toFixed(2)}×${state.chestDepth.toFixed(2)}m`;
+      document.getElementById('stat-angle').textContent = `${Math.round(state.lidOpenDeg)}°`;
+      document.getElementById('stat-mode').textContent = state.mimicMode ? 'MIMIC!' : 'CHEST';
+      document.getElementById('sim-deg-readout').textContent = `${Math.round(state.lidOpenDeg)}°`;
+
+      let tris = 0;
+      assetRoot.traverse((obj) => {
+        if (obj.isMesh && obj.geometry) {
+          const g = obj.geometry;
+          tris += g.index ? g.index.count / 3 : g.attributes.position.count / 3;
+        }
+      });
+      document.getElementById('stat-triangles').textContent = `${Math.round(tris).toLocaleString()} tris`;
+
+      document.getElementById('label-width').textContent = `W: ${state.chestWidth.toFixed(2)}m`;
+      document.getElementById('label-depth').textContent = `D: ${state.chestDepth.toFixed(2)}m`;
+      document.getElementById('label-height').textContent = `H: ${state.chestHeight.toFixed(2)}m`;
+    }
+
+    function updateLabelsOverlay() {
+      const container = document.getElementById('labels-container');
+      if (!state.showDimensions) {
+        container.style.opacity = '0';
+        return;
+      }
+      container.style.opacity = '1';
+
+      const pts = [
+        { id: 'label-width', pos: new THREE.Vector3(0, 0.1, state.chestDepth / 2 + 0.45) },
+        { id: 'label-depth', pos: new THREE.Vector3(state.chestWidth / 2 + 0.45, 0.1, 0) },
+        { id: 'label-height', pos: new THREE.Vector3(state.chestWidth / 2 + 0.35, state.chestHeight / 2, state.chestDepth / 2) }
+      ];
+      const rect = mount.getBoundingClientRect();
+      for (const item of pts) {
+        const v = item.pos.clone().project(camera);
+        const el = document.getElementById(item.id);
+        if (v.z > 1) {
+          el.style.opacity = '0';
+        } else {
+          el.style.opacity = '1';
+          el.style.left = `${(v.x * 0.5 + 0.5) * rect.width}px`;
+          el.style.top = `${(-(v.y * 0.5) + 0.5) * rect.height}px`;
+        }
+      }
+    }
+
+    function syncUI() {
+      const sliders = [
+        ['chestWidth', ' m', 2],
+        ['chestDepth', ' m', 2],
+        ['chestHeight', ' m', 2],
+        ['lidOpenDeg', '°', 0],
+        ['bandCount', ' bands', 0],
+        ['fangCount', ' fangs', 0],
+        ['tongueReach', ' m', 2],
+        ['crackDensity', '%', 0],
+        ['bumpScale', '', 2]
+      ];
+      for (const [k, unit, dec] of sliders) {
+        const input = document.getElementById(`param-${k}`);
+        const label = document.getElementById(`val-${k}`);
+        if (input) input.value = state[k];
+        if (label) label.textContent = Number(state[k]).toFixed(dec) + unit;
+      }
+      ['containerType', 'lockStyle', 'lootPayload', 'materialPalette', 'glowColor'].forEach((k) => {
+        const el = document.getElementById(`param-${k}`);
+        if (el) el.value = state[k];
+      });
+      ['showVrmAvatar', 'sideHandles', 'mimicMode', 'showDimensions', 'wireframe'].forEach((k) => {
+        const el = document.getElementById(`param-${k}`);
+        if (el) el.checked = Boolean(state[k]);
+      });
+    }
+
+    ['chestWidth', 'chestDepth', 'chestHeight', 'lidOpenDeg', 'bandCount', 'fangCount', 'tongueReach', 'crackDensity', 'bumpScale'].forEach((k) => {
+      document.getElementById(`param-${k}`).addEventListener('input', (e) => {
+        state[k] = parseFloat(e.target.value);
+        if (k === 'lidOpenDeg') state.targetLidOpenDeg = state.lidOpenDeg;
+        syncUI();
+        buildChestScene();
+      });
+    });
+
+    ['containerType', 'lockStyle', 'lootPayload', 'materialPalette', 'glowColor'].forEach((k) => {
+      document.getElementById(`param-${k}`).addEventListener('change', (e) => {
+        state[k] = e.target.value;
+        syncUI();
+        buildChestScene();
+      });
+    });
+
+    ['showVrmAvatar', 'sideHandles', 'mimicMode', 'showDimensions', 'wireframe'].forEach((k) => {
+      document.getElementById(`param-${k}`).addEventListener('change', (e) => {
+        state[k] = e.target.checked;
+        buildChestScene();
+      });
+    });
+
+    document.querySelectorAll('.tab-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach((b) => {
+          b.className = 'tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition';
+        });
+        btn.className = 'tab-btn py-2 rounded bg-slate-800 text-amber-400 shadow-sm transition';
+        document.querySelectorAll('.tab-content').forEach((p) => {
+          p.classList.toggle('hidden', p.id !== btn.dataset.tab);
+        });
+      });
+    });
+
+    document.querySelectorAll('.preset-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const p = PRESETS[btn.dataset.preset];
+        if (!p) return;
+        Object.assign(state, p);
+        syncUI();
+        buildChestScene();
+        document.querySelectorAll('.preset-btn').forEach((b) => {
+          b.className = 'preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition';
+        });
+        btn.className = 'preset-btn px-2.5 py-1 rounded text-xs font-medium bg-amber-500/20 text-amber-300 border border-amber-500/40 transition';
+        showToast(`Loaded ${btn.textContent} preset`);
+      });
+    });
+
+    document.getElementById('btnRandomize').addEventListener('click', () => {
+      const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+      state.containerType = pick(['vaulted-chest', 'beveled-crate', 'relic-pedestal']);
+      state.lockStyle = pick(['heavy-padlock', 'rotary-wheel', 'holo-keypad']);
+      state.materialPalette = pick(['oak-gold', 'iron-dark', 'cyber-titanium', 'crimson-flesh']);
+      state.glowColor = pick(['amber', 'arcane-purple', 'ice-blue', 'crimson']);
+      state.mimicMode = Math.random() > 0.5;
+      state.targetLidOpenDeg = Math.floor(35 + Math.random() * 60);
+      syncUI();
+      buildChestScene();
+      showToast('Randomized Loot Chest / Mimic Configuration');
+    });
+
+    let camTarget = null;
+    let orbitTarget = null;
+    document.querySelectorAll('.cam-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const mode = btn.dataset.cam;
+        if (mode === 'iso') {
+          camTarget = new THREE.Vector3(2.4, 1.8, 2.8);
+          orbitTarget = new THREE.Vector3(0, 0.65, 0);
+        } else if (mode === 'front') {
+          camTarget = new THREE.Vector3(0, 0.85, 2.2);
+          orbitTarget = new THREE.Vector3(0, 0.65, 0);
+        } else if (mode === 'loot') {
+          camTarget = new THREE.Vector3(0, 1.85, 1.35);
+          orbitTarget = new THREE.Vector3(0, 0.55, 0);
+        } else if (mode === 'vrm') {
+          camTarget = new THREE.Vector3(-1.5, 1.5, 2.6);
+          orbitTarget = new THREE.Vector3(-0.3, 0.8, 0);
+        }
+        document.querySelectorAll('.cam-btn').forEach((b) => {
+          b.className = b === btn
+            ? 'cam-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-500/20 text-amber-300 border border-amber-500/30 transition'
+            : 'cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition';
+        });
+      });
+    });
+    controls.addEventListener('start', () => { camTarget = null; orbitTarget = null; });
+
+    document.getElementById('btnCloseChest').addEventListener('click', () => {
+      state.targetLidOpenDeg = 0;
+      document.getElementById('sim-status-text').textContent = 'LOCKED SHUT • 0°';
+      showToast('Latched Chest Lid Shut');
+    });
+
+    document.getElementById('btnOpenChest').addEventListener('click', () => {
+      state.targetLidOpenDeg = 85;
+      document.getElementById('sim-status-text').textContent = 'UNLATCHED • 85°';
+      showToast('Popped Chest Lid Open!');
+    });
+
+    document.getElementById('btnToggleMimicBite').addEventListener('click', () => {
+      state.mimicMode = !state.mimicMode;
+      if (state.mimicMode) state.targetLidOpenDeg = 75;
+      syncUI();
+      buildChestScene();
+      showToast(state.mimicMode ? 'AWAKENED 100F MIMIC MONSTER RIG!' : 'Disguised as Ordinary Treasure Chest');
+    });
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    let downPos = { x: 0, y: 0 };
+    renderer.domElement.addEventListener('pointerdown', (e) => { downPos = { x: e.clientX, y: e.clientY }; });
+    window.addEventListener('pointerup', (e) => {
+      if (Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > 5) return;
+      const rect = renderer.domElement.getBoundingClientRect();
+      if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) return;
+      pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(clickableChestMeshes, false);
+      if (hits.length > 0) {
+        state.targetLidOpenDeg = state.lidOpenDeg > 30 ? 0 : 85;
+        showToast(state.targetLidOpenDeg > 30 ? 'Unlatched & Opened Chest Lid!' : 'Closed Chest Lid');
+      }
+    });
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast-notification');
+      document.getElementById('toast-text').textContent = msg;
+      toast.style.opacity = '1';
+      setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('btnExportPBR').addEventListener('click', () => {
+      exportPBRTexturePack('lootcad', 'timber', state.crackDensity);
+      showToast('Exported Seamless PBR Bump/Crack Height & Normal Maps (.PNG)!');
+    });
+
+    document.getElementById('btnExportJSON').addEventListener('click', () => {
+      downloadBlob(new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }), `loot-chest-recipe-${state.containerType}.json`);
+      showToast('Exported Parametric Chest Recipe (.JSON)');
+    });
+
+    document.getElementById('btnExportGLB').addEventListener('click', () => {
+      const exporter = new GLTFExporter();
+      exporter.parse(assetRoot, (res) => {
+        downloadBlob(new Blob([res], { type: 'application/octet-stream' }), `parametric-loot-${state.mimicMode ? 'mimic' : state.containerType}.glb`);
+        showToast('Exported 3D Chest / Mimic (.GLB) with Loot_Item_Socket & Chest_Hinged_Lid_Pivot!');
+      }, (err) => console.error(err), { binary: true });
+    });
+
+    document.getElementById('btnExportOBJ').addEventListener('click', () => {
+      const exporter = new OBJExporter();
+      downloadBlob(new Blob([exporter.parse(assetRoot)], { type: 'text/plain' }), `parametric-loot-${state.containerType}.obj`);
+      showToast('Exported Wavefront 3D Mesh (.OBJ)');
+    });
+
+    const clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = Math.min(clock.getDelta(), 0.1);
+      const elapsed = clock.getElapsedTime();
+
+      if (camTarget && orbitTarget) {
+        camera.position.lerp(camTarget, dt * 5);
+        controls.target.lerp(orbitTarget, dt * 5);
+        if (camera.position.distanceTo(camTarget) < 0.06) {
+          camTarget = null;
+          orbitTarget = null;
+        }
+      }
+
+      if (Math.abs(state.lidOpenDeg - state.targetLidOpenDeg) > 0.4) {
+        const step = Math.sign(state.targetLidOpenDeg - state.lidOpenDeg) * dt * 95;
+        state.lidOpenDeg = THREE.MathUtils.clamp(state.lidOpenDeg + step, 0, 110);
+        syncUI();
+        buildChestScene();
+      }
+
+      if (state.mimicMode && lidPivotRef && state.lidOpenDeg > 20) {
+        lidPivotRef.rotation.x = -THREE.MathUtils.degToRad(state.lidOpenDeg + Math.sin(elapsed * 7.5) * 8);
+      }
+      if (tongueGroupRef) {
+        tongueGroupRef.rotation.y = Math.sin(elapsed * 5.5) * 0.35;
+      }
+      if (relicSwordRef) {
+        relicSwordRef.rotation.y += dt * 1.5;
+      }
+
+      controls.update();
+      updateLabelsOverlay();
+      const mPos = atmosphericMotes.geometry.attributes.position;
+      for (let mi = 0; mi < MOTE_COUNT; mi++) {
+        let my = mPos.getY(mi) + 0.0045;
+        if (my > 3.2) my = 0.15;
+        mPos.setY(mi, my);
+      }
+      mPos.needsUpdate = true;
+      if (bloomEnabled) composer.render();
+      else renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+      const rw = Math.max(1, mount.clientWidth);
+      const rh = Math.max(1, mount.clientHeight);
+      camera.aspect = rw / rh;
+      camera.updateProjectionMatrix();
+      renderer.setSize(rw, rh);
+      composer.setSize(rw, rh);
+    });
+
+    window.__STUDIO_E2E__ = {
+      studioCode: 'LOOTCAD',
+      version: '6.0',
+      scene, camera, renderer, composer, unrealBloomPass, assetRoot,
+      getBloomEnabled: () => bloomEnabled
+    };
+
+    syncUI();
+    buildChestScene();
+    animate();
+  </script>
+</body>
+</html>

@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gaming2Gamers — Parametric 3D CAD Studio Hub</title>
+  <meta name="description" content="20 zero-install single-file WebGL/Three.js Parametric 3D CAD Studios by Gaming2Gamers with instant GLB & OBJ export." />
+  <style>
+    :root {
+      --bg-0: #050811;
+      --bg-1: #0b1120;
+      --card: rgba(15, 23, 42, 0.78);
+      --card-hover: rgba(20, 31, 56, 0.94);
+      --border: rgba(56, 189, 248, 0.2);
+      --border-hover: rgba(56, 189, 248, 0.62);
+      --cyan: #38bdf8;
+      --cyan-bright: #00e5ff;
+      --gold: #f5b942;
+      --magenta: #e879f9;
+      --emerald: #34d399;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --dim: #64748b;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(1100px 520px at 14% -8%, rgba(0, 149, 255, 0.16), transparent 60%),
+        radial-gradient(900px 480px at 88% 2%, rgba(245, 185, 66, 0.10), transparent 58%),
+        radial-gradient(800px 540px at 50% 100%, rgba(192, 38, 211, 0.08), transparent 65%),
+        var(--bg-0);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .grid-bg {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(56, 189, 248, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(56, 189, 248, 0.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse at 50% 15%, black 35%, transparent 85%);
+      z-index: 0;
+    }
+
+    .shell {
+      position: relative;
+      z-index: 1;
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 36px 24px 64px;
+    }
+
+    .hero {
+      border: 1px solid rgba(56, 189, 248, 0.24);
+      border-radius: 20px;
+      background: linear-gradient(145deg, rgba(11, 18, 35, 0.92), rgba(7, 11, 22, 0.88));
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      padding: 32px 32px 26px;
+      margin-bottom: 24px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--cyan-bright);
+      background: rgba(0, 229, 255, 0.09);
+      border: 1px solid rgba(0, 229, 255, 0.28);
+      border-radius: 999px;
+      padding: 5px 12px;
+      margin-bottom: 14px;
+    }
+
+    .eyebrow .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--emerald);
+      box-shadow: 0 0 10px var(--emerald);
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      line-height: 1.08;
+      background: linear-gradient(95deg, #ffffff 0%, #bae6fd 52%, #fde68a 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      margin: 0 0 22px;
+      max-width: 820px;
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .stats-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .stat-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: #cbd5e1;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 10px;
+      padding: 7px 12px;
+    }
+
+    .stat-pill strong {
+      color: var(--cyan-bright);
+      font-weight: 700;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1 1 280px;
+      max-width: 420px;
+    }
+
+    .search-wrap input {
+      width: 100%;
+      padding: 11px 14px 11px 38px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      background: rgba(10, 16, 30, 0.9);
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .search-wrap input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--dim);
+      font-size: 14px;
+      pointer-events: none;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .filter-btn {
+      cursor: pointer;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      background: rgba(15, 23, 42, 0.72);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      transition: all 0.15s ease;
+    }
+
+    .filter-btn:hover {
+      border-color: rgba(56, 189, 248, 0.45);
+      color: #f8fafc;
+    }
+
+    .filter-btn.active {
+      background: linear-gradient(135deg, rgba(0, 149, 255, 0.26), rgba(0, 229, 255, 0.16));
+      border-color: var(--cyan-bright);
+      color: #ffffff;
+      box-shadow: 0 0 18px rgba(0, 149, 255, 0.22);
+    }
+
+    .results-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 0 0 14px;
+      font-size: 12px;
+      color: var(--dim);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 20px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      backdrop-filter: blur(10px);
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: var(--border-hover);
+      background: var(--card-hover);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 24px rgba(56, 189, 248, 0.12);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .studio-name {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      color: #f8fafc;
+    }
+
+    .badge {
+      flex-shrink: 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+    }
+
+    .badge-v65 {
+      color: #fde68a;
+      background: rgba(245, 185, 66, 0.16);
+      border-color: rgba(245, 185, 66, 0.48);
+    }
+
+    .badge-v60 {
+      color: #7dd3fc;
+      background: rgba(56, 189, 248, 0.14);
+      border-color: rgba(56, 189, 248, 0.44);
+    }
+
+    .badge-standalone {
+      color: #6ee7b7;
+      background: rgba(52, 211, 153, 0.14);
+      border-color: rgba(52, 211, 153, 0.44);
+    }
+
+    .badge-archive {
+      color: #cbd5e1;
+      background: rgba(148, 163, 184, 0.12);
+      border-color: rgba(148, 163, 184, 0.30);
+    }
+
+    .badge-ref {
+      color: #f5d0fe;
+      background: rgba(232, 121, 249, 0.14);
+      border-color: rgba(232, 121, 249, 0.44);
+    }
+
+    .card-desc {
+      margin: 8px 0 0;
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--muted);
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .tag {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      color: #cbd5e1;
+    }
+
+    .card-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 12px;
+      border-top: 1px solid rgba(148, 163, 184, 0.12);
+      font-size: 12px;
+    }
+
+    .file-size {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: var(--dim);
+    }
+
+    .launch-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+      color: var(--cyan-bright);
+    }
+
+    .card:hover .launch-cta {
+      color: #ffffff;
+    }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 48px 20px;
+      border: 1px dashed rgba(148, 163, 184, 0.25);
+      border-radius: 16px;
+      color: var(--muted);
+    }
+
+    footer {
+      margin-top: 44px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(148, 163, 184, 0.14);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--dim);
+    }
+
+    footer a {
+      color: var(--cyan);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="grid-bg" aria-hidden="true"></div>
+  <main class="shell">
+    <header class="hero">
+      <div class="eyebrow"><span class="dot"></span> Gaming2Gamers // Bespoke Parametric CAD Suite</div>
+      <h1>Parametric 3D CAD Studio Hub</h1>
+      <p class="subtitle">
+        20 zero-install, single-file WebGL &amp; Three.js parametric generators engineered for real-time 3D world-building,
+        <code>.VRM</code> avatar scale environments, and one-click <strong>.GLB / .OBJ</strong> mesh export straight from your browser.
+      </p>
+      <div class="stats-row">
+        <div class="stat-pill"><strong>20</strong> Standalone HTML Studios</div>
+        <div class="stat-pill"><strong>11</strong> Flagship v6.x Generators</div>
+        <div class="stat-pill"><strong>GLB + OBJ</strong> Direct Browser Export</div>
+        <div class="stat-pill"><strong>0</strong> Build Steps Required</div>
+      </div>
+    </header>
+
+    <section class="controls" aria-label="Studio filters">
+      <div class="search-wrap">
+        <span class="search-icon" aria-hidden="true">&#128269;</span>
+        <input id="searchInput" type="search" placeholder="Search studios, features, versions (e.g. torii, v6.0, train, trap)..." autocomplete="off" />
+      </div>
+      <div class="filters" id="filterBar">
+        <button class="filter-btn active" data-filter="all" type="button">All (20)</button>
+        <button class="filter-btn" data-filter="flagship" type="button">Flagships v6.x (11)</button>
+        <button class="filter-btn" data-filter="architecture" type="button">Architecture &amp; Traversal</button>
+        <button class="filter-btn" data-filter="industrial" type="button">Industrial &amp; Sci-Fi</button>
+        <button class="filter-btn" data-filter="dungeon" type="button">Dungeon &amp; Shrine</button>
+        <button class="filter-btn" data-filter="archive" type="button">Archive v3.5–v5.0 (7)</button>
+        <button class="filter-btn" data-filter="reference" type="button">Mechanical Ref (1)</button>
+      </div>
+    </section>
+
+    <div class="results-meta">
+      <span id="resultsCount">Showing 20 of 20 studios</span>
+      <span>Click any card to launch in a new tab</span>
+    </div>
+
+    <section class="grid" id="studioGrid" aria-live="polite"></section>
+
+    <footer>
+      <span>Gaming2Gamers Parametric CAD Studios &mdash; 19 bespoke CAD studios + 1 community mechanical reference visualization.</span>
+      <a href="https://github.com/Gaming2Gamers/Parametric-" target="_blank" rel="noopener noreferrer">View Repository on GitHub &rarr;</a>
+    </footer>
+  </main>
+
+  <script>
+    const STUDIOS = [
+      {
+        name: 'TORIICAD',
+        version: 'v6.5',
+        badgeClass: 'badge-v65',
+        tier: 'flagship',
+        categories: ['flagship', 'dungeon', 'architecture'],
+        size: '128.8 KB',
+        exports: ['GLB', 'OBJ', 'Three.js'],
+        file: 'toriicad_v6_5_senbon_torii_tunnel_kitsune_komainu_guardians_suzu_bell_seasonal_shrine_studio.html',
+        desc: 'Senbon-Torii tunnel architect with Kitsune & Komainu guardian statues, Suzu bell rigging, and seasonal shrine lighting presets.'
+      },
+      {
+        name: 'POWERCAD',
+        version: 'v6.0',
+        badgeClass: 'badge-v60',
+        tier: 'flagship',
+        categories: ['flagship', 'industrial'],
+        size: '147.8 KB',
+        exports: ['GLB', 'OBJ', 'Three.js'],
+        file: 'powercad_v6_0_aaa_industrial_realism_bundled_catenary_conduits_exposed_busbar_edition.html',
+        desc: 'AAA industrial power infrastructure: bundled catenary conduits, cable trays, transformers, and exposed copper busbar assemblies.'
+      },
+      {
+        name: 'VOIDTRAINCAD',
+        version: 'v6.0',
+        badgeClass: 'badge-v60',
+        tier: 'flagship',
+        categories: ['flagship', 'industrial', 'architecture'],
+        size: '125.9 KB',
+        exports: ['GLB', 'OBJ', '.VRM Scale'],
+        file: 'voidtraincad_v6_0_vrm_walkable_void_train_curved_monorail_switches_distinct_cars.html',
+        desc: 'Walkable .VRM-scale Void-Train studio with curved monorail track switches, articulated bogies, and configurable distinct passenger/cargo cars.'
+      },
+      {
+        name: 'LUMINACAD',
+        version: 'v6.0',
+        badgeClass: 'badge-v60',
+        tier: 'flagship',
+        categories: ['flagship', 'industrial', 'dungeon'],
+        size: '93.7 KB',
+        exports: ['GLB', 'OBJ', 'Three.js'],
+        file: 'luminacad_v6_0_parametric_puck_lights_street_lamp_posts_sconces_dungeon_luminaires_studio.html',
+        desc: 'Parametric lighting fixture forge covering recessed puck lights, street lamp posts, gothic sconces, and atmospheric dungeon luminaires.'
+      },
+      {
+        name: 'TURRETCAD',
+        version: 'v6.0',
+        badgeClass: 'badge-v60',
+        tier: 'flagship',
+        categories: ['flagship', 'industrial'],
+        size: '86.0 KB',
+        exports: ['GLB', 'OBJ', '.VRM Optic'],
+        file: 'turretcad_v6_0_high_detail_parametric_turret_vrm_optic_window_scope_zoom_studio.html',
+        desc: 'High-detail parametric defense turret builder featuring a calibrated .VRM optic window, barrel recoil geometry, and interactive scope zoom.'
+      },
+      {
+        name: 'GATEENGINECAD',
+        version: 'v6.0',
+        badgeClass: 'badge-v60',
+        tier: 'flagship',
+        categories: ['flagship', 'architecture', 'dungeon'],
+        size: '83.0 KB',
+        exports: ['GLB', 'OBJ', '3D Keypad'],
+        file: 'gateenginecad_v6_0_non_clipping_portcullis_slab_pockets_3d_pin_keypad_studio.html',
+        desc: 'Non-clipping portcullis & armored blast-door slab pockets engineered with real clearance cavities and an interactive 3D PIN keypad.'
+      },
+      {
+        name: 'BRIDGECAD',
+        version: 'v6.0',
+        badgeClass: 'badge-v60',
+        tier: 'flagship',
+        categories: ['flagship', 'architecture'],
+        size: '82.9 KB',
+        exports: ['GLB', 'OBJ', 'Animated'],
+        file: 'bridgecad_v6_0_connected_bascule_chains_sliding_holographic_chasm_bridge_studio.html',
+        desc: 'Parametric chasm bridges with physically connected bascule chains, sliding mechanical decks, and sci-fi holographic hard-light spans.'
+      },
+      {
+        name: 'LOOTCAD',
+        version: 'v6.0',
+        badgeClass: 'badge-v60',
+        tier: 'flagship',
+        categories: ['flagship', 'dungeon', 'industrial'],
+        size: '72.5 KB',
+        exports: ['GLB', 'OBJ', 'Three.js'],
+        file: 'lootcad_v6_0_parametric_treasure_chests_sci_fi_crates_mimics_relic_pedestals_studio.html',
+        desc: 'Interactive loot container generator for fantasy treasure chests, sci-fi supply crates, animated mimics, and levitating relic pedestals.'
+      },
+      {
+        name: 'STAIRCAD',
+        version: 'v6.0',
+        badgeClass: 'badge-v60',
+        tier: 'flagship',
+        categories: ['flagship', 'architecture'],
+        size: '71.3 KB',
+        exports: ['GLB', 'OBJ', 'Three.js'],
+        file: 'staircad_v6_0_parametric_staircases_spiral_towers_catwalks_trick_slide_engine.html',
+        desc: 'Parametric staircases, grand spiral towers, industrial catwalks, and animated trick-slide ramp transformations.'
+      },
+      {
+        name: 'TRAPCAD',
+        version: 'v6.0',
+        badgeClass: 'badge-v60',
+        tier: 'flagship',
+        categories: ['flagship', 'dungeon'],
+        size: '70.0 KB',
+        exports: ['GLB', 'OBJ', 'Animated'],
+        file: 'trapcad_v6_0_100f_dungeon_trap_pendulum_scythes_spike_grids_crushers_studio.html',
+        desc: '100-Floor dungeon hazard studio generating synchronized pendulum scythes, retractable floor spike grids, and heavy wall crushers.'
+      },
+      {
+        name: 'FORGECAD',
+        version: 'v6.0',
+        badgeClass: 'badge-v60',
+        tier: 'flagship',
+        categories: ['flagship', 'dungeon'],
+        size: '66.5 KB',
+        exports: ['GLB', 'OBJ', 'Three.js'],
+        file: 'forgecad_v6_0_safe_room_blacksmith_forge_alchemy_lab_100f_checkpoint_shrine_studio.html',
+        desc: 'Safe-room checkpoint builder with glowing blacksmith hearth, anvil station, glass alchemy lab apparatus, and 100F Sanctuary shrine.'
+      },
+      {
+        name: 'ELEVATECAD',
+        version: 'Standalone',
+        badgeClass: 'badge-standalone',
+        tier: 'standalone',
+        categories: ['architecture', 'industrial'],
+        size: '171.5 KB',
+        exports: ['GLB', 'OBJ', 'Three.js'],
+        file: 'parametric_elevator_asset_studio.html',
+        desc: 'Parametric Elevator Asset Studio: multi-floor glass & industrial shafts, animated sliding doors, call buttons, and counterweight assemblies.'
+      },
+      {
+        name: 'POWERCAD',
+        version: 'v5.0',
+        badgeClass: 'badge-archive',
+        tier: 'archive',
+        categories: ['archive', 'industrial'],
+        size: '128.0 KB',
+        exports: ['GLB', 'OBJ', 'Archive'],
+        file: 'powercad_v5_0_aaa_industrial_realism_bundled_catenary_conduits_exposed_busbar_edition.html',
+        desc: 'Archive v5.0 edition of the industrial catenary conduit & exposed busbar parametric generator.'
+      },
+      {
+        name: 'STAIRCAD',
+        version: 'v5.0',
+        badgeClass: 'badge-archive',
+        tier: 'archive',
+        categories: ['archive', 'architecture'],
+        size: '63.6 KB',
+        exports: ['GLB', 'OBJ', 'Archive'],
+        file: 'staircad_v5_0_parametric_staircases_spiral_towers_catwalks_trick_slide_engine.html',
+        desc: 'Archive v5.0 edition of the parametric staircases, spiral towers, catwalks, and trick-slide studio.'
+      },
+      {
+        name: 'LUMINACAD',
+        version: 'v4.0',
+        badgeClass: 'badge-archive',
+        tier: 'archive',
+        categories: ['archive', 'industrial', 'dungeon'],
+        size: '78.0 KB',
+        exports: ['GLB', 'OBJ', 'Archive'],
+        file: 'luminacad_v4_0_parametric_puck_lights_street_lamp_posts_sconces_dungeon_luminaires_studio.html',
+        desc: 'Archive v4.0 edition of the puck lights, lamp posts, sconces, and dungeon luminaire generator.'
+      },
+      {
+        name: 'VOIDTRAINCAD',
+        version: 'v3.5',
+        badgeClass: 'badge-archive',
+        tier: 'archive',
+        categories: ['archive', 'industrial', 'architecture'],
+        size: '108.8 KB',
+        exports: ['GLB', 'OBJ', 'Archive'],
+        file: 'voidtraincad_v3_5_vrm_walkable_void_train_curved_monorail_switches_distinct_cars.html',
+        desc: 'Archive v3.5 edition of the .VRM walkable Void-Train and curved monorail switch studio.'
+      },
+      {
+        name: 'TURRETCAD',
+        version: 'v3.5',
+        badgeClass: 'badge-archive',
+        tier: 'archive',
+        categories: ['archive', 'industrial'],
+        size: '70.5 KB',
+        exports: ['GLB', 'OBJ', 'Archive'],
+        file: 'turretcad_v3_5_high_detail_parametric_turret_vrm_optic_window_scope_zoom_studio.html',
+        desc: 'Archive v3.5 edition of the parametric defense turret and .VRM optic scope studio.'
+      },
+      {
+        name: 'BRIDGECAD',
+        version: 'v3.5',
+        badgeClass: 'badge-archive',
+        tier: 'archive',
+        categories: ['archive', 'architecture'],
+        size: '68.6 KB',
+        exports: ['GLB', 'OBJ', 'Archive'],
+        file: 'bridgecad_v3_5_connected_bascule_chains_sliding_holographic_chasm_bridge_studio.html',
+        desc: 'Archive v3.5 edition of the bascule chain, sliding deck, and holographic chasm bridge studio.'
+      },
+      {
+        name: 'GATEENGINECAD',
+        version: 'v3.5',
+        badgeClass: 'badge-archive',
+        tier: 'archive',
+        categories: ['archive', 'architecture', 'dungeon'],
+        size: '67.4 KB',
+        exports: ['GLB', 'OBJ', 'Archive'],
+        file: 'gateenginecad_v3_5_non_clipping_portcullis_slab_pockets_3d_pin_keypad_studio.html',
+        desc: 'Archive v3.5 edition of the non-clipping portcullis slab pocket and 3D PIN keypad studio.'
+      },
+      {
+        name: 'Hayabusa 1.3L Turbo',
+        version: 'Reference',
+        badgeClass: 'badge-ref',
+        tier: 'reference',
+        categories: ['reference', 'industrial'],
+        size: '85.7 KB',
+        exports: ['Three.js', 'Cutaway Sim'],
+        file: 'suzuki_hayabusa_1_3l_1340cc_4_stroke_turbo_3d_visualization_1.html',
+        desc: 'Community procedural 3D cutaway visualization of a Suzuki Hayabusa 1.3L (1340cc) inline-4 DOHC 16V turbocharged engine with live RPM & boost controls.'
+      }
+    ];
+
+    let activeFilter = 'all';
+    const grid = document.getElementById('studioGrid');
+    const searchInput = document.getElementById('searchInput');
+    const resultsCount = document.getElementById('resultsCount');
+    const filterBar = document.getElementById('filterBar');
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function render() {
+      const q = searchInput.value.trim().toLowerCase();
+      const visible = STUDIOS.filter((s) => {
+        const matchesCat = activeFilter === 'all' || s.categories.includes(activeFilter);
+        if (!matchesCat) return false;
+        if (!q) return true;
+        const hay = `${s.name} ${s.version} ${s.desc} ${s.exports.join(' ')} ${s.file}`.toLowerCase();
+        return hay.includes(q);
+      });
+
+      resultsCount.textContent = `Showing ${visible.length} of ${STUDIOS.length} studios`;
+
+      if (visible.length === 0) {
+        grid.innerHTML = '<div class="empty-state">No studios match that filter. Try clearing your search or switching category pills.</div>';
+        return;
+      }
+
+      grid.innerHTML = visible.map((s) => `
+        <a class="card" href="${encodeURI(s.file)}" target="_blank" rel="noopener noreferrer">
+          <div>
+            <div class="card-top">
+              <h2 class="studio-name">${escapeHtml(s.name)}</h2>
+              <span class="badge ${s.badgeClass}">${escapeHtml(s.version)}</span>
+            </div>
+            <p class="card-desc">${escapeHtml(s.desc)}</p>
+            <div class="tags">
+              ${s.exports.map((t) => `<span class="tag">${escapeHtml(t)}</span>`).join('')}
+            </div>
+          </div>
+          <div class="card-foot">
+            <span class="file-size">${escapeHtml(s.size)}</span>
+            <span class="launch-cta">Launch Studio &rarr;</span>
+          </div>
+        </a>
+      `).join('');
+    }
+
+    filterBar.addEventListener('click', (e) => {
+      const btn = e.target.closest('.filter-btn');
+      if (!btn) return;
+      activeFilter = btn.dataset.filter || 'all';
+      for (const el of filterBar.querySelectorAll('.filter-btn')) {
+        el.classList.toggle('active', el === btn);
+      }
+      render();
+    });
+
+    searchInput.addEventListener('input', render);
+    render();
+  </script>
+</body>
+</html>

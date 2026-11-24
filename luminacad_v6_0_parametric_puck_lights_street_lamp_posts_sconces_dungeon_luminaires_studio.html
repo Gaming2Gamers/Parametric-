@@ -1,0 +1,1973 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LUMINACAD v6.0 — Parametric Puck Lights, Street Lamp Posts, Sconces & Dungeon Luminaires Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <style>
+    * { box-sizing: border-box; user-select: none; }
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #07090e;
+      color: #e2e8f0;
+    }
+    .font-mono-tech { font-family: 'JetBrains Mono', monospace; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.4); }
+    ::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.6); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(100, 116, 139, 0.9); }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: #1e293b;
+      border-radius: 999px;
+      outline: none;
+      border: 1px solid #334155;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #f59e0b;
+      cursor: pointer;
+      border: 2px solid #0f172a;
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+      transition: transform 0.1s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(51, 65, 85, 0.65);
+    }
+    .dimension-badge {
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.2s ease;
+    }
+  </style>
+</head>
+<body class="h-screen w-screen flex flex-col bg-[#07090e] text-slate-100">
+
+  <!-- TOP HEADER BAR -->
+  <header class="h-14 border-b border-slate-800/80 bg-slate-950/90 px-4 flex items-center justify-between z-20 shrink-0">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-lg bg-amber-500/15 border border-amber-400/35 flex items-center justify-center text-amber-400 shadow-inner">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+        </svg>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="font-semibold text-sm tracking-tight text-white">LUMINA<span class="text-amber-400">CAD</span></h1>
+          <span class="text-[10px] font-mono-tech uppercase px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">v6.0 • Parametric Luminaires</span>
+        </div>
+        <p class="text-[11px] text-slate-400">Hyper-Focused Puck Lights, Street Lamp Posts, Sconces, Chandeliers & Dungeon Braziers</p>
+      </div>
+    </div>
+
+    <!-- QUICK ARCHETYPE PRESETS BAR -->
+    <div class="hidden xl:flex items-center gap-1.5 bg-slate-900/90 p-1 rounded-lg border border-slate-800">
+      <span class="text-[11px] font-medium text-slate-400 px-2">Fixture:</span>
+      <button data-preset="puck" class="preset-btn px-2.5 py-1 rounded text-xs font-medium bg-amber-500/20 text-amber-300 border border-amber-500/40 transition">Recessed Puck Light</button>
+      <button data-preset="streetpost" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Victorian Twin Lamp Post</button>
+      <button data-preset="sconce" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Wall Torch / Sconce</button>
+      <button data-preset="chandelier" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Chasm Ring Chandelier</button>
+      <button data-preset="brazier" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-purple-300 hover:bg-purple-950/40 border border-purple-500/30 transition">100F Runic Brazier</button>
+      <button data-preset="bollard" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-sky-300 hover:bg-sky-950/40 border border-sky-500/30 transition">Cyber Path Bollard</button>
+    </div>
+
+    <!-- EXPORT ACTIONS -->
+    <div class="flex items-center gap-2">
+      <button id="btnToggleBloom" type="button" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 font-mono-tech border border-cyan-500/40 transition" title="Toggle Selective ACES Filmic HDR UnrealBloom Post-Processing">✨ Bloom: ON</button>
+      <button id="btnRandomize" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">Randomize</button>
+      <button id="btnExportPBR" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-emerald-300 font-mono-tech border border-emerald-500/30 transition" title="Download Seamless Bump/Crack Height Map & RGB Normal Map (.PNG)">PBR .PNGs</button>
+      <button id="btnExportJSON" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-amber-400 font-mono-tech border border-slate-700 transition">.JSON</button>
+      <button id="btnExportOBJ" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">Export .OBJ</button>
+      <button id="btnExportGLB" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-lg shadow-amber-500/20 transition">Export .GLB</button>
+    </div>
+  </header>
+
+  <div class="flex-1 flex relative overflow-hidden">
+
+    <!-- LEFT PANEL: 5 HYPER-FOCUSED LIGHTING TABS -->
+    <aside class="w-80 md:w-96 border-r border-slate-800/80 bg-slate-950/95 flex flex-col z-10 shrink-0">
+      <div class="grid grid-cols-5 border-b border-slate-800 bg-slate-900/60 p-1 gap-1 text-[11px] font-medium">
+        <button data-tab="tab-type" class="tab-btn py-2 rounded bg-slate-800 text-amber-400 shadow-sm transition">Fixture</button>
+        <button data-tab="tab-dims" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Geometry</button>
+        <button data-tab="tab-optics" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Optics</button>
+        <button data-tab="tab-housing" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Housing</button>
+        <button data-tab="tab-switch" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Switch</button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-4 space-y-5">
+
+        <!-- TAB 1: FIXTURE ARCHITECTURE & MULTI-HEAD ARRAYS -->
+        <div id="tab-type" class="tab-content space-y-5">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Luminaire Family & Head Style</h2>
+              <span class="text-[11px] font-mono-tech text-amber-400">IES-LM-79</span>
+            </div>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Primary Fixture Family</label>
+                <select id="param-fixtureFamily" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="puck-recessed">Recessed / Surface Architectural Puck Light</option>
+                  <option value="street-post">Street / Bridge Lamp Post (1–4 Arms)</option>
+                  <option value="wall-sconce">Wall-Mounted Sconce / Torch Bracket</option>
+                  <option value="chandelier-ring">Suspended Tiered Chandelier / Pendant</option>
+                  <option value="standing-brazier">Standing Dungeon Brazier / Rune Basin</option>
+                  <option value="pathway-bollard">Low Pathway Louvered Guide Bollard</option>
+                  <option value="tripod-flood">Tactical Gimbal Tripod Work Floodlight</option>
+                  <option value="linear-tube">Armored Linear Neon / Mana Conduit Bar</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Emitter / Lantern Head Style</label>
+                <select id="param-headStyle" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="frosted-dome">Frosted Opal Glass Diffuser Dome</option>
+                  <option value="hex-lantern">6-Sided Victorian Beveled Glass Lantern</option>
+                  <option value="caged-bulkhead">Industrial Marine Caged Bulkhead</option>
+                  <option value="arcane-crystal">Floating Tethered Mana Crystal Shard</option>
+                  <option value="open-flame">Open Forged Iron Fire Basket & Ember Plume</option>
+                  <option value="cobra-led">Sleek Cybernetic LED Cobra Array</option>
+                </select>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Head / Puck Array Count</label>
+                  <span id="val-headCount" class="font-mono-tech text-amber-400">1 unit</span>
+                </div>
+                <input id="param-headCount" type="range" min="1" max="6" step="1" value="1">
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Multi-Unit Array Pattern</label>
+                <select id="param-arrayPattern" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="radial">Radial / Symmetrical Arms Around Axis</option>
+                  <option value="linear">Linear Track / Row Spacing</option>
+                </select>
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-emerald-300 block">Show .VRM 1.70m Scale Avatar</span>
+                  <span class="text-[11px] text-slate-400">Verify real-world post height & light pool</span>
+                </div>
+                <input id="param-showVrmAvatar" type="checkbox" checked class="w-4 h-4 accent-emerald-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: PARAMETRIC DIMENSIONS & GIMBAL AIMING -->
+        <div id="tab-dims" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Envelope & Gimbal Kinematics</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Post Height / Drop Length (Y)</label>
+                  <span id="val-fixtureHeight" class="font-mono-tech text-amber-400">3.40 m</span>
+                </div>
+                <input id="param-fixtureHeight" type="range" min="0.15" max="6.00" step="0.05" value="3.40">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Head / Puck Diameter</label>
+                  <span id="val-headDiameter" class="font-mono-tech text-amber-400">0.42 m</span>
+                </div>
+                <input id="param-headDiameter" type="range" min="0.10" max="1.40" step="0.02" value="0.42">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Arm Reach / Array Spread</label>
+                  <span id="val-armSpread" class="font-mono-tech text-amber-400">0.75 m</span>
+                </div>
+                <input id="param-armSpread" type="range" min="0.00" max="2.20" step="0.05" value="0.75">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Bezel / Rim Thickness</label>
+                  <span id="val-bezelThick" class="font-mono-tech text-amber-400">0.05 m</span>
+                </div>
+                <input id="param-bezelThick" type="range" min="0.02" max="0.18" step="0.01" value="0.05">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Gimbal Tilt / Pitch Aim</label>
+                  <span id="val-gimbalTilt" class="font-mono-tech text-emerald-400">0°</span>
+                </div>
+                <input id="param-gimbalTilt" type="range" min="-75" max="75" step="5" value="0">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: PHOTOMETRICS, KELVIN, VOLUMETRIC BEAM & FLICKER -->
+        <div id="tab-optics" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Photometrics, Spectrum & Beam</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Spectral Color Mode</label>
+                <select id="param-spectrumMode" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="kelvin">Blackbody White Spectrum (1800K–6500K)</option>
+                  <option value="arcane-purple">Abyssal Void Arcane Violet</option>
+                  <option value="hellfire-amber">Dungeon Torch Hellfire Amber</option>
+                  <option value="fel-emerald">Alchemical Fel Emerald</option>
+                  <option value="cyber-cyan">Aetherial Cyber Ice Cyan</option>
+                  <option value="blood-crimson">100F Emergency Blood Ruby</option>
+                </select>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Color Temperature (Kelvin)</label>
+                  <span id="val-kelvin" class="font-mono-tech text-amber-400">3200 K</span>
+                </div>
+                <input id="param-kelvin" type="range" min="1800" max="6500" step="100" value="3200">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Dimmer Output Level</label>
+                  <span id="val-dimmerPct" class="font-mono-tech text-emerald-400">100%</span>
+                </div>
+                <input id="param-dimmerPct" type="range" min="0" max="150" step="5" value="100">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Beam Cone Spread Angle</label>
+                  <span id="val-beamAngle" class="font-mono-tech text-amber-400">55°</span>
+                </div>
+                <input id="param-beamAngle" type="range" min="15" max="110" step="5" value="55">
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Dynamic Light Behavior</label>
+                <select id="param-flickerMode" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="steady">Steady Regulated Output</option>
+                  <option value="torch-flicker">Organic Flame / Candle Flicker</option>
+                  <option value="mana-pulse">Breathing Arcane Sine Pulse</option>
+                  <option value="short-circuit">Damaged Dungeon Spark / Brownout</option>
+                </select>
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-amber-300 block">Volumetric Light Cone Mesh</span>
+                  <span class="text-[11px] text-slate-400">Exportable translucent god-ray cone</span>
+                </div>
+                <input id="param-volumetricCone" type="checkbox" checked class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: HOUSING METALLURGY, LOUVERS & PBR BUMP/CRACKS -->
+        <div id="tab-housing" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Housing Hardware & PBR Relief</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Fixture Housing Material</label>
+                <select id="param-housingFinish" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="wrought-iron">Blackened Cast Wrought Iron</option>
+                  <option value="brass">Polished Architectural Brass</option>
+                  <option value="brushed-steel">Brushed Stainless Puck Trim</option>
+                  <option value="basalt-stone">Carved Dungeon Basalt Stone</option>
+                  <option value="copper-patina">Aged Verdigris Bronze</option>
+                </select>
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Protective Wire Guard Cage</span>
+                  <span class="text-[11px] text-slate-400">Heavy rib cage around lens/emitter</span>
+                </div>
+                <input id="param-wireCage" type="checkbox" checked class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Anti-Glare Louver / Baffle Grid</span>
+                  <span class="text-[11px] text-slate-400">Cross-blade baffle or barn doors</span>
+                </div>
+                <input id="param-louverBaffle" type="checkbox" class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800">
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-emerald-300 font-medium">PBR Crack & Scar Density</label>
+                  <span id="val-crackDensity" class="font-mono-tech text-emerald-400">35%</span>
+                </div>
+                <input id="param-crackDensity" type="range" min="0" max="100" step="5" value="35">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-emerald-300 font-medium">Normal / Bump Relief Depth</label>
+                  <span id="val-bumpScale" class="font-mono-tech text-emerald-400">0.06</span>
+                </div>
+                <input id="param-bumpScale" type="range" min="0.00" max="0.25" step="0.01" value="0.06">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 5: INTERACTIVE 3D WALL SWITCH & EXPORT -->
+        <div id="tab-switch" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">3D Dimmer Switch & Export Scope</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Interactive 3D Control Switch</label>
+                <select id="param-switchType" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="rotary-dimmer">Wall Rotary Dimmer Dial + Push Switch</option>
+                  <option value="toggle-plate">Tactical Illuminated Rocker Switch</option>
+                  <option value="dungeon-lever">Wall Iron Torch/Circuit Throw Lever</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">3D Export Mesh Scope</label>
+                <select id="param-exportScope" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="fixture-only">Light Fixture Actor Only (Game Prop)</option>
+                  <option value="full-scene">Fixture + Reference Wall/Floor & Switch</option>
+                </select>
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-200">3D Dimension Callouts</span>
+                <input id="param-showDimensions" type="checkbox" checked class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-200">Wireframe Overlay Pass</span>
+                <input id="param-wireframe" type="checkbox" class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- PHOTOMETRIC TELEMETRY FOOTER -->
+      <div class="p-3.5 border-t border-slate-800 bg-slate-900/90 space-y-2">
+        <div class="flex items-center justify-between text-[11px] text-slate-400">
+          <span class="uppercase font-semibold tracking-wider">Photometric Telemetry</span>
+          <span id="stat-triangles" class="font-mono-tech text-slate-300">0 tris</span>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">Luminous Flux</span>
+            <span id="stat-lumens" class="font-mono-tech text-xs font-semibold text-amber-400">2,400 lm</span>
+          </div>
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">Power Draw</span>
+            <span id="stat-watts" class="font-mono-tech text-xs font-semibold text-emerald-400">24 W</span>
+          </div>
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">Spectrum</span>
+            <span id="stat-spectrum" class="font-mono-tech text-xs font-semibold text-sky-400">3200 K</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER 3D VIEWPORT -->
+    <main class="flex-1 relative bg-gradient-to-b from-[#0a0d16] via-[#070910] to-[#040508] overflow-hidden">
+      <div id="canvas-mount" class="w-full h-full"></div>
+
+      <div id="labels-container" class="absolute inset-0 pointer-events-none overflow-hidden">
+        <div id="label-height" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/90 border border-amber-500/50 text-[11px] font-mono-tech text-amber-300 shadow-lg">H: 3.40m</div>
+        <div id="label-diameter" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/90 border border-amber-500/50 text-[11px] font-mono-tech text-amber-300 shadow-lg">Ø: 0.42m</div>
+        <div id="label-spread" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/90 border border-amber-500/50 text-[11px] font-mono-tech text-amber-300 shadow-lg">Spread: 0.75m</div>
+      </div>
+
+      <!-- CAMERA PRESETS -->
+      <div class="absolute top-4 left-4 glass-panel rounded-xl p-1.5 flex items-center gap-1 shadow-xl">
+        <span class="text-[10px] font-mono-tech uppercase text-slate-400 px-2">Camera:</span>
+        <button data-cam="iso" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-500/20 text-amber-300 border border-amber-500/30 transition">3/4 Studio</button>
+        <button data-cam="head" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">Emitter / Puck Close-Up</button>
+        <button data-cam="vrm" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">.VRM Eye Level</button>
+        <button data-cam="switch" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">3D Wall Dimmer</button>
+      </div>
+
+      <!-- RIGHT FLOATING LIGHTING MASTER CONTROLLER -->
+      <div class="absolute top-4 right-4 w-60 glass-panel rounded-2xl p-3.5 shadow-2xl flex flex-col gap-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-300">Luminaire Master Test</span>
+          <span id="sim-status-dot" class="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_#f59e0b]"></span>
+        </div>
+
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 flex items-center justify-between">
+          <div>
+            <span class="text-[10px] text-slate-400 uppercase block">Circuit State</span>
+            <span id="sim-status-text" class="text-[11px] font-mono-tech text-emerald-400">ENERGIZED • 100%</span>
+          </div>
+          <span id="sim-pct-readout" class="font-mono-tech text-sm font-bold text-amber-400">100%</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-1.5">
+          <button id="btnPowerToggle" class="py-1.5 px-2 rounded-lg text-xs font-semibold bg-amber-500/25 hover:bg-amber-500/35 text-amber-200 border border-amber-500/40 transition">
+            💡 Power ON / OFF
+          </button>
+          <button id="btnCycleFlicker" class="py-1.5 px-2 rounded-lg text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 transition">
+            ⚡ Cycle FX Mode
+          </button>
+        </div>
+
+        <div class="grid grid-cols-4 gap-1">
+          <button data-dim="0" class="dim-btn py-1 rounded text-[11px] font-mono-tech bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800">0%</button>
+          <button data-dim="35" class="dim-btn py-1 rounded text-[11px] font-mono-tech bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800">35%</button>
+          <button data-dim="100" class="dim-btn py-1 rounded text-[11px] font-mono-tech bg-amber-500/20 text-amber-300 border border-amber-500/40">100%</button>
+          <button data-dim="150" class="dim-btn py-1 rounded text-[11px] font-mono-tech bg-slate-900 hover:bg-slate-800 text-rose-300 border border-rose-500/30">150%</button>
+        </div>
+      </div>
+
+      <!-- BOTTOM-LEFT HINT -->
+      <div class="absolute bottom-4 left-4 glass-panel rounded-lg px-3 py-1.5 text-[11px] text-slate-400 flex items-center gap-3 pointer-events-none">
+        <span><strong class="text-slate-200">LMB:</strong> Orbit / Click 3D Light Head or Wall Switch to Toggle Power</span>
+        <span>•</span>
+        <span><strong class="text-slate-200">RMB:</strong> Pan</span>
+      </div>
+
+      <!-- TOAST -->
+      <div id="toast-notification" class="pointer-events-none opacity-0 transition-opacity duration-300 absolute bottom-4 right-4 glass-panel border-amber-500/40 bg-slate-900/95 text-amber-200 px-4 py-2.5 rounded-xl text-xs font-medium shadow-2xl">
+        <span id="toast-text">Luminaire updated!</span>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+    import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+    import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+    import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+    import { OBJExporter } from 'three/addons/exporters/OBJExporter.js';
+
+    const state = {
+      fixtureFamily: 'street-post', // 'puck-recessed' | 'street-post' | 'wall-sconce' | 'chandelier-ring' | 'standing-brazier' | 'pathway-bollard' | 'tripod-flood' | 'linear-tube'
+      headStyle: 'hex-lantern',     // 'frosted-dome' | 'hex-lantern' | 'caged-bulkhead' | 'arcane-crystal' | 'open-flame' | 'cobra-led'
+      headCount: 2,
+      arrayPattern: 'radial',
+      showVrmAvatar: true,
+
+      fixtureHeight: 3.40,
+      headDiameter: 0.42,
+      armSpread: 0.75,
+      bezelThick: 0.05,
+      gimbalTilt: 0,
+
+      spectrumMode: 'kelvin',
+      kelvin: 3200,
+      dimmerPct: 100,
+      savedDimmerPct: 100,
+      beamAngle: 55,
+      flickerMode: 'steady',
+      volumetricCone: true,
+
+      housingFinish: 'wrought-iron',
+      wireCage: true,
+      louverBaffle: false,
+      crackDensity: 35,
+      bumpScale: 0.06,
+
+      switchType: 'rotary-dimmer',
+      exportScope: 'fixture-only',
+      showDimensions: true,
+      wireframe: false
+    };
+
+    const PRESETS = {
+      puck: {
+        fixtureFamily: 'puck-recessed', headStyle: 'frosted-dome', headCount: 1, arrayPattern: 'linear',
+        fixtureHeight: 0.18, headDiameter: 0.36, armSpread: 0.65, bezelThick: 0.05, gimbalTilt: 0,
+        spectrumMode: 'kelvin', kelvin: 4200, dimmerPct: 100, beamAngle: 65, flickerMode: 'steady',
+        volumetricCone: true, housingFinish: 'brushed-steel', wireCage: false, louverBaffle: true
+      },
+      streetpost: {
+        fixtureFamily: 'street-post', headStyle: 'hex-lantern', headCount: 2, arrayPattern: 'radial',
+        fixtureHeight: 3.60, headDiameter: 0.44, armSpread: 0.85, bezelThick: 0.05, gimbalTilt: 0,
+        spectrumMode: 'kelvin', kelvin: 2900, dimmerPct: 100, beamAngle: 60, flickerMode: 'steady',
+        volumetricCone: true, housingFinish: 'wrought-iron', wireCage: true, louverBaffle: false
+      },
+      sconce: {
+        fixtureFamily: 'wall-sconce', headStyle: 'caged-bulkhead', headCount: 1, arrayPattern: 'linear',
+        fixtureHeight: 1.85, headDiameter: 0.32, armSpread: 0.38, bezelThick: 0.04, gimbalTilt: 15,
+        spectrumMode: 'hellfire-amber', kelvin: 2400, dimmerPct: 100, beamAngle: 55, flickerMode: 'torch-flicker',
+        volumetricCone: true, housingFinish: 'wrought-iron', wireCage: true, louverBaffle: false
+      },
+      chandelier: {
+        fixtureFamily: 'chandelier-ring', headStyle: 'arcane-crystal', headCount: 6, arrayPattern: 'radial',
+        fixtureHeight: 2.80, headDiameter: 0.28, armSpread: 1.15, bezelThick: 0.05, gimbalTilt: 0,
+        spectrumMode: 'arcane-purple', kelvin: 3200, dimmerPct: 110, beamAngle: 70, flickerMode: 'mana-pulse',
+        volumetricCone: true, housingFinish: 'brass', wireCage: false, louverBaffle: false
+      },
+      brazier: {
+        fixtureFamily: 'standing-brazier', headStyle: 'open-flame', headCount: 1, arrayPattern: 'radial',
+        fixtureHeight: 1.45, headDiameter: 0.72, armSpread: 0.0, bezelThick: 0.07, gimbalTilt: 0,
+        spectrumMode: 'hellfire-amber', kelvin: 2200, dimmerPct: 120, beamAngle: 85, flickerMode: 'torch-flicker',
+        volumetricCone: false, housingFinish: 'basalt-stone', wireCage: true, louverBaffle: false
+      },
+      bollard: {
+        fixtureFamily: 'pathway-bollard', headStyle: 'frosted-dome', headCount: 1, arrayPattern: 'linear',
+        fixtureHeight: 1.05, headDiameter: 0.28, armSpread: 0.0, bezelThick: 0.04, gimbalTilt: 0,
+        spectrumMode: 'cyber-cyan', kelvin: 5000, dimmerPct: 100, beamAngle: 50, flickerMode: 'steady',
+        volumetricCone: true, housingFinish: 'wrought-iron', wireCage: true, louverBaffle: true
+      }
+    };
+
+    const SPECTRUM_HEX = {
+      'arcane-purple': 0xc084fc,
+      'hellfire-amber': 0xf59e0b,
+      'fel-emerald': 0x10b981,
+      'cyber-cyan': 0x38bdf8,
+      'blood-crimson': 0xf43f5e
+    };
+
+    function kelvinToColor(k) {
+      const temp = k / 100;
+      let r, g, b;
+      if (temp <= 66) {
+        r = 255;
+        g = Math.min(255, Math.max(0, 99.4708 * Math.log(temp) - 161.1195));
+        b = temp <= 19 ? 0 : Math.min(255, Math.max(0, 138.5177 * Math.log(temp - 10) - 305.0447));
+      } else {
+        r = Math.min(255, Math.max(0, 329.6987 * Math.pow(temp - 60, -0.1332)));
+        g = Math.min(255, Math.max(0, 288.1221 * Math.pow(temp - 60, -0.0755)));
+        b = 255;
+      }
+      return new THREE.Color(r / 255, g / 255, b / 255);
+    }
+
+    function getActiveEmitColor() {
+      if (state.spectrumMode === 'kelvin') {
+        return kelvinToColor(state.kelvin);
+      }
+      return new THREE.Color(SPECTRUM_HEX[state.spectrumMode] || 0xf59e0b);
+    }
+
+    // =========================================================================
+    // PROCEDURAL PBR BUMP/CRACK HEIGHT & TANGENT-SPACE NORMAL MAP ENGINE
+    // =========================================================================
+    const pbrMapCache = {};
+
+    // Helper: Compute 3x3 Sobel Tangent-Space Normal Map Texture from a Height Canvas
+    function computeSobelNormalTexture(heightCanvas, bevelStrength = 3.4) {
+      const w = heightCanvas.width;
+      const h = heightCanvas.height;
+      const hCtx = heightCanvas.getContext('2d');
+      const src = hCtx.getImageData(0, 0, w, h).data;
+
+      const normCanvas = document.createElement('canvas');
+      normCanvas.width = w;
+      normCanvas.height = h;
+      const nCtx = normCanvas.getContext('2d');
+      const dstImg = nCtx.createImageData(w, h);
+      const dst = dstImg.data;
+
+      const sample = (x, y) => {
+        const cx = (x + w) % w;
+        const cy = (y + h) % h;
+        return src[(cy * w + cx) * 4] / 255.0;
+      };
+
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const tl = sample(x - 1, y - 1), t = sample(x, y - 1), tr = sample(x + 1, y - 1);
+          const l  = sample(x - 1, y),                           r  = sample(x + 1, y);
+          const bl = sample(x - 1, y + 1), b = sample(x, y + 1), br = sample(x + 1, y + 1);
+
+          const dX = (tr + 2 * r + br) - (tl + 2 * l + bl);
+          const dY = (bl + 2 * b + br) - (tl + 2 * t + tr);
+          let vx = -dX * bevelStrength;
+          let vy = -dY * bevelStrength;
+          let vz = 1.0;
+          const inv = 1.0 / (Math.sqrt(vx * vx + vy * vy + vz * vz) || 1.0);
+          const idx = (y * w + x) * 4;
+          dst[idx]     = Math.floor((vx * inv * 0.5 + 0.5) * 255);
+          dst[idx + 1] = Math.floor((vy * inv * 0.5 + 0.5) * 255);
+          dst[idx + 2] = Math.floor((vz * inv * 0.5 + 0.5) * 255);
+          dst[idx + 3] = 255;
+        }
+      }
+      nCtx.putImageData(dstImg, 0, 0);
+      return { normCanvas, normalTex: new THREE.CanvasTexture(normCanvas) };
+    }
+
+    // ULTRA-CRISP BEZIER VECTOR INDUSTRIAL NAMEPLATE GENERATOR ('manthrax/JSlug' pattern, 1024x256 + Normal Bevel)
+    const stampedPlateCache = {};
+    function createStampedPlateTexture(text, subtext, accentHex = '#38bdf8') {
+      const key = `${text}_${subtext}_${accentHex}`;
+      if (stampedPlateCache[key]) return stampedPlateCache[key];
+
+      const W = 1024, H = 256;
+      const c = document.createElement('canvas');
+      c.width = W; c.height = H;
+      const ctx = c.getContext('2d');
+
+      const hc = document.createElement('canvas');
+      hc.width = W; hc.height = H;
+      const hCtx = hc.getContext('2d');
+      hCtx.fillStyle = 'rgb(128,128,128)';
+      hCtx.fillRect(0, 0, W, H);
+
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+      bgGrad.addColorStop(0.0, '#1e293b');
+      bgGrad.addColorStop(0.5, '#0f172a');
+      bgGrad.addColorStop(1.0, '#090d16');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, W, H);
+
+      for (let y = 0; y < H; y += 3) {
+        ctx.fillStyle = y % 6 === 0 ? 'rgba(255,255,255,0.025)' : 'rgba(0,0,0,0.04)';
+        ctx.fillRect(0, y, W, 1.5);
+      }
+
+      const drawBezierFrame = (targetCtx, strokeCol, lineW, inset = 14, ch = 28) => {
+        targetCtx.strokeStyle = strokeCol;
+        targetCtx.lineWidth = lineW;
+        targetCtx.lineJoin = 'round';
+        targetCtx.beginPath();
+        targetCtx.moveTo(inset + ch, inset);
+        targetCtx.lineTo(W - inset - ch, inset);
+        targetCtx.bezierCurveTo(W - inset, inset, W - inset, inset, W - inset, inset + ch);
+        targetCtx.lineTo(W - inset, H - inset - ch);
+        targetCtx.bezierCurveTo(W - inset, H - inset, W - inset, H - inset, W - inset - ch, H - inset);
+        targetCtx.lineTo(inset + ch, H - inset);
+        targetCtx.bezierCurveTo(inset, H - inset, inset, H - inset, inset, H - inset - ch);
+        targetCtx.lineTo(inset, inset + ch);
+        targetCtx.bezierCurveTo(inset, inset, inset, inset, inset + ch, inset);
+        targetCtx.closePath();
+        targetCtx.stroke();
+      };
+
+      drawBezierFrame(hCtx, 'rgb(45,45,45)', 22, 16, 28);
+      drawBezierFrame(hCtx, 'rgb(240,240,240)', 10, 16, 28);
+      drawBezierFrame(ctx, '#475569', 12, 16, 28);
+      drawBezierFrame(ctx, accentHex, 5, 22, 24);
+
+      for (const [rx, ry] of [[52, 52], [W - 52, 52], [52, H - 52], [W - 52, H - 52]]) {
+        hCtx.fillStyle = 'rgb(40,40,40)';
+        hCtx.beginPath(); hCtx.arc(rx, ry, 20, 0, Math.PI * 2); hCtx.fill();
+        hCtx.fillStyle = 'rgb(245,245,245)';
+        hCtx.beginPath(); hCtx.arc(rx, ry, 15, 0, Math.PI * 2); hCtx.fill();
+
+        const rGrad = ctx.createRadialGradient(rx - 4, ry - 4, 2, rx, ry, 16);
+        rGrad.addColorStop(0.0, '#f8fafc');
+        rGrad.addColorStop(0.6, '#94a3b8');
+        rGrad.addColorStop(1.0, '#1e293b');
+        ctx.fillStyle = rGrad;
+        ctx.beginPath(); ctx.arc(rx, ry, 15, 0, Math.PI * 2); ctx.fill();
+      }
+
+      const renderStampedVectorText = (str, yPos, fontSize, fillHex, isMain) => {
+        const fontSpec = `900 ${fontSize}px "JetBrains Mono", "Inter", monospace`;
+        ctx.font = fontSpec;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+
+        hCtx.font = fontSpec;
+        hCtx.textAlign = 'center';
+        hCtx.textBaseline = 'middle';
+        hCtx.lineJoin = 'round';
+        hCtx.lineCap = 'round';
+
+        hCtx.strokeStyle = 'rgb(38,38,38)';
+        hCtx.lineWidth = isMain ? 18 : 12;
+        hCtx.strokeText(str, W / 2, yPos);
+
+        hCtx.strokeStyle = 'rgb(205,205,205)';
+        hCtx.lineWidth = isMain ? 9 : 6;
+        hCtx.strokeText(str, W / 2, yPos);
+
+        hCtx.fillStyle = 'rgb(255,255,255)';
+        hCtx.fillText(str, W / 2, yPos);
+
+        ctx.strokeStyle = '#020617';
+        ctx.lineWidth = isMain ? 12 : 8;
+        ctx.strokeText(str, W / 2 + 2.5, yPos + 2.5);
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+        ctx.lineWidth = isMain ? 4 : 2.5;
+        ctx.strokeText(str, W / 2 - 1.5, yPos - 1.5);
+
+        ctx.fillStyle = fillHex;
+        ctx.fillText(str, W / 2, yPos);
+      };
+
+      renderStampedVectorText(text, 102, 74, '#f8fafc', true);
+      renderStampedVectorText(subtext, 188, 44, accentHex, false);
+
+      const colorTex = new THREE.CanvasTexture(c);
+      colorTex.anisotropy = 8;
+      const { normalTex } = computeSobelNormalTexture(hc, 3.6);
+      normalTex.anisotropy = 8;
+      const bumpTex = new THREE.CanvasTexture(hc);
+      bumpTex.anisotropy = 8;
+
+      colorTex.normalMap = normalTex;
+      colorTex.bumpMap = bumpTex;
+      colorTex.createMaterial = () => new THREE.MeshStandardMaterial({
+        map: colorTex,
+        normalMap: normalTex,
+        normalScale: new THREE.Vector2(1.85, 1.85),
+        bumpMap: bumpTex,
+        bumpScale: 0.035,
+        metalness: 0.86,
+        roughness: 0.24,
+        envMapIntensity: 1.65
+      });
+
+      stampedPlateCache[key] = colorTex;
+      return colorTex;
+    }
+
+    // mrdoob/harmony Proximity-History Stress-Fracture, Cross-Hatch & Weld-Bead Pass in generatePBRMaps
+    function generatePBRMaps(kind, crackPct) {
+      const key = `${kind}_${Math.round(crackPct)}`;
+      if (pbrMapCache[key]) return pbrMapCache[key];
+      const size = 256;
+      const bumpCanvas = document.createElement('canvas');
+      bumpCanvas.width = size; bumpCanvas.height = size;
+      const bCtx = bumpCanvas.getContext('2d');
+      bCtx.fillStyle = 'rgb(175,175,175)';
+      bCtx.fillRect(0, 0, size, size);
+
+      let seed = 911 + kind.charCodeAt(0) * 37;
+      const rand = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+      const crackFactor = Math.max(0.05, crackPct / 100);
+
+      for (let i = 0; i < 2200; i++) {
+        const v = Math.floor(145 + rand() * 68);
+        bCtx.fillStyle = `rgb(${v},${v},${v})`;
+        bCtx.fillRect(rand() * size, rand() * size, 2, 2);
+      }
+
+      // Plate seams + Raised TIG/MIG Stacked-Dime Weld Beads along seams
+      bCtx.strokeStyle = 'rgb(42,42,42)';
+      bCtx.lineWidth = 3;
+      for (let y = 0; y < size; y += 64) {
+        bCtx.beginPath(); bCtx.moveTo(0, y); bCtx.lineTo(size, y); bCtx.stroke();
+        for (let wx = 4; wx < size - 4; wx += 5) {
+          bCtx.fillStyle = 'rgba(238,238,238,0.58)';
+          bCtx.beginPath(); bCtx.arc(wx, y, 2.5, 0, Math.PI * 2); bCtx.fill();
+        }
+      }
+
+      // Cross-Hatched Machining Micro-Scratches (+32 deg / -58 deg)
+      bCtx.lineCap = 'round';
+      const scratchCount = Math.floor(16 + crackFactor * 38);
+      for (let i = 0; i < scratchCount; i++) {
+        const sx = rand() * size, sy = rand() * size;
+        const ang = (i % 2 === 0 ? 0.56 : -1.01) + (rand() - 0.5) * 0.18;
+        const len = 10 + rand() * 24;
+        const ex = sx + Math.cos(ang) * len;
+        const ey = sy + Math.sin(ang) * len;
+        bCtx.strokeStyle = `rgba(22,22,22,${0.20 + crackFactor * 0.25})`;
+        bCtx.lineWidth = 0.8;
+        bCtx.beginPath(); bCtx.moveTo(sx, sy); bCtx.lineTo(ex, ey); bCtx.stroke();
+      }
+
+      // mrdoob/harmony Proximity-History Branching Stress-Fracture Web
+      const harmonyHistory = [];
+      const maxDist = 24;
+      const maxDistSq = maxDist * maxDist;
+      const walkerCount = Math.floor(3 + crackFactor * 10);
+      const stepsPerWalker = Math.floor(14 + crackFactor * 24);
+
+      for (let w = 0; w < walkerCount; w++) {
+        let cx = rand() * size, cy = rand() * size;
+        let dir = rand() * Math.PI * 2;
+        for (let s = 0; s < stepsPerWalker; s++) {
+          dir += (rand() - 0.5) * 1.15;
+          const stepLen = 4.5 + rand() * 7.5;
+          const nx = Math.max(2, Math.min(size - 2, cx + Math.cos(dir) * stepLen));
+          const ny = Math.max(2, Math.min(size - 2, cy + Math.sin(dir) * stepLen));
+          const ctrlX = (cx + nx) * 0.5 + (rand() - 0.5) * 4.5;
+          const ctrlY = (cy + ny) * 0.5 + (rand() - 0.5) * 4.5;
+
+          bCtx.strokeStyle = `rgba(12,12,12,${0.45 + crackFactor * 0.45})`;
+          bCtx.lineWidth = 1.2 + (1 - s / stepsPerWalker) * 0.85;
+          bCtx.beginPath();
+          bCtx.moveTo(cx, cy);
+          bCtx.quadraticCurveTo(ctrlX, ctrlY, nx, ny);
+          bCtx.stroke();
+
+          for (let h = 0; h < harmonyHistory.length; h++) {
+            const hp = harmonyHistory[h];
+            const dx = nx - hp.x, dy = ny - hp.y;
+            const dSq = dx * dx + dy * dy;
+            if (dSq > 5 && dSq < maxDistSq) {
+              const proxAlpha = (1.0 - dSq / maxDistSq) * 0.38 * crackFactor;
+              bCtx.strokeStyle = `rgba(18,18,18,${proxAlpha.toFixed(3)})`;
+              bCtx.lineWidth = 0.65;
+              bCtx.beginPath();
+              bCtx.moveTo(nx, ny);
+              bCtx.lineTo(hp.x, hp.y);
+              bCtx.stroke();
+            }
+          }
+          harmonyHistory.push({ x: nx, y: ny });
+          cx = nx; cy = ny;
+        }
+      }
+
+      const { normCanvas, normalTex } = computeSobelNormalTexture(bumpCanvas, 3.4);
+      const bumpTex = new THREE.CanvasTexture(bumpCanvas);
+      bumpTex.wrapS = THREE.RepeatWrapping; bumpTex.wrapT = THREE.RepeatWrapping; bumpTex.repeat.set(2, 2);
+      normalTex.wrapS = THREE.RepeatWrapping; normalTex.wrapT = THREE.RepeatWrapping; normalTex.repeat.set(2, 2);
+      // v6.0 Specular Micro-Roughness & Cavity Occlusion Map (shiny raised welds/rivets, matte cracks)
+      const roughCanvas = document.createElement('canvas');
+      roughCanvas.width = size; roughCanvas.height = size;
+      const rCtx = roughCanvas.getContext('2d');
+      const bPixels = bumpCanvas.getContext('2d').getImageData(0, 0, size, size).data;
+      const rImg = rCtx.createImageData(size, size);
+      const rData = rImg.data;
+      for (let i = 0; i < size * size; i++) {
+        const hVal = bPixels[i * 4] / 255.0;
+        // Invert height: raised weld beads & rivets (h>0.72) -> smooth shiny (low roughness ~55), cracks (h<0.45) -> matte oxidized (~238)
+        const rough = Math.max(38, Math.min(246, Math.round((1.08 - hVal * 0.86) * 235)));
+        rData[i * 4] = rough;
+        rData[i * 4 + 1] = rough;
+        rData[i * 4 + 2] = rough;
+        rData[i * 4 + 3] = 255;
+      }
+      rCtx.putImageData(rImg, 0, 0);
+      const roughnessTex = new THREE.CanvasTexture(roughCanvas);
+      roughnessTex.wrapS = THREE.RepeatWrapping; roughnessTex.wrapT = THREE.RepeatWrapping; roughnessTex.repeat.set(2, 2);
+      const entry = { bumpCanvas, normCanvas, roughCanvas, bumpTex, normalTex, roughnessTex };
+      pbrMapCache[key] = entry;
+      return entry;
+    }
+
+    function exportPBRTexturePack(prefix, kind, crackPct) {
+      const maps = generatePBRMaps(kind, crackPct);
+      maps.bumpCanvas.toBlob((blob) => {
+        if (blob) downloadBlob(blob, `${prefix}_${kind}_bump_cracks_height.png`);
+      });
+      setTimeout(() => {
+        maps.normCanvas.toBlob((blob) => {
+          if (blob) downloadBlob(blob, `${prefix}_${kind}_normal_map_rgb.png`);
+        });
+      }, 220);
+      setTimeout(() => {
+        if (maps.roughCanvas) maps.roughCanvas.toBlob((blob) => {
+          if (blob) downloadBlob(blob, `${prefix}_${kind}_roughness_cavity.png`);
+        });
+      }, 440);
+    }
+
+    // =========================================================================
+    // THREE.JS SCENE & REAL-TIME PHOTOMETRIC LIGHTS
+    // =========================================================================
+    const mount = document.getElementById('canvas-mount');
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x06080d, 0.02);
+
+    const camera = new THREE.PerspectiveCamera(44, mount.clientWidth / mount.clientHeight, 0.05, 120);
+    camera.position.set(3.4, 2.5, 4.2);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
+    renderer.setSize(mount.clientWidth, mount.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.18;
+    mount.appendChild(renderer.domElement);
+    const pmremGen = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmremGen.fromScene(new RoomEnvironment(), 0.04).texture;
+
+    // v6.0 Selective High-Threshold HDR Post-Processing (EffectComposer + UnrealBloomPass + OutputPass)
+    let bloomEnabled = true;
+    const initW = Math.max(1, mount.clientWidth || window.innerWidth);
+    const initH = Math.max(1, mount.clientHeight || window.innerHeight);
+    const composer = new EffectComposer(renderer);
+    composer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    composer.setSize(initW, initH);
+    composer.addPass(new RenderPass(scene, camera));
+    const unrealBloomPass = new UnrealBloomPass(new THREE.Vector2(initW, initH), 0.42, 0.55, 0.85);
+    composer.addPass(unrealBloomPass);
+    composer.addPass(new OutputPass());
+
+    const aoCanvas = document.createElement('canvas');
+    aoCanvas.width = 256; aoCanvas.height = 256;
+    const aoCtx = aoCanvas.getContext('2d');
+    const aoGrad = aoCtx.createRadialGradient(128, 128, 10, 128, 128, 124);
+    aoGrad.addColorStop(0.0, 'rgba(0,0,0,0.78)');
+    aoGrad.addColorStop(0.55, 'rgba(0,0,0,0.38)');
+    aoGrad.addColorStop(1.0, 'rgba(0,0,0,0.0)');
+    aoCtx.fillStyle = aoGrad;
+    aoCtx.fillRect(0, 0, 256, 256);
+    const contactAoPlane = new THREE.Mesh(
+      new THREE.PlaneGeometry(4.2, 4.2),
+      new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(aoCanvas), transparent: true, depthWrite: false, opacity: 0.85 })
+    );
+    contactAoPlane.rotation.x = -Math.PI / 2;
+    contactAoPlane.position.y = 0.004;
+    scene.add(contactAoPlane);
+
+    // v6.0 Subtle Atmospheric Floating Ember / Mana Mote Field (in scene, outside assetRoot so GLB export stays clean)
+    const MOTE_COUNT = 56;
+    const motePositions = new Float32Array(MOTE_COUNT * 3);
+    for (let mi = 0; mi < MOTE_COUNT; mi++) {
+      motePositions[mi * 3]     = (Math.sin(mi * 73.1) * 0.5) * 6.5;
+      motePositions[mi * 3 + 1] = 0.25 + ((mi * 0.618034) % 1.0) * 4.2;
+      motePositions[mi * 3 + 2] = (Math.cos(mi * 41.7) * 0.5) * 6.5;
+    }
+    const moteGeo = new THREE.BufferGeometry();
+    moteGeo.setAttribute('position', new THREE.BufferAttribute(motePositions, 3));
+    const moteMat = new THREE.PointsMaterial({
+      color: 0xfbbf24,
+      size: 0.055,
+      transparent: true,
+      opacity: 0.58,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+    const atmosphericMotes = new THREE.Points(moteGeo, moteMat);
+    atmosphericMotes.name = 'Viewport_Atmospheric_Motes';
+    scene.add(atmosphericMotes);
+
+    const btnToggleBloomEl = document.getElementById('btnToggleBloom');
+    if (btnToggleBloomEl) {
+      btnToggleBloomEl.addEventListener('click', () => {
+        bloomEnabled = !bloomEnabled;
+        unrealBloomPass.enabled = bloomEnabled;
+        btnToggleBloomEl.textContent = bloomEnabled ? '✨ Bloom: ON' : '✨ Bloom: OFF';
+        btnToggleBloomEl.className = bloomEnabled
+          ? 'px-2.5 py-1.5 rounded-lg text-xs font-medium bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 font-mono-tech border border-cyan-500/40 transition'
+          : 'px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-400 font-mono-tech border border-slate-700 transition';
+      });
+    }
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.target.set(0, 1.6, 0);
+
+    const hemiLight = new THREE.HemisphereLight(0xcbd5e1, 0x090d16, 0.45);
+    scene.add(hemiLight);
+
+    const studioKeyLight = new THREE.DirectionalLight(0xffffff, 0.75);
+    studioKeyLight.position.set(6, 10, 8);
+    scene.add(studioKeyLight);
+
+    // Dynamic Photometric PointLight + SpotLight driven by the Luminaire!
+    const emitterPointLight = new THREE.PointLight(0xffb74d, 3.2, 16);
+    emitterPointLight.castShadow = true;
+    scene.add(emitterPointLight);
+
+    const emitterSpotLight = new THREE.SpotLight(0xffb74d, 4.5, 22, Math.PI / 3, 0.45, 1.5);
+    emitterSpotLight.castShadow = true;
+    emitterSpotLight.shadow.mapSize.set(2048, 2048);
+    emitterSpotLight.shadow.bias = -0.0005;
+    scene.add(emitterSpotLight);
+    scene.add(emitterSpotLight.target);
+
+    const gridHelper = new THREE.GridHelper(24, 24, 0xd97706, 0x1e293b);
+    gridHelper.position.y = 0.002;
+    scene.add(gridHelper);
+
+    const assetRoot = new THREE.Group();
+    assetRoot.name = 'Parametric_Light_Fixture_Scene';
+    scene.add(assetRoot);
+
+    const fixtureActorGroup = new THREE.Group();
+    fixtureActorGroup.name = 'Light_Fixture_Actor';
+    assetRoot.add(fixtureActorGroup);
+
+    const environmentContextGroup = new THREE.Group();
+    environmentContextGroup.name = 'Reference_Context_And_Switch';
+    assetRoot.add(environmentContextGroup);
+
+    const clickableLightMeshes = [];
+    const emissiveBulbMaterials = [];
+    const volumetricConeMaterials = [];
+    const animatedFlameMeshes = [];
+
+    function getMaterials() {
+      const wf = state.wireframe;
+      const finishPalettes = {
+        'wrought-iron':  { color: 0x222630, metal: 0.78, rough: 0.44, kind: 'armor' },
+        'brass':         { color: 0xd4af37, metal: 0.92, rough: 0.20, kind: 'armor' },
+        'brushed-steel': { color: 0xcbd5e1, metal: 0.88, rough: 0.24, kind: 'armor' },
+        'basalt-stone':  { color: 0x262934, metal: 0.18, rough: 0.78, kind: 'stone' },
+        'copper-patina': { color: 0x3b7a6c, metal: 0.65, rough: 0.48, kind: 'armor' }
+      };
+      const pal = finishPalettes[state.housingFinish] || finishPalettes['wrought-iron'];
+      const pbr = generatePBRMaps(pal.kind, state.crackDensity);
+      const stonePbr = generatePBRMaps('stone', state.crackDensity);
+
+      const emitColor = getActiveEmitColor();
+      const dimMult = state.dimmerPct / 100;
+
+      const bulbMat = new THREE.MeshStandardMaterial({
+        color: emitColor,
+        emissive: emitColor,
+        emissiveIntensity: 3.2 * dimMult,
+        roughness: 0.15,
+        wireframe: wf
+      });
+      emissiveBulbMaterials.push(bulbMat);
+
+      const coneMat = new THREE.MeshBasicMaterial({
+        color: emitColor,
+        transparent: true,
+        opacity: Math.min(0.32, 0.16 * dimMult),
+        side: THREE.DoubleSide,
+        depthWrite: false,
+        wireframe: wf
+      });
+      volumetricConeMaterials.push(coneMat);
+
+      const nScale = new THREE.Vector2(state.bumpScale * 2.5, state.bumpScale * 2.5);
+      return {
+        housing: new THREE.MeshStandardMaterial({
+          color: pal.color,
+          metalness: pal.metal,
+          roughness: pal.rough,
+          bumpMap: pbr.bumpTex,
+          bumpScale: state.bumpScale,
+          normalMap: pbr.normalTex, roughnessMap: pbr.roughnessTex,
+          normalScale: nScale,
+          envMapIntensity: 1.55,
+          wireframe: wf
+        }),
+        trim: new THREE.MeshStandardMaterial({
+          color: 0xd4af37,
+          metalness: 0.94,
+          roughness: 0.18,
+          bumpMap: pbr.bumpTex,
+          bumpScale: state.bumpScale * 0.4,
+          normalMap: pbr.normalTex, roughnessMap: pbr.roughnessTex,
+          normalScale: nScale,
+          envMapIntensity: 1.85,
+          wireframe: wf
+        }),
+        darkHardware: new THREE.MeshStandardMaterial({
+          color: 0x11151e,
+          metalness: 0.88,
+          roughness: 0.32,
+          bumpMap: pbr.bumpTex,
+          bumpScale: state.bumpScale * 0.5,
+          normalMap: pbr.normalTex, roughnessMap: pbr.roughnessTex,
+          normalScale: nScale,
+          envMapIntensity: 1.45,
+          wireframe: wf
+        }),
+        glassLens: new THREE.MeshPhysicalMaterial({
+          color: emitColor,
+          transparent: true,
+          opacity: 0.46,
+          roughness: 0.08,
+          clearcoat: 1.0,
+          transmission: 0.68,
+          envMapIntensity: 1.85,
+          wireframe: wf
+        }),
+        bulbEmissive: bulbMat,
+        volumetricCone: coneMat,
+        contextStone: new THREE.MeshStandardMaterial({
+          color: 0x161922,
+          roughness: 0.82,
+          metalness: 0.12,
+          bumpMap: stonePbr.bumpTex,
+          bumpScale: state.bumpScale,
+          normalMap: stonePbr.normalTex, roughnessMap: stonePbr.roughnessTex,
+          wireframe: wf
+        }),
+        vrmAvatar: new THREE.MeshStandardMaterial({
+          color: 0x38bdf8,
+          emissive: 0x0284c7,
+          emissiveIntensity: 0.3,
+          roughness: 0.35,
+          wireframe: wf
+        })
+      };
+    }
+
+    function clearGroup(group) {
+      while (group.children.length > 0) {
+        const c = group.children[0];
+        group.remove(c);
+        if (c.geometry) c.geometry.dispose();
+      }
+    }
+
+    // Build a Single Parametric Luminaire Head / Puck / Lantern / Brazier Unit
+    function buildEmitterHeadUnit(mats, pointsDown = true) {
+      const head = new THREE.Group();
+      const D = state.headDiameter;
+      const R = D / 2;
+      const B = state.bezelThick;
+      const tiltRad = THREE.MathUtils.degToRad(state.gimbalTilt);
+      head.rotation.x = tiltRad;
+
+      const dirSign = pointsDown ? -1 : 1;
+
+      if (state.fixtureFamily === 'puck-recessed') {
+        // HYPER-FOCUSED ARCHITECTURAL / SCI-FI PUCK LIGHT ASSEMBLY
+        const housingDepth = Math.max(0.06, state.fixtureHeight * 0.45);
+        // Outer Recessed Bezel Flange Ring (48 segments)
+        const outerBezel = new THREE.Mesh(
+          new THREE.CylinderGeometry(R + B, R + B * 1.15, B * 0.75, 48),
+          mats.housing
+        );
+        // Recessed Aluminium Heat-Sink Canister
+        const canister = new THREE.Mesh(
+          new THREE.CylinderGeometry(R * 0.88, R * 0.82, housingDepth, 36),
+          mats.darkHardware
+        );
+        canister.position.y = housingDepth / 2;
+
+        // Radial Extruded Pin-Fin Aluminum Heatsink Crown around Canister
+        const finCount = 16;
+        for (let f = 0; f < finCount; f++) {
+          const fang = (f / finCount) * Math.PI * 2;
+          const fin = new THREE.Mesh(
+            new THREE.BoxGeometry(R * 0.24, housingDepth * 0.86, 0.014),
+            mats.darkHardware
+          );
+          fin.position.set(Math.cos(fang) * (R * 0.86), housingDepth * 0.54, Math.sin(fang) * (R * 0.86));
+          fin.rotation.y = -fang;
+          head.add(fin);
+        }
+
+        // Dual Coiled Torsion-Spring Mounting Clips + Trunnion Pivot Ears
+        for (const s of [-1, 1]) {
+          const coil = new THREE.Mesh(new THREE.TorusGeometry(0.032, 0.009, 8, 16), mats.trim);
+          coil.position.set(s * (R + 0.02), housingDepth * 0.32, 0);
+          const clipArm = new THREE.Mesh(new THREE.BoxGeometry(R * 0.48, 0.015, 0.038), mats.trim);
+          clipArm.position.set(s * (R + 0.08), housingDepth * 0.38, 0);
+          clipArm.rotation.z = s * 0.38;
+          head.add(coil, clipArm);
+        }
+
+        // Inner Gimbal Swivel Ring + Frosted Prismatic LED Puck Diffuser Disc
+        const gimbalRing = new THREE.Mesh(new THREE.TorusGeometry(R * 0.93, 0.018, 12, 36), mats.trim);
+        gimbalRing.rotation.x = Math.PI / 2;
+        gimbalRing.position.y = -0.008;
+
+        const puckLens = new THREE.Mesh(
+          new THREE.CylinderGeometry(R * 0.90, R * 0.90, 0.025, 48),
+          mats.bulbEmissive
+        );
+        puckLens.position.y = -0.01;
+        puckLens.userData.isLightToggle = true;
+        clickableLightMeshes.push(puckLens);
+
+        head.add(outerBezel, canister, gimbalRing, puckLens);
+      } else if (state.headStyle === 'hex-lantern') {
+        // 6-SIDED VICTORIAN / STEAMPUNK STREET LANTERN CAGE
+        const hLantern = D * 1.35;
+        const bottomCup = new THREE.Mesh(new THREE.CylinderGeometry(R * 0.65, R * 0.35, hLantern * 0.22, 6), mats.housing);
+        const glassCage = new THREE.Mesh(new THREE.CylinderGeometry(R * 0.88, R * 0.65, hLantern * 0.58, 6), mats.glassLens);
+        glassCage.position.y = hLantern * 0.40;
+        const coreMantle = new THREE.Mesh(new THREE.SphereGeometry(R * 0.36, 20, 20), mats.bulbEmissive);
+        coreMantle.position.y = hLantern * 0.38;
+        coreMantle.userData.isLightToggle = true;
+        clickableLightMeshes.push(coreMantle, glassCage);
+
+        const roofCap = new THREE.Mesh(new THREE.ConeGeometry(R * 1.08, hLantern * 0.36, 6), mats.housing);
+        roofCap.position.y = hLantern * 0.86;
+        const finial = new THREE.Mesh(new THREE.OctahedronGeometry(R * 0.18, 0), mats.trim);
+        finial.position.y = hLantern * 1.08;
+
+        // 6 Corner Struts
+        for (let i = 0; i < 6; i++) {
+          const a = (i / 6) * Math.PI * 2;
+          const strut = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, hLantern * 0.62, 8), mats.housing);
+          strut.position.set(Math.cos(a) * (R * 0.76), hLantern * 0.40, Math.sin(a) * (R * 0.76));
+          head.add(strut);
+        }
+
+        head.add(bottomCup, glassCage, coreMantle, roofCap, finial);
+      } else if (state.headStyle === 'arcane-crystal') {
+        // FLOATING TETHERED MANA CRYSTAL SHARD & RUNE HALO
+        const holderCup = new THREE.Mesh(new THREE.CylinderGeometry(R * 0.55, R * 0.28, 0.14, 8), mats.housing);
+        const haloRing = new THREE.Mesh(new THREE.TorusGeometry(R * 0.85, 0.025, 10, 32), mats.trim);
+        haloRing.position.y = R * 0.9;
+        const shard = new THREE.Mesh(new THREE.OctahedronGeometry(R * 0.62, 0), mats.bulbEmissive);
+        shard.scale.set(0.65, 1.65, 0.65);
+        shard.position.y = R * 0.9;
+        shard.userData.isLightToggle = true;
+        clickableLightMeshes.push(shard);
+        animatedFlameMeshes.push({ mesh: shard, baseY: R * 0.9, spin: true });
+        head.add(holderCup, haloRing, shard);
+      } else if (state.headStyle === 'open-flame') {
+        // FORGED IRON BRAZIER / TORCH FIRE BASKET & ANIMATED FLAME PLUME
+        const bowl = new THREE.Mesh(new THREE.CylinderGeometry(R, R * 0.45, R * 0.75, 16), mats.housing);
+        bowl.position.y = R * 0.35;
+        const emberBed = new THREE.Mesh(new THREE.CylinderGeometry(R * 0.86, R * 0.6, 0.12, 16), mats.bulbEmissive);
+        emberBed.position.y = R * 0.68;
+        head.add(bowl, emberBed);
+
+        for (let f = 0; f < 3; f++) {
+          const flameCone = new THREE.Mesh(new THREE.ConeGeometry(R * (0.48 - f * 0.1), R * (1.2 + f * 0.35), 10), mats.bulbEmissive);
+          flameCone.position.set((f - 1) * (R * 0.14), R * 1.15 + f * 0.08, 0);
+          flameCone.rotation.z = (f - 1) * 0.12;
+          flameCone.userData.isLightToggle = true;
+          clickableLightMeshes.push(flameCone);
+          animatedFlameMeshes.push({ mesh: flameCone, baseY: R * 1.15 + f * 0.08, spin: false });
+          head.add(flameCone);
+        }
+      } else {
+        // FROSTED DOME / CAGED BULKHEAD / COBRA LED HEAD
+        const bezel = new THREE.Mesh(new THREE.CylinderGeometry(R + B, R + B, 0.10, 36), mats.housing);
+        const dome = new THREE.Mesh(new THREE.SphereGeometry(R, 32, 16, 0, Math.PI * 2, 0, Math.PI * 0.55), mats.bulbEmissive);
+        dome.rotation.x = pointsDown ? Math.PI : 0;
+        dome.userData.isLightToggle = true;
+        clickableLightMeshes.push(dome);
+        head.add(bezel, dome);
+      }
+
+      // Optional Protective Wire Guard Cage
+      if (state.wireCage) {
+        const cageY = state.fixtureFamily === 'puck-recessed' ? -0.02 : (state.headStyle === 'frosted-dome' ? 0 : R * 0.5);
+        const cageRing = new THREE.Mesh(new THREE.TorusGeometry(R * 0.96, 0.015, 8, 32), mats.trim);
+        cageRing.rotation.x = Math.PI / 2;
+        cageRing.position.y = cageY;
+        head.add(cageRing);
+
+        for (let c = 0; c < 4; c++) {
+          const arch = new THREE.Mesh(new THREE.TorusGeometry(R * 0.96, 0.012, 8, 24, Math.PI), mats.trim);
+          arch.rotation.y = (c / 4) * Math.PI;
+          arch.rotation.x = pointsDown && state.fixtureFamily === 'puck-recessed' ? Math.PI : 0;
+          arch.position.y = cageY;
+          head.add(arch);
+        }
+      }
+
+      // Optional Anti-Glare Louver / Honeycomb Baffle Grid
+      if (state.louverBaffle) {
+        const louverY = state.fixtureFamily === 'puck-recessed' ? -0.025 : R * 0.25;
+        for (let l = -1; l <= 1; l++) {
+          const blade1 = new THREE.Mesh(new THREE.BoxGeometry(R * 1.7, 0.04, 0.012), mats.darkHardware);
+          blade1.position.set(0, louverY, l * (R * 0.42));
+          const blade2 = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.04, R * 1.7), mats.darkHardware);
+          blade2.position.set(l * (R * 0.42), louverY, 0);
+          head.add(blade1, blade2);
+        }
+      }
+
+      // Optional Exportable Volumetric Light Cone Mesh
+      if (state.volumetricCone && state.dimmerPct > 2) {
+        const coneLen = state.fixtureFamily === 'puck-recessed' ? 2.4 : 2.8;
+        const coneRad = Math.tan(THREE.MathUtils.degToRad(state.beamAngle * 0.5)) * coneLen;
+        const coneGeom = new THREE.ConeGeometry(Math.min(2.8, coneRad), coneLen, 32, 1, true);
+        const coneMesh = new THREE.Mesh(coneGeom, mats.volumetricCone);
+        if (pointsDown) {
+          coneMesh.position.y = -coneLen / 2;
+        } else {
+          coneMesh.rotation.x = Math.PI;
+          coneMesh.position.y = -coneLen / 2 + R * 0.4;
+        }
+        head.add(coneMesh);
+      }
+
+      return head;
+    }
+
+    function buildLuminaireScene() {
+      clearGroup(fixtureActorGroup);
+      clearGroup(environmentContextGroup);
+      clickableLightMeshes.length = 0;
+      emissiveBulbMaterials.length = 0;
+      volumetricConeMaterials.length = 0;
+      animatedFlameMeshes.length = 0;
+
+      const mats = getMaterials();
+      const fam = state.fixtureFamily;
+      const H = state.fixtureHeight;
+      const D = state.headDiameter;
+      const spread = state.armSpread;
+      const count = state.headCount;
+
+      let primaryLightWorldPos = new THREE.Vector3(0, 2.2, 0);
+      let primaryLightTargetPos = new THREE.Vector3(0, 0, 0);
+
+      // ---------------------------------------------------------------------
+      // 1. BUILD SELECTED LUMINAIRE FAMILY
+      // ---------------------------------------------------------------------
+      if (fam === 'puck-recessed') {
+        // Ceiling / Soffit Mounted Puck Light (or Multi-Puck Array) at y = 2.55m
+        const ceilingY = 2.55;
+        const ceilingSlab = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.14, 3.2), mats.contextStone);
+        ceilingSlab.position.set(0, ceilingY + 0.07, 0);
+        environmentContextGroup.add(ceilingSlab);
+
+        for (let i = 0; i < count; i++) {
+          let px = 0, pz = 0;
+          if (count > 1) {
+            if (state.arrayPattern === 'linear') {
+              px = (i - (count - 1) / 2) * Math.max(D * 1.35, spread);
+            } else {
+              const ang = (i / count) * Math.PI * 2;
+              px = Math.cos(ang) * Math.max(D * 0.9, spread);
+              pz = Math.sin(ang) * Math.max(D * 0.9, spread);
+            }
+          }
+          const puckUnit = buildEmitterHeadUnit(mats, true);
+          puckUnit.position.set(px, ceilingY, pz);
+          fixtureActorGroup.add(puckUnit);
+        }
+        primaryLightWorldPos.set(0, ceilingY - 0.1, 0);
+        primaryLightTargetPos.set(0, 0, 0);
+      } else if (fam === 'street-post') {
+        // VICTORIAN / MAGITECH STREET LAMP POST (1 to 6 Radial or Linear Arms)
+        const plinthH = Math.min(0.85, H * 0.24);
+        const plinth = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.28, plinthH, 16), mats.housing);
+        plinth.position.y = plinthH / 2;
+        const collar = new THREE.Mesh(new THREE.TorusGeometry(0.20, 0.04, 12, 24), mats.trim);
+        collar.rotation.x = Math.PI / 2;
+        collar.position.y = plinthH;
+
+        const postShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.12, H - plinthH, 24), mats.housing);
+        postShaft.position.y = plinthH + (H - plinthH) / 2;
+        postShaft.castShadow = true;
+
+        // Ladder Rest Crossbar below the Capital
+        const crossBar = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.68, 12), mats.trim);
+        crossBar.rotation.z = Math.PI / 2;
+        crossBar.position.y = H - 0.35;
+
+        fixtureActorGroup.add(plinth, collar, postShaft, crossBar);
+
+        if (count === 1 || spread < 0.05) {
+          const topHead = buildEmitterHeadUnit(mats, false);
+          topHead.position.set(0, H, 0);
+          fixtureActorGroup.add(topHead);
+        } else {
+          const capFinial = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.32, 16), mats.trim);
+          capFinial.position.y = H + 0.16;
+          fixtureActorGroup.add(capFinial);
+
+          for (let i = 0; i < count; i++) {
+            const ang = (i / count) * Math.PI * 2;
+            const armGroup = new THREE.Group();
+            armGroup.position.set(0, H - 0.15, 0);
+            armGroup.rotation.y = ang;
+
+            // Ornate Scroll Arm + Gusset Brace
+            const armBeam = new THREE.Mesh(new THREE.BoxGeometry(spread, 0.045, 0.045), mats.housing);
+            armBeam.position.set(spread / 2, 0.08, 0);
+            const scrollRing = new THREE.Mesh(new THREE.TorusGeometry(spread * 0.26, 0.02, 8, 24), mats.trim);
+            scrollRing.position.set(spread * 0.42, -0.14, 0);
+
+            const lantern = buildEmitterHeadUnit(mats, false);
+            lantern.position.set(spread, 0.10, 0);
+
+            armGroup.add(armBeam, scrollRing, lantern);
+            fixtureActorGroup.add(armGroup);
+          }
+        }
+        primaryLightWorldPos.set(0, H + 0.2, 0);
+        primaryLightTargetPos.set(0, 0, 0);
+      } else if (fam === 'wall-sconce') {
+        // WALL SCONCE / DUNGEON TORCH BRACKET ON REFERENCE BACKING WALL
+        const wallH = 3.2;
+        const refWall = new THREE.Mesh(new THREE.BoxGeometry(3.6, wallH, 0.24), mats.contextStone);
+        refWall.position.set(0, wallH / 2, -0.75);
+        refWall.receiveShadow = true;
+        environmentContextGroup.add(refWall);
+
+        const sconceY = Math.min(2.6, Math.max(0.9, H));
+        for (let i = 0; i < count; i++) {
+          const sx = count === 1 ? 0 : (i - (count - 1) / 2) * Math.max(0.75, spread);
+          const sconce = new THREE.Group();
+          sconce.position.set(sx, sconceY, -0.62);
+
+          const backplate = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.44, 0.04), mats.housing);
+          const armReach = Math.max(0.28, spread * 0.55);
+          const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.035, armReach, 12), mats.trim);
+          arm.rotation.x = Math.PI / 2 - 0.25;
+          arm.position.set(0, 0.05, armReach / 2);
+
+          const head = buildEmitterHeadUnit(mats, false);
+          head.position.set(0, 0.12, armReach);
+
+          sconce.add(backplate, arm, head);
+          fixtureActorGroup.add(sconce);
+        }
+        primaryLightWorldPos.set(0, sconceY + 0.2, -0.2);
+        primaryLightTargetPos.set(0, 0, 0.6);
+      } else if (fam === 'chandelier-ring') {
+        // SUSPENDED CHASM RING CHANDELIER
+        const topY = 3.6;
+        const dropLen = Math.min(2.2, Math.max(0.6, H * 0.45));
+        const ringY = topY - dropLen;
+        const ringRad = Math.max(0.55, spread);
+
+        const chainRod = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, dropLen, 12), mats.trim);
+        chainRod.position.y = topY - dropLen / 2;
+        const wheelTorus = new THREE.Mesh(new THREE.TorusGeometry(ringRad, 0.055, 16, 48), mats.housing);
+        wheelTorus.rotation.x = Math.PI / 2;
+        wheelTorus.position.y = ringY;
+        fixtureActorGroup.add(chainRod, wheelTorus);
+
+        const lampCount = Math.max(3, count);
+        for (let i = 0; i < lampCount; i++) {
+          const ang = (i / lampCount) * Math.PI * 2;
+          const spoke = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, ringRad, 8), mats.trim);
+          spoke.position.set(Math.cos(ang) * (ringRad / 2), ringY + 0.22, Math.sin(ang) * (ringRad / 2));
+          spoke.rotation.z = -Math.cos(ang) * 0.4;
+          spoke.rotation.x = Math.sin(ang) * 0.4;
+
+          const lamp = buildEmitterHeadUnit(mats, false);
+          lamp.position.set(Math.cos(ang) * ringRad, ringY + 0.05, Math.sin(ang) * ringRad);
+          fixtureActorGroup.add(spoke, lamp);
+        }
+        primaryLightWorldPos.set(0, ringY, 0);
+        primaryLightTargetPos.set(0, 0, 0);
+      } else if (fam === 'standing-brazier') {
+        // DUNGEON STANDING BRAZIER / RUNE PEDESTAL
+        const pedH = Math.max(0.65, H * 0.55);
+        const baseStep = new THREE.Mesh(new THREE.CylinderGeometry(D * 0.72, D * 0.88, 0.18, 8), mats.housing);
+        baseStep.position.y = 0.09;
+        const column = new THREE.Mesh(new THREE.CylinderGeometry(D * 0.34, D * 0.46, pedH, 8), mats.housing);
+        column.position.y = pedH / 2 + 0.09;
+        const head = buildEmitterHeadUnit(mats, false);
+        head.position.y = pedH + 0.12;
+        fixtureActorGroup.add(baseStep, column, head);
+        primaryLightWorldPos.set(0, pedH + 0.6, 0);
+        primaryLightTargetPos.set(0, 0, 0);
+      } else if (fam === 'pathway-bollard') {
+        // LOW LOUVERED PATHWAY GUIDE BOLLARD
+        const bolH = Math.min(1.6, Math.max(0.55, H * 0.45));
+        const R = D / 2;
+        const lowerPost = new THREE.Mesh(new THREE.CylinderGeometry(R, R * 1.08, bolH * 0.62, 32), mats.housing);
+        lowerPost.position.y = bolH * 0.31;
+        const glowCore = new THREE.Mesh(new THREE.CylinderGeometry(R * 0.76, R * 0.76, bolH * 0.32, 32), mats.bulbEmissive);
+        glowCore.position.y = bolH * 0.78;
+        glowCore.userData.isLightToggle = true;
+        clickableLightMeshes.push(glowCore);
+
+        // Louvered Fin Rings around the Bollard Top
+        for (let f = 0; f < 4; f++) {
+          const fin = new THREE.Mesh(new THREE.CylinderGeometry(R * 1.04, R * 0.96, 0.02, 32), mats.trim);
+          fin.position.y = bolH * 0.65 + f * (bolH * 0.08);
+          fixtureActorGroup.add(fin);
+        }
+        const topCap = new THREE.Mesh(new THREE.CylinderGeometry(R * 0.85, R * 1.08, 0.08, 32), mats.housing);
+        topCap.position.y = bolH + 0.02;
+        fixtureActorGroup.add(lowerPost, glowCore, topCap);
+        primaryLightWorldPos.set(0, bolH * 0.8, 0);
+        primaryLightTargetPos.set(0, 0, 0);
+      } else if (fam === 'tripod-flood') {
+        // TACTICAL TRIPOD GIMBAL WORK FLOODLIGHT
+        const standH = Math.max(1.2, H * 0.65);
+        for (let l = 0; l < 3; l++) {
+          const a = (l / 3) * Math.PI * 2;
+          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 1.15, 12), mats.darkHardware);
+          leg.position.set(Math.cos(a) * 0.38, 0.48, Math.sin(a) * 0.38);
+          leg.rotation.z = Math.cos(a) * 0.48;
+          leg.rotation.x = -Math.sin(a) * 0.48;
+          fixtureActorGroup.add(leg);
+        }
+        const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.045, standH, 16), mats.housing);
+        mast.position.y = standH / 2 + 0.2;
+        const head = buildEmitterHeadUnit(mats, true);
+        head.rotation.x = Math.PI / 2 + THREE.MathUtils.degToRad(state.gimbalTilt);
+        head.position.set(0, standH + 0.25, 0);
+        fixtureActorGroup.add(mast, head);
+        primaryLightWorldPos.set(0, standH + 0.25, 0.2);
+        primaryLightTargetPos.set(0, 0.5, 2.5);
+      } else {
+        // ARMORED LINEAR NEON / MANA CONDUIT TUBE BAR
+        const tubeLen = Math.max(1.2, H * 0.65);
+        const backing = new THREE.Mesh(new THREE.BoxGeometry(tubeLen + 0.24, 0.16, 0.10), mats.housing);
+        backing.position.set(0, 1.65, 0);
+        const plasmaTube = new THREE.Mesh(new THREE.CylinderGeometry(D * 0.22, D * 0.22, tubeLen, 24), mats.bulbEmissive);
+        plasmaTube.rotation.z = Math.PI / 2;
+        plasmaTube.position.set(0, 1.65, 0.10);
+        plasmaTube.userData.isLightToggle = true;
+        clickableLightMeshes.push(plasmaTube);
+
+        for (const s of [-tubeLen / 2, tubeLen / 2]) {
+          const cap = new THREE.Mesh(new THREE.CylinderGeometry(D * 0.28, D * 0.28, 0.12, 20), mats.trim);
+          cap.rotation.z = Math.PI / 2;
+          cap.position.set(s, 1.65, 0.08);
+          fixtureActorGroup.add(cap);
+        }
+        fixtureActorGroup.add(backing, plasmaTube);
+        primaryLightWorldPos.set(0, 1.65, 0.3);
+        primaryLightTargetPos.set(0, 0.5, 1.5);
+      }
+
+      // ---------------------------------------------------------------------
+      // 2. REFERENCE PLAZA FLOOR, INTERACTIVE 3D DIMMER SWITCH & .VRM AVATAR
+      // ---------------------------------------------------------------------
+      const floorDisk = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.4, 0.12, 48), mats.contextStone);
+      floorDisk.position.y = -0.06;
+      floorDisk.receiveShadow = true;
+      environmentContextGroup.add(floorDisk);
+
+      // Interactive 3D Dimmer Switch Pedestal at x = 1.35m, y = 1.15m
+      const swGroup = new THREE.Group();
+      swGroup.position.set(1.35, 0, 0.45);
+      const swPost = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 1.15, 12), mats.darkHardware);
+      swPost.position.y = 0.575;
+      const swBox = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.32, 0.10), mats.housing);
+      swBox.position.y = 1.15;
+      swGroup.add(swPost, swBox);
+
+      if (state.switchType === 'rotary-dimmer') {
+        const dial = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.085, 0.05, 24), mats.trim);
+        dial.rotation.x = Math.PI / 2;
+        dial.position.set(0, 1.15, 0.06);
+        dial.userData.isLightToggle = true;
+        clickableLightMeshes.push(dial);
+        swGroup.add(dial);
+      } else if (state.switchType === 'toggle-plate') {
+        const rocker = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.14, 0.05), mats.bulbEmissive);
+        rocker.position.set(0, 1.15, 0.06);
+        rocker.rotation.x = state.dimmerPct > 5 ? -0.25 : 0.25;
+        rocker.userData.isLightToggle = true;
+        clickableLightMeshes.push(rocker);
+        swGroup.add(rocker);
+      } else {
+        const lever = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.36, 10), mats.trim);
+        lever.position.set(0, 1.15, 0.12);
+        lever.rotation.x = state.dimmerPct > 5 ? -0.55 : 0.55;
+        lever.userData.isLightToggle = true;
+        clickableLightMeshes.push(lever);
+        swGroup.add(lever);
+      }
+      environmentContextGroup.add(swGroup);
+
+      if (state.showVrmAvatar) {
+        const av = new THREE.Group();
+        const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.18, 0.58, 10, 14), mats.vrmAvatar);
+        torso.position.y = 1.05;
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 16), mats.vrmAvatar);
+        head.position.y = 1.56;
+        av.add(torso, head);
+        av.position.set(-1.15, 0, 0.45);
+        environmentContextGroup.add(av);
+      }
+
+      // Sync Real-Time Three.js PointLight & SpotLight
+      emitterPointLight.position.copy(primaryLightWorldPos);
+      emitterSpotLight.position.copy(primaryLightWorldPos);
+      emitterSpotLight.target.position.copy(primaryLightTargetPos);
+      emitterSpotLight.angle = THREE.MathUtils.degToRad(state.beamAngle * 0.65);
+
+      updatePhotometricState(1.0);
+
+      // v5.5 Bezeled Stamped Bezier Vector Industrial Nameplate on Dimmer Switch Pedestal / Plaza Rim
+      const plaqueTex = createStampedPlateTexture(
+        state.fixtureFamily.toUpperCase(),
+        `${state.kelvinTemp}K • ${Math.round(state.dimmerPct)}%OUTPUT`,
+        '#f59e0b'
+      );
+      const plaqueGroup = new THREE.Group();
+      plaqueGroup.name = 'Stamped_Bezier_Nameplate';
+      const plaqueBezel = new THREE.Mesh(new THREE.BoxGeometry(0.60, 0.17, 0.035), mats.trim);
+      const plaqueMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.56, 0.14), plaqueTex.createMaterial());
+      plaqueMesh.position.z = 0.02;
+      plaqueGroup.add(plaqueBezel, plaqueMesh);
+      plaqueGroup.position.set(1.35, 0.82, 0.51);
+      environmentContextGroup.add(plaqueGroup);
+      updateTelemetry();
+    }
+
+    function updatePhotometricState(flickerMult = 1.0) {
+      const emitColor = getActiveEmitColor();
+      const dimFrac = (state.dimmerPct / 100) * flickerMult;
+
+      emitterPointLight.color.copy(emitColor);
+      emitterPointLight.intensity = 3.2 * dimFrac * Math.sqrt(state.headCount);
+
+      emitterSpotLight.color.copy(emitColor);
+      emitterSpotLight.intensity = 4.8 * dimFrac;
+
+      for (const m of emissiveBulbMaterials) {
+        m.color.copy(emitColor);
+        m.emissive.copy(emitColor);
+        m.emissiveIntensity = 3.2 * dimFrac;
+      }
+      for (const cm of volumetricConeMaterials) {
+        cm.color.copy(emitColor);
+        cm.opacity = Math.min(0.35, 0.16 * dimFrac);
+      }
+    }
+
+    function updateTelemetry() {
+      const lumens = Math.round(state.headCount * (state.dimmerPct / 100) * 1800 * (state.headDiameter / 0.35));
+      const watts = Math.round(lumens / 95);
+      document.getElementById('stat-lumens').textContent = `${lumens.toLocaleString()} lm`;
+      document.getElementById('stat-watts').textContent = `${watts} W`;
+      document.getElementById('stat-spectrum').textContent = state.spectrumMode === 'kelvin'
+        ? `${state.kelvin} K`
+        : state.spectrumMode.split('-')[1].toUpperCase();
+
+      document.getElementById('sim-pct-readout').textContent = `${Math.round(state.dimmerPct)}%`;
+      document.getElementById('sim-status-text').textContent = state.dimmerPct > 2
+        ? `ENERGIZED • ${Math.round(state.dimmerPct)}%`
+        : 'CIRCUIT OFF (0%)';
+
+      let tris = 0;
+      assetRoot.traverse((obj) => {
+        if (obj.isMesh && obj.geometry) {
+          const g = obj.geometry;
+          tris += g.index ? g.index.count / 3 : g.attributes.position.count / 3;
+        }
+      });
+      document.getElementById('stat-triangles').textContent = `${Math.round(tris).toLocaleString()} tris`;
+
+      document.getElementById('label-height').textContent = `H: ${state.fixtureHeight.toFixed(2)}m`;
+      document.getElementById('label-diameter').textContent = `Ø: ${state.headDiameter.toFixed(2)}m`;
+      document.getElementById('label-spread').textContent = `Spread: ${state.armSpread.toFixed(2)}m`;
+    }
+
+    function updateLabelsOverlay() {
+      const container = document.getElementById('labels-container');
+      if (!state.showDimensions) {
+        container.style.opacity = '0';
+        return;
+      }
+      container.style.opacity = '1';
+
+      const pts = [
+        { id: 'label-height', pos: new THREE.Vector3(-0.9, state.fixtureHeight * 0.5, 0) },
+        { id: 'label-diameter', pos: new THREE.Vector3(0, state.fixtureHeight + 0.45, 0) },
+        { id: 'label-spread', pos: new THREE.Vector3(state.armSpread + 0.45, state.fixtureHeight * 0.85, 0) }
+      ];
+      const rect = mount.getBoundingClientRect();
+      for (const item of pts) {
+        const v = item.pos.clone().project(camera);
+        const el = document.getElementById(item.id);
+        if (v.z > 1) {
+          el.style.opacity = '0';
+        } else {
+          el.style.opacity = '1';
+          el.style.left = `${(v.x * 0.5 + 0.5) * rect.width}px`;
+          el.style.top = `${(-(v.y * 0.5) + 0.5) * rect.height}px`;
+        }
+      }
+    }
+
+    function syncUI() {
+      const sliders = [
+        ['headCount', ' unit', 0],
+        ['fixtureHeight', ' m', 2],
+        ['headDiameter', ' m', 2],
+        ['armSpread', ' m', 2],
+        ['bezelThick', ' m', 2],
+        ['gimbalTilt', '°', 0],
+        ['kelvin', ' K', 0],
+        ['dimmerPct', '%', 0],
+        ['beamAngle', '°', 0],
+        ['crackDensity', '%', 0],
+        ['bumpScale', '', 2]
+      ];
+      for (const [k, unit, dec] of sliders) {
+        const input = document.getElementById(`param-${k}`);
+        const label = document.getElementById(`val-${k}`);
+        if (input) input.value = state[k];
+        if (label) label.textContent = Number(state[k]).toFixed(dec) + unit;
+      }
+      ['fixtureFamily', 'headStyle', 'arrayPattern', 'spectrumMode', 'flickerMode', 'housingFinish', 'switchType', 'exportScope'].forEach((k) => {
+        const el = document.getElementById(`param-${k}`);
+        if (el) el.value = state[k];
+      });
+      ['showVrmAvatar', 'volumetricCone', 'wireCage', 'louverBaffle', 'showDimensions', 'wireframe'].forEach((k) => {
+        const el = document.getElementById(`param-${k}`);
+        if (el) el.checked = Boolean(state[k]);
+      });
+    }
+
+    ['headCount', 'fixtureHeight', 'headDiameter', 'armSpread', 'bezelThick', 'gimbalTilt', 'kelvin', 'dimmerPct', 'beamAngle', 'crackDensity', 'bumpScale'].forEach((k) => {
+      document.getElementById(`param-${k}`).addEventListener('input', (e) => {
+        state[k] = parseFloat(e.target.value);
+        syncUI();
+        buildLuminaireScene();
+      });
+    });
+
+    ['fixtureFamily', 'headStyle', 'arrayPattern', 'spectrumMode', 'flickerMode', 'housingFinish', 'switchType', 'exportScope'].forEach((k) => {
+      document.getElementById(`param-${k}`).addEventListener('change', (e) => {
+        state[k] = e.target.value;
+        syncUI();
+        buildLuminaireScene();
+      });
+    });
+
+    ['showVrmAvatar', 'volumetricCone', 'wireCage', 'louverBaffle', 'showDimensions', 'wireframe'].forEach((k) => {
+      document.getElementById(`param-${k}`).addEventListener('change', (e) => {
+        state[k] = e.target.checked;
+        buildLuminaireScene();
+      });
+    });
+
+    document.querySelectorAll('.tab-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach((b) => {
+          b.className = 'tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition';
+        });
+        btn.className = 'tab-btn py-2 rounded bg-slate-800 text-amber-400 shadow-sm transition';
+        document.querySelectorAll('.tab-content').forEach((p) => {
+          p.classList.toggle('hidden', p.id !== btn.dataset.tab);
+        });
+      });
+    });
+
+    document.querySelectorAll('.preset-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const p = PRESETS[btn.dataset.preset];
+        if (!p) return;
+        Object.assign(state, p);
+        syncUI();
+        buildLuminaireScene();
+        document.querySelectorAll('.preset-btn').forEach((b) => {
+          b.className = 'preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition';
+        });
+        btn.className = 'preset-btn px-2.5 py-1 rounded text-xs font-medium bg-amber-500/20 text-amber-300 border border-amber-500/40 transition';
+        showToast(`Loaded ${btn.textContent} luminaire preset`);
+      });
+    });
+
+    document.getElementById('btnRandomize').addEventListener('click', () => {
+      const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+      state.fixtureFamily = pick(['puck-recessed', 'street-post', 'wall-sconce', 'chandelier-ring', 'standing-brazier', 'pathway-bollard', 'tripod-flood', 'linear-tube']);
+      state.headStyle = pick(['frosted-dome', 'hex-lantern', 'caged-bulkhead', 'arcane-crystal', 'open-flame']);
+      state.headCount = Math.floor(1 + Math.random() * 4);
+      state.spectrumMode = pick(['kelvin', 'arcane-purple', 'hellfire-amber', 'fel-emerald', 'cyber-cyan']);
+      state.housingFinish = pick(['wrought-iron', 'brass', 'brushed-steel', 'basalt-stone', 'copper-patina']);
+      state.dimmerPct = 100;
+      syncUI();
+      buildLuminaireScene();
+      showToast('Randomized Parametric Luminaire Configuration');
+    });
+
+    let camTarget = null;
+    let orbitTarget = null;
+    document.querySelectorAll('.cam-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const mode = btn.dataset.cam;
+        if (mode === 'iso') {
+          camTarget = new THREE.Vector3(3.4, 2.5, 4.2);
+          orbitTarget = new THREE.Vector3(0, 1.6, 0);
+        } else if (mode === 'head') {
+          const focusY = state.fixtureFamily === 'puck-recessed' ? 2.2 : Math.min(3.4, state.fixtureHeight);
+          camTarget = new THREE.Vector3(1.2, focusY - 0.15, 1.4);
+          orbitTarget = new THREE.Vector3(0, focusY, 0);
+        } else if (mode === 'vrm') {
+          camTarget = new THREE.Vector3(-1.15, 1.65, 2.2);
+          orbitTarget = new THREE.Vector3(0, 1.65, 0);
+        } else if (mode === 'switch') {
+          camTarget = new THREE.Vector3(1.35, 1.25, 1.45);
+          orbitTarget = new THREE.Vector3(1.35, 1.15, 0.45);
+        }
+        document.querySelectorAll('.cam-btn').forEach((b) => {
+          b.className = b === btn
+            ? 'cam-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-500/20 text-amber-300 border border-amber-500/30 transition'
+            : 'cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition';
+        });
+      });
+    });
+    controls.addEventListener('start', () => { camTarget = null; orbitTarget = null; });
+
+    function toggleLuminairePower() {
+      if (state.dimmerPct > 5) {
+        state.savedDimmerPct = state.dimmerPct;
+        state.dimmerPct = 0;
+        showToast('Switched Luminaire Power OFF (0%)');
+      } else {
+        state.dimmerPct = state.savedDimmerPct || 100;
+        showToast(`Switched Luminaire Power ON (${state.dimmerPct}%)`);
+      }
+      syncUI();
+      buildLuminaireScene();
+    }
+
+    document.getElementById('btnPowerToggle').addEventListener('click', toggleLuminairePower);
+
+    document.getElementById('btnCycleFlicker').addEventListener('click', () => {
+      const modes = ['steady', 'torch-flicker', 'mana-pulse', 'short-circuit'];
+      state.flickerMode = modes[(modes.indexOf(state.flickerMode) + 1) % modes.length];
+      syncUI();
+      showToast(`Dynamic Light Behavior: [${state.flickerMode.toUpperCase()}]`);
+    });
+
+    document.querySelectorAll('.dim-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        state.dimmerPct = parseFloat(btn.dataset.dim);
+        syncUI();
+        buildLuminaireScene();
+        showToast(`Set Dimmer Level to ${state.dimmerPct}%`);
+      });
+    });
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    let downPos = { x: 0, y: 0 };
+    renderer.domElement.addEventListener('pointerdown', (e) => { downPos = { x: e.clientX, y: e.clientY }; });
+    window.addEventListener('pointerup', (e) => {
+      if (Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > 5) return;
+      const rect = renderer.domElement.getBoundingClientRect();
+      if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) return;
+      pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(clickableLightMeshes, false);
+      if (hits.length > 0) {
+        toggleLuminairePower();
+      }
+    });
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast-notification');
+      document.getElementById('toast-text').textContent = msg;
+      toast.style.opacity = '1';
+      setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('btnExportPBR').addEventListener('click', () => {
+      exportPBRTexturePack('lumina', state.housingFinish === 'basalt-stone' ? 'stone' : 'armor', state.crackDensity);
+      showToast('Exported Seamless PBR Bump/Crack Height & Normal Maps (.PNG)!');
+    });
+
+    document.getElementById('btnExportJSON').addEventListener('click', () => {
+      downloadBlob(new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }), `luminaire-recipe-${state.fixtureFamily}.json`);
+      showToast('Exported Parametric Luminaire Recipe (.JSON)');
+    });
+
+    document.getElementById('btnExportGLB').addEventListener('click', () => {
+      const exporter = new GLTFExporter();
+      const target = state.exportScope === 'fixture-only' ? fixtureActorGroup : assetRoot;
+      exporter.parse(target, (res) => {
+        downloadBlob(new Blob([res], { type: 'application/octet-stream' }), `parametric-light-${state.fixtureFamily}.glb`);
+        showToast(`Exported 3D ${state.fixtureFamily} (.GLB) with baked PBR & emissive channels!`);
+      }, (err) => console.error(err), { binary: true });
+    });
+
+    document.getElementById('btnExportOBJ').addEventListener('click', () => {
+      const exporter = new OBJExporter();
+      const target = state.exportScope === 'fixture-only' ? fixtureActorGroup : assetRoot;
+      downloadBlob(new Blob([exporter.parse(target)], { type: 'text/plain' }), `parametric-light-${state.fixtureFamily}.obj`);
+      showToast('Exported Wavefront 3D Mesh (.OBJ)');
+    });
+
+    const clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = Math.min(clock.getDelta(), 0.1);
+      const elapsed = clock.getElapsedTime();
+
+      if (camTarget && orbitTarget) {
+        camera.position.lerp(camTarget, dt * 5);
+        controls.target.lerp(orbitTarget, dt * 5);
+        if (camera.position.distanceTo(camTarget) < 0.06) {
+          camTarget = null;
+          orbitTarget = null;
+        }
+      }
+
+      // Live Flicker / Pulse / Short-Circuit Modulation
+      let mult = 1.0;
+      if (state.flickerMode === 'torch-flicker') {
+        mult = 0.85 + Math.sin(elapsed * 14.0) * 0.12 + Math.cos(elapsed * 23.0) * 0.08;
+      } else if (state.flickerMode === 'mana-pulse') {
+        mult = 0.65 + Math.sin(elapsed * 2.6) * 0.35;
+      } else if (state.flickerMode === 'short-circuit') {
+        mult = (Math.sin(elapsed * 19.0) > 0.45 || Math.cos(elapsed * 7.3) > 0.2) ? 1.15 : 0.08;
+      }
+      updatePhotometricState(mult);
+
+      for (const item of animatedFlameMeshes) {
+        if (item.spin) {
+          item.mesh.rotation.y += dt * 1.8;
+          item.mesh.position.y = item.baseY + Math.sin(elapsed * 2.5) * 0.04;
+        } else {
+          item.mesh.scale.y = 0.9 + Math.sin(elapsed * 12.0 + item.baseY * 10) * 0.16;
+        }
+      }
+
+      controls.update();
+      updateLabelsOverlay();
+      const mPos = atmosphericMotes.geometry.attributes.position;
+      for (let mi = 0; mi < MOTE_COUNT; mi++) {
+        let my = mPos.getY(mi) + 0.0045;
+        if (my > 4.2) my = 0.15;
+        mPos.setY(mi, my);
+      }
+      mPos.needsUpdate = true;
+      if (bloomEnabled) composer.render();
+      else renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+      const rw = Math.max(1, mount.clientWidth);
+      const rh = Math.max(1, mount.clientHeight);
+      camera.aspect = rw / rh;
+      camera.updateProjectionMatrix();
+      renderer.setSize(rw, rh);
+      composer.setSize(rw, rh);
+    });
+
+    window.__STUDIO_E2E__ = {
+      studioCode: 'LUMINACAD',
+      version: '6.0',
+      scene, camera, renderer, composer, unrealBloomPass, assetRoot,
+      getBloomEnabled: () => bloomEnabled
+    };
+
+    syncUI();
+    buildLuminaireScene();
+    animate();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STAIRCAD v5.0 — Parametric Staircases, Spiral Towers, Catwalks & Trick-Slide Engine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <style>
+    * { box-sizing: border-box; user-select: none; }
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #080a10;
+      color: #e2e8f0;
+    }
+    .font-mono-tech { font-family: 'JetBrains Mono', monospace; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.4); }
+    ::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.6); border-radius: 3px; }
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: #1e293b;
+      border-radius: 999px;
+      outline: none;
+      border: 1px solid #334155;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #38bdf8;
+      cursor: pointer;
+      border: 2px solid #0f172a;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.55);
+      transition: transform 0.1s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(51, 65, 85, 0.65);
+    }
+    .dimension-badge {
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.2s ease;
+    }
+  </style>
+</head>
+<body class="h-screen w-screen flex flex-col bg-[#080a10] text-slate-100">
+
+  <!-- TOP HEADER BAR -->
+  <header class="h-14 border-b border-slate-800/80 bg-slate-950/90 px-4 flex items-center justify-between z-20 shrink-0">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-lg bg-sky-500/15 border border-sky-400/35 flex items-center justify-center text-sky-400 shadow-inner">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21h4v-4h4v-4h4V9h4V5h2"></path>
+        </svg>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="font-semibold text-sm tracking-tight text-white">STAIR<span class="text-sky-400">CAD</span></h1>
+          <span class="text-[10px] font-mono-tech uppercase px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-300 border border-sky-500/30">v4.0 • .VRM Stairs, Spirals & Trick Slides</span>
+        </div>
+        <p class="text-[11px] text-slate-400">Parametric Split-Landing Stairs, Spiral Towers, Grated Catwalks & Mechanical Trap Slides</p>
+      </div>
+    </div>
+
+    <!-- ARCHETYPE PRESETS -->
+    <div class="hidden xl:flex items-center gap-1.5 bg-slate-900/90 p-1 rounded-lg border border-slate-800">
+      <span class="text-[11px] font-medium text-slate-400 px-2">Archetype:</span>
+      <button data-preset="grand" class="preset-btn px-2.5 py-1 rounded text-xs font-medium bg-sky-500/20 text-sky-300 border border-sky-500/40 transition">Grand Cathedral Flight</button>
+      <button data-preset="spiral" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Spiral Dungeon Tower</button>
+      <button data-preset="split" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Split-Landing Imperial</button>
+      <button data-preset="catwalk" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Industrial Grated Catwalk</button>
+      <button data-preset="trick" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-rose-300 hover:bg-rose-950/40 border border-rose-500/30 transition">100F Trick-Slide Trap</button>
+    </div>
+
+    <!-- EXPORT ACTIONS -->
+    <div class="flex items-center gap-2">
+      <button id="btnRandomize" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">Randomize</button>
+      <button id="btnExportPBR" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-emerald-300 font-mono-tech border border-emerald-500/30 transition">PBR .PNGs</button>
+      <button id="btnExportJSON" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-amber-400 font-mono-tech border border-slate-700 transition">.JSON</button>
+      <button id="btnExportOBJ" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">Export .OBJ</button>
+      <button id="btnExportGLB" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-sky-500 hover:bg-sky-400 text-slate-950 shadow-lg shadow-sky-500/20 transition">Export .GLB</button>
+    </div>
+  </header>
+
+  <div class="flex-1 flex relative overflow-hidden">
+
+    <!-- LEFT PANEL -->
+    <aside class="w-80 md:w-96 border-r border-slate-800/80 bg-slate-950/95 flex flex-col z-10 shrink-0">
+      <div class="grid grid-cols-5 border-b border-slate-800 bg-slate-900/60 p-1 gap-1 text-[11px] font-medium">
+        <button data-tab="tab-arch" class="tab-btn py-2 rounded bg-slate-800 text-sky-400 shadow-sm transition">Layout</button>
+        <button data-tab="tab-steps" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Steps</button>
+        <button data-tab="tab-rails" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Rails</button>
+        <button data-tab="tab-trick" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Trick Slide</button>
+        <button data-tab="tab-finish" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Materials</button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-4 space-y-5">
+
+        <!-- TAB 1: STAIRCASE ARCHITECTURE -->
+        <div id="tab-arch" class="tab-content space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Staircase & Catwalk Topology</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Traversal Architecture</label>
+                <select id="param-stairType" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="straight-grand">Straight Monumental Flight + Landings</option>
+                  <option value="spiral-tower">Helical Spiral Tower Staircase</option>
+                  <option value="split-imperial">Twin Split-Landing Imperial Staircase</option>
+                  <option value="catwalk-ramp">Suspended Industrial Mezzanine Catwalk</option>
+                </select>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Total Step Count</label>
+                  <span id="val-stepCount" class="font-mono-tech text-sky-400">16 steps</span>
+                </div>
+                <input id="param-stepCount" type="range" min="6" max="28" step="1" value="16">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Flight Clear Width (X)</label>
+                  <span id="val-stairWidth" class="font-mono-tech text-sky-400">2.60 m</span>
+                </div>
+                <input id="param-stairWidth" type="range" min="1.20" max="5.00" step="0.10" value="2.60">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Spiral Sweep Angle</label>
+                  <span id="val-spiralSweep" class="font-mono-tech text-sky-400">360°</span>
+                </div>
+                <input id="param-spiralSweep" type="range" min="90" max="720" step="45" value="360">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-emerald-300 block">Show .VRM 1.70m Scale Avatar</span>
+                  <span class="text-[11px] text-slate-400">Verify step rise/run for .VRM foot IK</span>
+                </div>
+                <input id="param-showVrmAvatar" type="checkbox" checked class="w-4 h-4 accent-emerald-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: STEP RISE, RUN & STRINGERS -->
+        <div id="tab-steps" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">.VRM Step Rise, Run & Stringers</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Step Vertical Rise (Y)</label>
+                  <span id="val-stepRise" class="font-mono-tech text-sky-400">0.18 m</span>
+                </div>
+                <input id="param-stepRise" type="range" min="0.12" max="0.26" step="0.01" value="0.18">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Tread Horizontal Run (Z)</label>
+                  <span id="val-stepRun" class="font-mono-tech text-sky-400">0.32 m</span>
+                </div>
+                <input id="param-stepRun" type="range" min="0.24" max="0.46" step="0.02" value="0.32">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Spiral Inner Well / Column Radius</label>
+                  <span id="val-innerRadius" class="font-mono-tech text-sky-400">0.65 m</span>
+                </div>
+                <input id="param-innerRadius" type="range" min="0.25" max="2.20" step="0.05" value="0.65">
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Under-Stair Support Structure</label>
+                <select id="param-supportStyle" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="side-stringers">Heavy Side Stringer Beams + Open Risers</option>
+                  <option value="solid-masonry">Solid Stepped Masonry Vault Under-Carriage</option>
+                  <option value="central-spine">Single Central Monolith Spine Girder</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: BALUSTRADES, HANDRAILS & NEWEL POSTS -->
+        <div id="tab-rails" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Balustrades & Newel Torch Posts</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Safety Balustrades & Handrails</span>
+                  <span class="text-[11px] text-slate-400">Guardrails & spindles along flight</span>
+                </div>
+                <input id="param-showHandrails" type="checkbox" checked class="w-4 h-4 accent-sky-500 rounded cursor-pointer">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Handrail Height</label>
+                  <span id="val-railHeight" class="font-mono-tech text-sky-400">0.95 m</span>
+                </div>
+                <input id="param-railHeight" type="range" min="0.65" max="1.35" step="0.05" value="0.95">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-amber-300 block">Illuminated Newel Lantern Finials</span>
+                  <span class="text-[11px] text-slate-400">Glowing crystals on landing newel posts</span>
+                </div>
+                <input id="param-newelLanterns" type="checkbox" checked class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: MECHANICAL TRICK-SLIDE TRAP ACTUATION -->
+        <div id="tab-trick" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">100F Mechanical Trick-Stair Engine</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Trick-Slide Fold Ratio %</label>
+                  <span id="val-trickSlideRatio" class="font-mono-tech text-rose-400">0%</span>
+                </div>
+                <input id="param-trickSlideRatio" type="range" min="0" max="100" step="1" value="0">
+              </div>
+
+              <p class="text-[11px] text-slate-400 leading-relaxed">
+                At <strong class="text-slate-200">0%</strong>, treads are level walkable steps. At <strong class="text-rose-300">100%</strong>, all treads pivot simultaneously on linkage rods into a smooth <strong class="text-rose-300">trap chute slide</strong>!
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 5: MATERIALS, PBR BUMP/CRACKS & EXPORT -->
+        <div id="tab-finish" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Materials & PBR Relief</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Staircase Material Palette</label>
+                <select id="param-materialPalette" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="cathedral-stone">Carved Cathedral Flagstone & Brass</option>
+                  <option value="industrial-steel">Industrial Diamond-Tread Steel & Iron</option>
+                  <option value="royal-marble">Polished Obsidian & Gold Trim</option>
+                  <option value="fortress-timber">Heavy Fortress Oak & Wrought Iron</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Rune / Finial Glow Color</label>
+                <select id="param-glowColor" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="ice-blue">Astral Cyan</option>
+                  <option value="amber">Torchlight Amber</option>
+                  <option value="arcane-purple">Abyssal Violet</option>
+                  <option value="emerald">Safe-Zone Emerald</option>
+                  <option value="crimson">Trap Triggered Crimson</option>
+                </select>
+              </div>
+
+              <div class="pt-2 border-t border-slate-800">
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-emerald-300 font-medium">PBR Crack & Scar Density</label>
+                  <span id="val-crackDensity" class="font-mono-tech text-emerald-400">40%</span>
+                </div>
+                <input id="param-crackDensity" type="range" min="0" max="100" step="5" value="40">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-emerald-300 font-medium">Normal / Bump Relief Depth</label>
+                  <span id="val-bumpScale" class="font-mono-tech text-emerald-400">0.08</span>
+                </div>
+                <input id="param-bumpScale" type="range" min="0.00" max="0.25" step="0.01" value="0.08">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-200">3D Dimension Callouts</span>
+                <input id="param-showDimensions" type="checkbox" checked class="w-4 h-4 accent-sky-500 rounded cursor-pointer">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-200">Wireframe Overlay Pass</span>
+                <input id="param-wireframe" type="checkbox" class="w-4 h-4 accent-sky-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- TELEMETRY FOOTER -->
+      <div class="p-3.5 border-t border-slate-800 bg-slate-900/90 space-y-2">
+        <div class="flex items-center justify-between text-[11px] text-slate-400">
+          <span class="uppercase font-semibold tracking-wider">Staircase Telemetry</span>
+          <span id="stat-triangles" class="font-mono-tech text-slate-300">0 tris</span>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">Total Rise</span>
+            <span id="stat-rise" class="font-mono-tech text-xs font-semibold text-sky-400">2.88 m</span>
+          </div>
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">Total Run</span>
+            <span id="stat-run" class="font-mono-tech text-xs font-semibold text-emerald-400">5.12 m</span>
+          </div>
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">Slope Pitch</span>
+            <span id="stat-slope" class="font-mono-tech text-xs font-semibold text-amber-400">29.4°</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- VIEWPORT -->
+    <main class="flex-1 relative bg-gradient-to-b from-[#0b111e] via-[#080b13] to-[#05060a] overflow-hidden">
+      <div id="canvas-mount" class="w-full h-full"></div>
+
+      <div id="labels-container" class="absolute inset-0 pointer-events-none overflow-hidden">
+        <div id="label-rise" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/90 border border-sky-500/50 text-[11px] font-mono-tech text-sky-300 shadow-lg">Rise: 2.88m</div>
+        <div id="label-run" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/90 border border-sky-500/50 text-[11px] font-mono-tech text-sky-300 shadow-lg">Run: 5.12m</div>
+        <div id="label-width" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/90 border border-sky-500/50 text-[11px] font-mono-tech text-sky-300 shadow-lg">Width: 2.60m</div>
+      </div>
+
+      <!-- CAMERA PRESETS -->
+      <div class="absolute top-4 left-4 glass-panel rounded-xl p-1.5 flex items-center gap-1 shadow-xl">
+        <span class="text-[10px] font-mono-tech uppercase text-slate-400 px-2">Camera:</span>
+        <button data-cam="iso" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-sky-500/20 text-sky-300 border border-sky-500/30 transition">3/4 Overview</button>
+        <button data-cam="bottom" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">.VRM Ascent View</button>
+        <button data-cam="top" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">Upper Landing</button>
+        <button data-cam="side" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">Pitch Elevation</button>
+      </div>
+
+      <!-- TRICK-STAIR TRAP CONTROLLER -->
+      <div class="absolute top-4 right-4 w-60 glass-panel rounded-2xl p-3.5 shadow-2xl flex flex-col gap-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-300">Trick-Stair Mechanism</span>
+          <span class="w-2 h-2 rounded-full bg-sky-400 shadow-[0_0_8px_#38bdf8]"></span>
+        </div>
+
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 flex items-center justify-between">
+          <div>
+            <span class="text-[10px] text-slate-400 uppercase block">Tread State</span>
+            <span id="sim-status-text" class="text-[11px] font-mono-tech text-emerald-400">WALKABLE STEPS</span>
+          </div>
+          <span id="sim-slide-readout" class="font-mono-tech text-sm font-bold text-sky-400">0%</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-1.5">
+          <button id="btnResetSteps" class="py-1.5 px-2 rounded-lg text-xs font-medium bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/35 transition">
+            🪜 Lock Steps
+          </button>
+          <button id="btnTriggerSlide" class="py-1.5 px-2 rounded-lg text-xs font-semibold bg-rose-500/25 hover:bg-rose-500/35 text-rose-200 border border-rose-500/40 transition">
+            📐 Drop Trap Slide
+          </button>
+        </div>
+      </div>
+
+      <!-- BOTTOM-LEFT HINT -->
+      <div class="absolute bottom-4 left-4 glass-panel rounded-lg px-3 py-1.5 text-[11px] text-slate-400 flex items-center gap-3 pointer-events-none">
+        <span><strong class="text-slate-200">LMB:</strong> Orbit / Click Any 3D Step or Lever to Trigger Trap Slide</span>
+        <span>•</span>
+        <span><strong class="text-slate-200">RMB:</strong> Pan</span>
+      </div>
+
+      <!-- TOAST -->
+      <div id="toast-notification" class="pointer-events-none opacity-0 transition-opacity duration-300 absolute bottom-4 right-4 glass-panel border-sky-500/40 bg-slate-900/95 text-sky-200 px-4 py-2.5 rounded-xl text-xs font-medium shadow-2xl">
+        <span id="toast-text">Staircase updated!</span>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+    import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+    import { OBJExporter } from 'three/addons/exporters/OBJExporter.js';
+
+    const state = {
+      stairType: 'straight-grand',
+      stepCount: 16,
+      stairWidth: 2.60,
+      spiralSweep: 360,
+      showVrmAvatar: true,
+
+      stepRise: 0.18,
+      stepRun: 0.32,
+      innerRadius: 0.65,
+      supportStyle: 'side-stringers',
+
+      showHandrails: true,
+      railHeight: 0.95,
+      newelLanterns: true,
+
+      trickSlideRatio: 0,
+      targetTrickSlide: 0,
+
+      materialPalette: 'cathedral-stone',
+      glowColor: 'ice-blue',
+      crackDensity: 40,
+      bumpScale: 0.08,
+      showDimensions: true,
+      wireframe: false
+    };
+
+    const PRESETS = {
+      grand: {
+        stairType: 'straight-grand', stepCount: 16, stairWidth: 2.60, spiralSweep: 360,
+        stepRise: 0.18, stepRun: 0.32, innerRadius: 0.65, supportStyle: 'solid-masonry',
+        showHandrails: true, railHeight: 0.95, newelLanterns: true, trickSlideRatio: 0, targetTrickSlide: 0,
+        materialPalette: 'cathedral-stone', glowColor: 'ice-blue'
+      },
+      spiral: {
+        stairType: 'spiral-tower', stepCount: 22, stairWidth: 1.80, spiralSweep: 450,
+        stepRise: 0.19, stepRun: 0.30, innerRadius: 0.55, supportStyle: 'side-stringers',
+        showHandrails: true, railHeight: 0.95, newelLanterns: true, trickSlideRatio: 0, targetTrickSlide: 0,
+        materialPalette: 'cathedral-stone', glowColor: 'arcane-purple'
+      },
+      split: {
+        stairType: 'split-imperial', stepCount: 18, stairWidth: 2.40, spiralSweep: 360,
+        stepRise: 0.17, stepRun: 0.32, innerRadius: 0.65, supportStyle: 'solid-masonry',
+        showHandrails: true, railHeight: 1.00, newelLanterns: true, trickSlideRatio: 0, targetTrickSlide: 0,
+        materialPalette: 'royal-marble', glowColor: 'amber'
+      },
+      catwalk: {
+        stairType: 'catwalk-ramp', stepCount: 14, stairWidth: 1.60, spiralSweep: 360,
+        stepRise: 0.16, stepRun: 0.34, innerRadius: 0.65, supportStyle: 'side-stringers',
+        showHandrails: true, railHeight: 1.05, newelLanterns: false, trickSlideRatio: 0, targetTrickSlide: 0,
+        materialPalette: 'industrial-steel', glowColor: 'emerald'
+      },
+      trick: {
+        stairType: 'straight-grand', stepCount: 18, stairWidth: 2.80, spiralSweep: 360,
+        stepRise: 0.19, stepRun: 0.30, innerRadius: 0.65, supportStyle: 'side-stringers',
+        showHandrails: true, railHeight: 0.95, newelLanterns: true, trickSlideRatio: 100, targetTrickSlide: 100,
+        materialPalette: 'fortress-timber', glowColor: 'crimson'
+      }
+    };
+
+    const GLOW_MAP = {
+      'ice-blue': 0x38bdf8,
+      'amber': 0xf59e0b,
+      'arcane-purple': 0xc084fc,
+      'emerald': 0x10b981,
+      'crimson': 0xf43f5e
+    };
+
+    const pbrMapCache = {};
+
+    // Helper: Compute 3x3 Sobel Tangent-Space Normal Map Texture from a Height Canvas
+    function computeSobelNormalTexture(heightCanvas, bevelStrength = 3.4) {
+      const w = heightCanvas.width;
+      const h = heightCanvas.height;
+      const hCtx = heightCanvas.getContext('2d');
+      const src = hCtx.getImageData(0, 0, w, h).data;
+
+      const normCanvas = document.createElement('canvas');
+      normCanvas.width = w;
+      normCanvas.height = h;
+      const nCtx = normCanvas.getContext('2d');
+      const dstImg = nCtx.createImageData(w, h);
+      const dst = dstImg.data;
+
+      const sample = (x, y) => {
+        const cx = (x + w) % w;
+        const cy = (y + h) % h;
+        return src[(cy * w + cx) * 4] / 255.0;
+      };
+
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const tl = sample(x - 1, y - 1), t = sample(x, y - 1), tr = sample(x + 1, y - 1);
+          const l  = sample(x - 1, y),                           r  = sample(x + 1, y);
+          const bl = sample(x - 1, y + 1), b = sample(x, y + 1), br = sample(x + 1, y + 1);
+
+          const dX = (tr + 2 * r + br) - (tl + 2 * l + bl);
+          const dY = (bl + 2 * b + br) - (tl + 2 * t + tr);
+          let vx = -dX * bevelStrength;
+          let vy = -dY * bevelStrength;
+          let vz = 1.0;
+          const inv = 1.0 / (Math.sqrt(vx * vx + vy * vy + vz * vz) || 1.0);
+          const idx = (y * w + x) * 4;
+          dst[idx]     = Math.floor((vx * inv * 0.5 + 0.5) * 255);
+          dst[idx + 1] = Math.floor((vy * inv * 0.5 + 0.5) * 255);
+          dst[idx + 2] = Math.floor((vz * inv * 0.5 + 0.5) * 255);
+          dst[idx + 3] = 255;
+        }
+      }
+      nCtx.putImageData(dstImg, 0, 0);
+      return { normCanvas, normalTex: new THREE.CanvasTexture(normCanvas) };
+    }
+
+    // ULTRA-CRISP BEZIER VECTOR INDUSTRIAL NAMEPLATE GENERATOR ('manthrax/JSlug' pattern, 1024x256 + Normal Bevel)
+    const stampedPlateCache = {};
+    function createStampedPlateTexture(text, subtext, accentHex = '#38bdf8') {
+      const key = `${text}_${subtext}_${accentHex}`;
+      if (stampedPlateCache[key]) return stampedPlateCache[key];
+
+      const W = 1024, H = 256;
+      const c = document.createElement('canvas');
+      c.width = W; c.height = H;
+      const ctx = c.getContext('2d');
+
+      const hc = document.createElement('canvas');
+      hc.width = W; hc.height = H;
+      const hCtx = hc.getContext('2d');
+      hCtx.fillStyle = 'rgb(128,128,128)';
+      hCtx.fillRect(0, 0, W, H);
+
+      // 1. Brushed Anodized Metallic Plate Background
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+      bgGrad.addColorStop(0.0, '#1e293b');
+      bgGrad.addColorStop(0.5, '#0f172a');
+      bgGrad.addColorStop(1.0, '#090d16');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, W, H);
+
+      for (let y = 0; y < H; y += 3) {
+        ctx.fillStyle = y % 6 === 0 ? 'rgba(255,255,255,0.025)' : 'rgba(0,0,0,0.04)';
+        ctx.fillRect(0, y, W, 1.5);
+      }
+
+      // 2. Cubic Bezier Chamfered Industrial Frame Border
+      const drawBezierFrame = (targetCtx, strokeCol, lineW, inset = 14, ch = 28) => {
+        targetCtx.strokeStyle = strokeCol;
+        targetCtx.lineWidth = lineW;
+        targetCtx.lineJoin = 'round';
+        targetCtx.beginPath();
+        targetCtx.moveTo(inset + ch, inset);
+        targetCtx.lineTo(W - inset - ch, inset);
+        targetCtx.bezierCurveTo(W - inset, inset, W - inset, inset, W - inset, inset + ch);
+        targetCtx.lineTo(W - inset, H - inset - ch);
+        targetCtx.bezierCurveTo(W - inset, H - inset, W - inset, H - inset, W - inset - ch, H - inset);
+        targetCtx.lineTo(inset + ch, H - inset);
+        targetCtx.bezierCurveTo(inset, H - inset, inset, H - inset, inset, H - inset - ch);
+        targetCtx.lineTo(inset, inset + ch);
+        targetCtx.bezierCurveTo(inset, inset, inset, inset, inset + ch, inset);
+        targetCtx.closePath();
+        targetCtx.stroke();
+      };
+
+      drawBezierFrame(hCtx, 'rgb(45,45,45)', 22, 16, 28);
+      drawBezierFrame(hCtx, 'rgb(240,240,240)', 10, 16, 28);
+      drawBezierFrame(ctx, '#475569', 12, 16, 28);
+      drawBezierFrame(ctx, accentHex, 5, 22, 24);
+
+      // 3. Stamped Hex Corner Rivets
+      for (const [rx, ry] of [[52, 52], [W - 52, 52], [52, H - 52], [W - 52, H - 52]]) {
+        hCtx.fillStyle = 'rgb(40,40,40)';
+        hCtx.beginPath(); hCtx.arc(rx, ry, 20, 0, Math.PI * 2); hCtx.fill();
+        hCtx.fillStyle = 'rgb(245,245,245)';
+        hCtx.beginPath(); hCtx.arc(rx, ry, 15, 0, Math.PI * 2); hCtx.fill();
+
+        const rGrad = ctx.createRadialGradient(rx - 4, ry - 4, 2, rx, ry, 16);
+        rGrad.addColorStop(0.0, '#f8fafc');
+        rGrad.addColorStop(0.6, '#94a3b8');
+        rGrad.addColorStop(1.0, '#1e293b');
+        ctx.fillStyle = rGrad;
+        ctx.beginPath(); ctx.arc(rx, ry, 15, 0, Math.PI * 2); ctx.fill();
+      }
+
+      // 4. Stamped Bezier Vector Typography Pass
+      const renderStampedVectorText = (str, yPos, fontSize, fillHex, isMain) => {
+        const fontSpec = `900 ${fontSize}px "JetBrains Mono", "Inter", monospace`;
+        ctx.font = fontSpec;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+
+        hCtx.font = fontSpec;
+        hCtx.textAlign = 'center';
+        hCtx.textBaseline = 'middle';
+        hCtx.lineJoin = 'round';
+        hCtx.lineCap = 'round';
+
+        hCtx.strokeStyle = 'rgb(38,38,38)';
+        hCtx.lineWidth = isMain ? 18 : 12;
+        hCtx.strokeText(str, W / 2, yPos);
+
+        hCtx.strokeStyle = 'rgb(205,205,205)';
+        hCtx.lineWidth = isMain ? 9 : 6;
+        hCtx.strokeText(str, W / 2, yPos);
+
+        hCtx.fillStyle = 'rgb(255,255,255)';
+        hCtx.fillText(str, W / 2, yPos);
+
+        ctx.strokeStyle = '#020617';
+        ctx.lineWidth = isMain ? 12 : 8;
+        ctx.strokeText(str, W / 2 + 2.5, yPos + 2.5);
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+        ctx.lineWidth = isMain ? 4 : 2.5;
+        ctx.strokeText(str, W / 2 - 1.5, yPos - 1.5);
+
+        ctx.fillStyle = fillHex;
+        ctx.fillText(str, W / 2, yPos);
+      };
+
+      renderStampedVectorText(text, 102, 74, '#f8fafc', true);
+      renderStampedVectorText(subtext, 188, 44, accentHex, false);
+
+      const colorTex = new THREE.CanvasTexture(c);
+      colorTex.anisotropy = 8;
+      const { normalTex } = computeSobelNormalTexture(hc, 3.6);
+      normalTex.anisotropy = 8;
+      const bumpTex = new THREE.CanvasTexture(hc);
+      bumpTex.anisotropy = 8;
+
+      colorTex.normalMap = normalTex;
+      colorTex.bumpMap = bumpTex;
+      colorTex.createMaterial = () => new THREE.MeshStandardMaterial({
+        map: colorTex,
+        normalMap: normalTex,
+        normalScale: new THREE.Vector2(1.85, 1.85),
+        bumpMap: bumpTex,
+        bumpScale: 0.035,
+        metalness: 0.86,
+        roughness: 0.24,
+        envMapIntensity: 1.65
+      });
+
+      stampedPlateCache[key] = colorTex;
+      return colorTex;
+    }
+
+    // mrdoob/harmony Proximity-History Stress-Fracture, Cross-Hatch & Weld-Bead Pass in generatePBRMaps
+    function generatePBRMaps(kind, crackPct) {
+      const key = `${kind}_${Math.round(crackPct)}`;
+      if (pbrMapCache[key]) return pbrMapCache[key];
+      const size = 256;
+      const bumpCanvas = document.createElement('canvas');
+      bumpCanvas.width = size; bumpCanvas.height = size;
+      const bCtx = bumpCanvas.getContext('2d');
+      bCtx.fillStyle = 'rgb(175,175,175)';
+      bCtx.fillRect(0, 0, size, size);
+
+      let seed = 911 + kind.charCodeAt(0) * 37;
+      const rand = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+      const crackFactor = Math.max(0.05, crackPct / 100);
+
+      // Base surface micro-grain
+      for (let i = 0; i < 2200; i++) {
+        const v = Math.floor(145 + rand() * 68);
+        bCtx.fillStyle = `rgb(${v},${v},${v})`;
+        bCtx.fillRect(rand() * size, rand() * size, 2, 2);
+      }
+
+      // Plate seams + Raised TIG/MIG Stacked-Dime Weld Beads along seams
+      bCtx.strokeStyle = 'rgb(42,42,42)';
+      bCtx.lineWidth = 3;
+      for (let y = 0; y < size; y += 64) {
+        bCtx.beginPath(); bCtx.moveTo(0, y); bCtx.lineTo(size, y); bCtx.stroke();
+        for (let wx = 4; wx < size - 4; wx += 5) {
+          bCtx.fillStyle = 'rgba(238,238,238,0.58)';
+          bCtx.beginPath(); bCtx.arc(wx, y, 2.5, 0, Math.PI * 2); bCtx.fill();
+        }
+      }
+
+      // Cross-Hatched Machining Micro-Scratches (+32 deg / -58 deg)
+      bCtx.lineCap = 'round';
+      const scratchCount = Math.floor(16 + crackFactor * 38);
+      for (let i = 0; i < scratchCount; i++) {
+        const sx = rand() * size, sy = rand() * size;
+        const ang = (i % 2 === 0 ? 0.56 : -1.01) + (rand() - 0.5) * 0.18;
+        const len = 10 + rand() * 24;
+        const ex = sx + Math.cos(ang) * len;
+        const ey = sy + Math.sin(ang) * len;
+        bCtx.strokeStyle = `rgba(22,22,22,${0.20 + crackFactor * 0.25})`;
+        bCtx.lineWidth = 0.8;
+        bCtx.beginPath(); bCtx.moveTo(sx, sy); bCtx.lineTo(ex, ey); bCtx.stroke();
+      }
+
+      // mrdoob/harmony Proximity-History Branching Stress-Fracture Web
+      const harmonyHistory = [];
+      const maxDist = 24;
+      const maxDistSq = maxDist * maxDist;
+      const walkerCount = Math.floor(3 + crackFactor * 10);
+      const stepsPerWalker = Math.floor(14 + crackFactor * 24);
+
+      for (let w = 0; w < walkerCount; w++) {
+        let cx = rand() * size, cy = rand() * size;
+        let dir = rand() * Math.PI * 2;
+        for (let s = 0; s < stepsPerWalker; s++) {
+          dir += (rand() - 0.5) * 1.15;
+          const stepLen = 4.5 + rand() * 7.5;
+          const nx = Math.max(2, Math.min(size - 2, cx + Math.cos(dir) * stepLen));
+          const ny = Math.max(2, Math.min(size - 2, cy + Math.sin(dir) * stepLen));
+          const ctrlX = (cx + nx) * 0.5 + (rand() - 0.5) * 4.5;
+          const ctrlY = (cy + ny) * 0.5 + (rand() - 0.5) * 4.5;
+
+          bCtx.strokeStyle = `rgba(12,12,12,${0.45 + crackFactor * 0.45})`;
+          bCtx.lineWidth = 1.2 + (1 - s / stepsPerWalker) * 0.85;
+          bCtx.beginPath();
+          bCtx.moveTo(cx, cy);
+          bCtx.quadraticCurveTo(ctrlX, ctrlY, nx, ny);
+          bCtx.stroke();
+
+          for (let h = 0; h < harmonyHistory.length; h++) {
+            const hp = harmonyHistory[h];
+            const dx = nx - hp.x, dy = ny - hp.y;
+            const dSq = dx * dx + dy * dy;
+            if (dSq > 5 && dSq < maxDistSq) {
+              const proxAlpha = (1.0 - dSq / maxDistSq) * 0.38 * crackFactor;
+              bCtx.strokeStyle = `rgba(18,18,18,${proxAlpha.toFixed(3)})`;
+              bCtx.lineWidth = 0.65;
+              bCtx.beginPath();
+              bCtx.moveTo(nx, ny);
+              bCtx.lineTo(hp.x, hp.y);
+              bCtx.stroke();
+            }
+          }
+          harmonyHistory.push({ x: nx, y: ny });
+          cx = nx; cy = ny;
+        }
+      }
+
+      const { normCanvas, normalTex } = computeSobelNormalTexture(bumpCanvas, 3.4);
+      const bumpTex = new THREE.CanvasTexture(bumpCanvas);
+      bumpTex.wrapS = THREE.RepeatWrapping; bumpTex.wrapT = THREE.RepeatWrapping; bumpTex.repeat.set(2, 2);
+      normalTex.wrapS = THREE.RepeatWrapping; normalTex.wrapT = THREE.RepeatWrapping; normalTex.repeat.set(2, 2);
+      return (pbrMapCache[key] = { bumpCanvas, normCanvas, bumpTex, normalTex });
+    }
+
+    function exportPBRTexturePack(prefix, kind, crackPct) {
+      const maps = generatePBRMaps(kind, crackPct);
+      maps.bumpCanvas.toBlob((b) => b && downloadBlob(b, `${prefix}_bump_cracks.png`));
+      setTimeout(() => maps.normCanvas.toBlob((b) => b && downloadBlob(b, `${prefix}_normal_rgb.png`)), 250);
+    }
+
+    const mount = document.getElementById('canvas-mount');
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x07090f, 0.015);
+
+    const camera = new THREE.PerspectiveCamera(44, mount.clientWidth / mount.clientHeight, 0.1, 160);
+    camera.position.set(6.8, 4.8, 7.6);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setSize(mount.clientWidth, mount.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
+    mount.appendChild(renderer.domElement);
+    const pmremGen = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmremGen.fromScene(new RoomEnvironment(), 0.04).texture;
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.target.set(0, 1.6, 0);
+
+    scene.add(new THREE.HemisphereLight(0xe0f2fe, 0x090d16, 0.95));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 2.0);
+    dirLight.position.set(12, 20, 14);
+    dirLight.castShadow = true;
+    scene.add(dirLight);
+
+    const gridHelper = new THREE.GridHelper(36, 36, 0x0284c7, 0x1e293b);
+    gridHelper.position.y = 0;
+    scene.add(gridHelper);
+
+    const assetRoot = new THREE.Group();
+    assetRoot.name = 'Parametric_Staircase_Asset';
+    scene.add(assetRoot);
+
+    const clickableStairMeshes = [];
+
+    function getMaterials() {
+      const wf = state.wireframe;
+      const palMap = {
+        'cathedral-stone':  { tread: 0x3b4252, struct: 0x262b38, trim: 0xd4af37, kind: 'stone' },
+        'industrial-steel': { tread: 0x475569, struct: 0x1e293b, trim: 0x94a3b8, kind: 'armor' },
+        'royal-marble':     { tread: 0x1e222d, struct: 0x11151d, trim: 0xf59e0b, kind: 'stone' },
+        'fortress-timber':  { tread: 0x6b4423, struct: 0x272a34, trim: 0x94a3b8, kind: 'timber' }
+      };
+      const pal = palMap[state.materialPalette] || palMap['cathedral-stone'];
+      const pbr = generatePBRMaps(pal.kind, state.crackDensity);
+      const glowHex = GLOW_MAP[state.glowColor] || 0x38bdf8;
+
+      const nScale = new THREE.Vector2(state.bumpScale * 2.4, state.bumpScale * 2.4);
+      return {
+        tread: new THREE.MeshStandardMaterial({
+          color: pal.tread, roughness: 0.42, metalness: 0.45,
+          bumpMap: pbr.bumpTex, bumpScale: state.bumpScale, normalMap: pbr.normalTex, normalScale: nScale, envMapIntensity: 1.45, wireframe: wf
+        }),
+        structure: new THREE.MeshStandardMaterial({
+          color: pal.struct, roughness: 0.52, metalness: 0.50,
+          bumpMap: pbr.bumpTex, bumpScale: state.bumpScale, normalMap: pbr.normalTex, normalScale: nScale, envMapIntensity: 1.35, wireframe: wf
+        }),
+        trim: new THREE.MeshStandardMaterial({
+          color: pal.trim, roughness: 0.20, metalness: 0.92,
+          bumpMap: pbr.bumpTex, bumpScale: state.bumpScale * 0.4, normalMap: pbr.normalTex, normalScale: nScale, envMapIntensity: 1.75, wireframe: wf
+        }),
+        glow: new THREE.MeshStandardMaterial({
+          color: glowHex, emissive: glowHex, emissiveIntensity: 2.5, wireframe: wf
+        }),
+        vrmAvatar: new THREE.MeshStandardMaterial({
+          color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.35, roughness: 0.3, wireframe: wf
+        })
+      };
+    }
+
+    function clearGroup(group) {
+      while (group.children.length > 0) {
+        const c = group.children[0];
+        group.remove(c);
+        if (c.geometry) c.geometry.dispose();
+      }
+    }
+
+    function buildStraightFlight(steps, width, rise, run, mats) {
+      const flight = new THREE.Group();
+      const totalRise = steps * rise;
+      const totalRun = steps * run;
+      const slopeAngle = Math.atan2(rise, run);
+      const slideTilt = (state.trickSlideRatio / 100) * slopeAngle;
+
+      // Treads that pivot into a smooth Trick-Slide when trickSlideRatio > 0!
+      for (let i = 0; i < steps; i++) {
+        const y = (i + 1) * rise;
+        const z = totalRun / 2 - (i + 0.5) * run;
+        const tread = new THREE.Mesh(new THREE.BoxGeometry(width, 0.06, run * 1.08), mats.tread);
+        tread.position.set(0, y, z);
+        tread.rotation.x = slideTilt;
+        tread.castShadow = true;
+        tread.receiveShadow = true;
+        tread.userData.isSlideToggle = true;
+        clickableStairMeshes.push(tread);
+        flight.add(tread);
+
+        // Beveled Metallic Nosing + Rune Safety Strip + Under-Tread Trick-Slide Hinge Pin
+        const nosing = new THREE.Mesh(new THREE.BoxGeometry(width * 0.98, 0.028, 0.045), mats.trim);
+        nosing.position.set(0, 0.025, run * 0.50);
+        tread.add(nosing);
+
+        const runeStrip = new THREE.Mesh(new THREE.BoxGeometry(width * 0.86, 0.012, 0.022), mats.glow);
+        runeStrip.position.set(0, 0.032, run * 0.42);
+        tread.add(runeStrip);
+
+        const hingePin = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, width + 0.18, 12), mats.trim);
+        hingePin.rotation.z = Math.PI / 2;
+        hingePin.position.set(0, -0.035, 0);
+        tread.add(hingePin);
+
+        if (state.supportStyle === 'solid-masonry') {
+          const block = new THREE.Mesh(new THREE.BoxGeometry(width * 0.96, y, run), mats.structure);
+          block.position.set(0, y / 2, z);
+          flight.add(block);
+        }
+      }
+
+      // Stringers / Central Spine
+      const diagLen = Math.hypot(totalRise, totalRun) + 0.4;
+      if (state.supportStyle === 'side-stringers') {
+        for (const s of [-1, 1]) {
+          const stringer = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.34, diagLen), mats.structure);
+          stringer.position.set(s * (width / 2 + 0.06), totalRise / 2 - 0.1, 0);
+          stringer.rotation.x = slopeAngle;
+          flight.add(stringer);
+        }
+      } else if (state.supportStyle === 'central-spine') {
+        const spine = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.45, diagLen), mats.structure);
+        spine.position.set(0, totalRise / 2 - 0.18, 0);
+        spine.rotation.x = slopeAngle;
+        flight.add(spine);
+      }
+
+      // Top & Bottom Landings
+      const botLanding = new THREE.Mesh(new THREE.BoxGeometry(width + 0.3, 0.12, 1.5), mats.structure);
+      botLanding.position.set(0, 0.06, totalRun / 2 + 0.75);
+      const topLanding = new THREE.Mesh(new THREE.BoxGeometry(width + 0.3, 0.16, 1.8), mats.structure);
+      topLanding.position.set(0, totalRise, -totalRun / 2 - 0.9);
+      flight.add(botLanding, topLanding);
+
+      // Handrails & Newel Posts
+      if (state.showHandrails) {
+        const rH = state.railHeight;
+        for (const s of [-1, 1]) {
+          const rx = s * (width / 2 + 0.06);
+          const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, diagLen, 12), mats.trim);
+          rail.position.set(rx, totalRise / 2 + rH, 0);
+          rail.rotation.x = Math.PI / 2 + slopeAngle;
+          flight.add(rail);
+
+          for (const endZ of [totalRun / 2 + 0.1, -totalRun / 2 - 0.1]) {
+            const endY = endZ > 0 ? rise : totalRise;
+            const newel = new THREE.Mesh(new THREE.BoxGeometry(0.16, rH + 0.25, 0.16), mats.structure);
+            newel.position.set(rx, endY + (rH + 0.25) / 2, endZ);
+            flight.add(newel);
+
+            if (state.newelLanterns) {
+              const lantern = new THREE.Mesh(new THREE.OctahedronGeometry(0.13, 0), mats.glow);
+              lantern.position.set(rx, endY + rH + 0.36, endZ);
+              flight.add(lantern);
+            }
+          }
+
+          for (let b = 1; b < steps; b += 2) {
+            const by = (b + 1) * rise;
+            const bz = totalRun / 2 - (b + 0.5) * run;
+            const baluster = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, rH, 8), mats.trim);
+            baluster.position.set(rx, by + rH / 2, bz);
+            flight.add(baluster);
+          }
+        }
+      }
+
+      return flight;
+    }
+
+    function buildStairScene() {
+      clearGroup(assetRoot);
+      clickableStairMeshes.length = 0;
+
+      const mats = getMaterials();
+      const steps = state.stepCount;
+      const W = state.stairWidth;
+      const rise = state.stepRise;
+      const run = state.stepRun;
+      const totalRise = steps * rise;
+      const totalRun = steps * run;
+
+      if (state.stairType === 'straight-grand' || state.stairType === 'catwalk-ramp') {
+        const flight = buildStraightFlight(steps, W, rise, run, mats);
+        assetRoot.add(flight);
+
+        if (state.stairType === 'catwalk-ramp') {
+          // Add Extended Elevated Mezzanine Grated Catwalk + Support Columns
+          const catLen = 5.0;
+          const catwalk = new THREE.Mesh(new THREE.BoxGeometry(W + 0.2, 0.16, catLen), mats.tread);
+          catwalk.position.set(0, totalRise, -totalRun / 2 - 1.8 - catLen / 2);
+          assetRoot.add(catwalk);
+
+          for (const s of [-1, 1]) {
+            const col = new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.12, totalRise, 14), mats.structure);
+            col.position.set(s * (W / 2), totalRise / 2, -totalRun / 2 - 1.8 - catLen + 0.4);
+            assetRoot.add(col);
+          }
+        }
+      } else if (state.stairType === 'split-imperial') {
+        // Lower Center Flight up to Mid-Landing, then Twin Left/Right Upper Flights!
+        const halfSteps = Math.max(4, Math.floor(steps / 2));
+        const lowerFlight = buildStraightFlight(halfSteps, W, rise, run, mats);
+        lowerFlight.position.z = 1.6;
+        assetRoot.add(lowerFlight);
+
+        const midY = halfSteps * rise;
+        const midZ = 1.6 - (halfSteps * run) / 2 - 1.2;
+        const midLanding = new THREE.Mesh(new THREE.BoxGeometry(W * 2.3, 0.20, 2.2), mats.structure);
+        midLanding.position.set(0, midY, midZ);
+        assetRoot.add(midLanding);
+
+        for (const s of [-1, 1]) {
+          const upperWing = buildStraightFlight(halfSteps, W * 0.65, rise, run, mats);
+          upperWing.position.set(s * (W * 0.82), midY, midZ - 1.1 - (halfSteps * run) / 2);
+          assetRoot.add(upperWing);
+        }
+      } else if (state.stairType === 'spiral-tower') {
+        // HELICAL SPIRAL TOWER STAIRCASE
+        const innerR = state.innerRadius;
+        const outerR = innerR + W;
+        const sweepRad = THREE.MathUtils.degToRad(state.spiralSweep);
+        const slideTilt = (state.trickSlideRatio / 100) * 0.55;
+
+        // Central Newel Column
+        const col = new THREE.Mesh(new THREE.CylinderGeometry(innerR * 0.85, innerR * 0.92, totalRise + 1.2, 32), mats.structure);
+        col.position.y = (totalRise + 1.2) / 2;
+        assetRoot.add(col);
+
+        for (let i = 0; i < steps; i++) {
+          const frac = i / steps;
+          const ang = frac * sweepRad;
+          const y = (i + 1) * rise;
+
+          const stepGroup = new THREE.Group();
+          stepGroup.position.y = y;
+          stepGroup.rotation.y = ang;
+
+          const wedge = new THREE.Mesh(new THREE.BoxGeometry(W, 0.08, 0.42), mats.tread);
+          wedge.position.x = innerR + W / 2;
+          wedge.rotation.x = slideTilt;
+          wedge.castShadow = true;
+          wedge.userData.isSlideToggle = true;
+          clickableStairMeshes.push(wedge);
+          stepGroup.add(wedge);
+
+          if (state.showHandrails) {
+            const post = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, state.railHeight, 8), mats.trim);
+            post.position.set(outerR - 0.06, state.railHeight / 2, 0);
+            const cap = new THREE.Mesh(new THREE.SphereGeometry(0.045, 10, 10), mats.glow);
+            cap.position.set(outerR - 0.06, state.railHeight + 0.03, 0);
+            stepGroup.add(post, cap);
+          }
+
+          assetRoot.add(stepGroup);
+        }
+
+        // Continuous 3D Helical Handrail Tube connecting all Spiral Balusters
+        if (state.showHandrails && steps >= 3) {
+          const railPts = [];
+          for (let i = 0; i <= steps; i++) {
+            const frac = i / steps;
+            const ang = frac * sweepRad;
+            const r = outerR - 0.06;
+            const py = (i + 1) * rise + state.railHeight;
+            railPts.push(new THREE.Vector3(Math.cos(ang) * r, py, -Math.sin(ang) * r));
+          }
+          const railCurve = new THREE.CatmullRomCurve3(railPts);
+          const railTube = new THREE.Mesh(new THREE.TubeGeometry(railCurve, steps * 4, 0.035, 10, false), mats.trim);
+          railTube.castShadow = true;
+          assetRoot.add(railTube);
+        }
+      }
+
+      if (state.showVrmAvatar) {
+        const av = new THREE.Group();
+        const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.18, 0.58, 10, 14), mats.vrmAvatar);
+        torso.position.y = 1.05;
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 16), mats.vrmAvatar);
+        head.position.y = 1.56;
+        av.add(torso, head);
+        av.position.set(0, 0.12, totalRun / 2 + 0.65);
+        assetRoot.add(av);
+      }
+
+
+      // v5.2 Bezeled Stamped Bezier Vector Industrial Nameplate ('manthrax/JSlug' pattern)
+      const plaqueTitle = state.stairType === 'spiral-tower' ? 'SPIRAL_TOWER' : (state.trickSlideRatio > 5 ? 'TRICK_CHUTE' : 'STAIRCAD_100F');
+      const plaqueSub = `${steps} STEPS • ${Math.round(THREE.MathUtils.radToDeg(Math.atan2(rise, run)))} DEG`;
+      const plaqueTex = createStampedPlateTexture(plaqueTitle, plaqueSub, '#38bdf8');
+      const plaqueGroup = new THREE.Group();
+      plaqueGroup.name = 'Stamped_Bezier_Nameplate';
+      const plaqueBezel = new THREE.Mesh(new THREE.BoxGeometry(0.60, 0.17, 0.035), mats.trim);
+      const plaqueMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.56, 0.14), plaqueTex.createMaterial());
+      plaqueMesh.position.z = 0.02;
+      plaqueGroup.add(plaqueBezel, plaqueMesh);
+      const pz = state.stairType === 'spiral-tower' ? (state.innerRadius + W + 0.25) : (totalRun / 2 + 1.52);
+      plaqueGroup.position.set(0, 0.22, pz);
+      assetRoot.add(plaqueGroup);
+      updateTelemetry();
+    }
+
+    function updateTelemetry() {
+      const totalRise = state.stepCount * state.stepRise;
+      const totalRun = state.stepCount * state.stepRun;
+      const slopeDeg = THREE.MathUtils.radToDeg(Math.atan2(state.stepRise, state.stepRun));
+
+      document.getElementById('stat-rise').textContent = `${totalRise.toFixed(2)} m`;
+      document.getElementById('stat-run').textContent = `${totalRun.toFixed(2)} m`;
+      document.getElementById('stat-slope').textContent = `${slopeDeg.toFixed(1)}°`;
+      document.getElementById('sim-slide-readout').textContent = `${Math.round(state.trickSlideRatio)}%`;
+
+      let tris = 0;
+      assetRoot.traverse((obj) => {
+        if (obj.isMesh && obj.geometry) {
+          const g = obj.geometry;
+          tris += g.index ? g.index.count / 3 : g.attributes.position.count / 3;
+        }
+      });
+      document.getElementById('stat-triangles').textContent = `${Math.round(tris).toLocaleString()} tris`;
+
+      document.getElementById('label-rise').textContent = `Rise: ${totalRise.toFixed(2)}m`;
+      document.getElementById('label-run').textContent = `Run: ${totalRun.toFixed(2)}m`;
+      document.getElementById('label-width').textContent = `Width: ${state.stairWidth.toFixed(2)}m`;
+    }
+
+    function updateLabelsOverlay() {
+      const container = document.getElementById('labels-container');
+      if (!state.showDimensions) {
+        container.style.opacity = '0';
+        return;
+      }
+      container.style.opacity = '1';
+
+      const totalRise = state.stepCount * state.stepRise;
+      const totalRun = state.stepCount * state.stepRun;
+      const pts = [
+        { id: 'label-rise', pos: new THREE.Vector3(-state.stairWidth / 2 - 0.8, totalRise / 2, -totalRun / 2) },
+        { id: 'label-run', pos: new THREE.Vector3(state.stairWidth / 2 + 0.8, 0.3, 0) },
+        { id: 'label-width', pos: new THREE.Vector3(0, 0.3, totalRun / 2 + 1.5) }
+      ];
+      const rect = mount.getBoundingClientRect();
+      for (const item of pts) {
+        const v = item.pos.clone().project(camera);
+        const el = document.getElementById(item.id);
+        if (v.z > 1) {
+          el.style.opacity = '0';
+        } else {
+          el.style.opacity = '1';
+          el.style.left = `${(v.x * 0.5 + 0.5) * rect.width}px`;
+          el.style.top = `${(-(v.y * 0.5) + 0.5) * rect.height}px`;
+        }
+      }
+    }
+
+    function syncUI() {
+      const sliders = [
+        ['stepCount', ' steps', 0],
+        ['stairWidth', ' m', 2],
+        ['spiralSweep', '°', 0],
+        ['stepRise', ' m', 2],
+        ['stepRun', ' m', 2],
+        ['innerRadius', ' m', 2],
+        ['railHeight', ' m', 2],
+        ['trickSlideRatio', '%', 0],
+        ['crackDensity', '%', 0],
+        ['bumpScale', '', 2]
+      ];
+      for (const [k, unit, dec] of sliders) {
+        const input = document.getElementById(`param-${k}`);
+        const label = document.getElementById(`val-${k}`);
+        if (input) input.value = state[k];
+        if (label) label.textContent = Number(state[k]).toFixed(dec) + unit;
+      }
+      ['stairType', 'supportStyle', 'materialPalette', 'glowColor'].forEach((k) => {
+        const el = document.getElementById(`param-${k}`);
+        if (el) el.value = state[k];
+      });
+      ['showVrmAvatar', 'showHandrails', 'newelLanterns', 'showDimensions', 'wireframe'].forEach((k) => {
+        const el = document.getElementById(`param-${k}`);
+        if (el) el.checked = Boolean(state[k]);
+      });
+    }
+
+    ['stepCount', 'stairWidth', 'spiralSweep', 'stepRise', 'stepRun', 'innerRadius', 'railHeight', 'trickSlideRatio', 'crackDensity', 'bumpScale'].forEach((k) => {
+      document.getElementById(`param-${k}`).addEventListener('input', (e) => {
+        state[k] = parseFloat(e.target.value);
+        if (k === 'trickSlideRatio') state.targetTrickSlide = state.trickSlideRatio;
+        syncUI();
+        buildStairScene();
+      });
+    });
+
+    ['stairType', 'supportStyle', 'materialPalette', 'glowColor'].forEach((k) => {
+      document.getElementById(`param-${k}`).addEventListener('change', (e) => {
+        state[k] = e.target.value;
+        syncUI();
+        buildStairScene();
+      });
+    });
+
+    ['showVrmAvatar', 'showHandrails', 'newelLanterns', 'showDimensions', 'wireframe'].forEach((k) => {
+      document.getElementById(`param-${k}`).addEventListener('change', (e) => {
+        state[k] = e.target.checked;
+        buildStairScene();
+      });
+    });
+
+    document.querySelectorAll('.tab-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach((b) => {
+          b.className = 'tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition';
+        });
+        btn.className = 'tab-btn py-2 rounded bg-slate-800 text-sky-400 shadow-sm transition';
+        document.querySelectorAll('.tab-content').forEach((p) => {
+          p.classList.toggle('hidden', p.id !== btn.dataset.tab);
+        });
+      });
+    });
+
+    document.querySelectorAll('.preset-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const p = PRESETS[btn.dataset.preset];
+        if (!p) return;
+        Object.assign(state, p);
+        syncUI();
+        buildStairScene();
+        document.querySelectorAll('.preset-btn').forEach((b) => {
+          b.className = 'preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition';
+        });
+        btn.className = 'preset-btn px-2.5 py-1 rounded text-xs font-medium bg-sky-500/20 text-sky-300 border border-sky-500/40 transition';
+        showToast(`Loaded ${btn.textContent} staircase preset`);
+      });
+    });
+
+    document.getElementById('btnRandomize').addEventListener('click', () => {
+      const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+      state.stairType = pick(['straight-grand', 'spiral-tower', 'split-imperial', 'catwalk-ramp']);
+      state.supportStyle = pick(['side-stringers', 'solid-masonry', 'central-spine']);
+      state.materialPalette = pick(['cathedral-stone', 'industrial-steel', 'royal-marble', 'fortress-timber']);
+      state.glowColor = pick(['ice-blue', 'amber', 'arcane-purple', 'emerald', 'crimson']);
+      state.stepCount = Math.floor(10 + Math.random() * 14);
+      syncUI();
+      buildStairScene();
+      showToast('Randomized Parametric Staircase Configuration');
+    });
+
+    let camTarget = null;
+    let orbitTarget = null;
+    document.querySelectorAll('.cam-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const mode = btn.dataset.cam;
+        const totalRise = state.stepCount * state.stepRise;
+        const totalRun = state.stepCount * state.stepRun;
+        if (mode === 'iso') {
+          camTarget = new THREE.Vector3(6.8, 4.8, 7.6);
+          orbitTarget = new THREE.Vector3(0, 1.6, 0);
+        } else if (mode === 'bottom') {
+          camTarget = new THREE.Vector3(0, 1.85, totalRun / 2 + 2.8);
+          orbitTarget = new THREE.Vector3(0, totalRise * 0.7, -totalRun / 2);
+        } else if (mode === 'top') {
+          camTarget = new THREE.Vector3(2.4, totalRise + 2.2, -totalRun / 2 - 3.2);
+          orbitTarget = new THREE.Vector3(0, totalRise * 0.5, 0);
+        } else if (mode === 'side') {
+          camTarget = new THREE.Vector3(9.5, totalRise * 0.6, 0);
+          orbitTarget = new THREE.Vector3(0, totalRise * 0.5, 0);
+        }
+        document.querySelectorAll('.cam-btn').forEach((b) => {
+          b.className = b === btn
+            ? 'cam-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-sky-500/20 text-sky-300 border border-sky-500/30 transition'
+            : 'cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition';
+        });
+      });
+    });
+    controls.addEventListener('start', () => { camTarget = null; orbitTarget = null; });
+
+    document.getElementById('btnResetSteps').addEventListener('click', () => {
+      state.targetTrickSlide = 0;
+      document.getElementById('sim-status-text').textContent = 'LOCKING STEPS...';
+      showToast('Restoring Level Walkable Stair Treads');
+    });
+
+    document.getElementById('btnTriggerSlide').addEventListener('click', () => {
+      state.targetTrickSlide = 100;
+      document.getElementById('sim-status-text').textContent = 'TRAP SLIDE DEPLOYED!';
+      showToast('Triggered 100F Mechanical Trick-Slide Trap!');
+    });
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    let downPos = { x: 0, y: 0 };
+    renderer.domElement.addEventListener('pointerdown', (e) => { downPos = { x: e.clientX, y: e.clientY }; });
+    window.addEventListener('pointerup', (e) => {
+      if (Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > 5) return;
+      const rect = renderer.domElement.getBoundingClientRect();
+      if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) return;
+      pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(clickableStairMeshes, false);
+      if (hits.length > 0) {
+        state.targetTrickSlide = state.trickSlideRatio > 40 ? 0 : 100;
+        showToast(state.targetTrickSlide > 40 ? 'Triggered Mechanical Trap Slide!' : 'Reset Staircase Treads to Walkable Steps');
+      }
+    });
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast-notification');
+      document.getElementById('toast-text').textContent = msg;
+      toast.style.opacity = '1';
+      setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('btnExportPBR').addEventListener('click', () => {
+      exportPBRTexturePack('staircad', 'stone', state.crackDensity);
+      showToast('Exported Seamless PBR Bump/Crack Height & Normal Maps (.PNG)!');
+    });
+
+    document.getElementById('btnExportJSON').addEventListener('click', () => {
+      downloadBlob(new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }), `staircase-recipe-${state.stairType}.json`);
+      showToast('Exported Parametric Staircase Recipe (.JSON)');
+    });
+
+    document.getElementById('btnExportGLB').addEventListener('click', () => {
+      const exporter = new GLTFExporter();
+      exporter.parse(assetRoot, (res) => {
+        downloadBlob(new Blob([res], { type: 'application/octet-stream' }), `parametric-staircase-${state.stairType}.glb`);
+        showToast(`Exported 3D ${state.stairType} (.GLB)!`);
+      }, (err) => console.error(err), { binary: true });
+    });
+
+    document.getElementById('btnExportOBJ').addEventListener('click', () => {
+      const exporter = new OBJExporter();
+      downloadBlob(new Blob([exporter.parse(assetRoot)], { type: 'text/plain' }), `parametric-staircase-${state.stairType}.obj`);
+      showToast('Exported Wavefront 3D Mesh (.OBJ)');
+    });
+
+    const clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = Math.min(clock.getDelta(), 0.1);
+
+      if (camTarget && orbitTarget) {
+        camera.position.lerp(camTarget, dt * 5);
+        controls.target.lerp(orbitTarget, dt * 5);
+        if (camera.position.distanceTo(camTarget) < 0.06) {
+          camTarget = null;
+          orbitTarget = null;
+        }
+      }
+
+      if (Math.abs(state.trickSlideRatio - state.targetTrickSlide) > 0.4) {
+        const step = Math.sign(state.targetTrickSlide - state.trickSlideRatio) * dt * 80;
+        state.trickSlideRatio = THREE.MathUtils.clamp(state.trickSlideRatio + step, 0, 100);
+        syncUI();
+        buildStairScene();
+        if (Math.abs(state.trickSlideRatio - state.targetTrickSlide) <= 0.5) {
+          document.getElementById('sim-status-text').textContent = state.trickSlideRatio > 50
+            ? 'TRAP SLIDE ACTIVE!'
+            : 'WALKABLE STEPS';
+        }
+      }
+
+      controls.update();
+      updateLabelsOverlay();
+      renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = mount.clientWidth / mount.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(mount.clientWidth, mount.clientHeight);
+    });
+
+    syncUI();
+    buildStairScene();
+    animate();
+  </script>
+</body>
+</html>

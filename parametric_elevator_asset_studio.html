@@ -1,0 +1,3814 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Parametric Elevator Asset Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #090b10;
+      color: #e2e8f0;
+    }
+    .font-mono-tech {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Custom scrollbars for studio panels */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.4);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(71, 85, 105, 0.6);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(100, 116, 139, 0.9);
+    }
+
+    /* Custom Range Input */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: #1e293b;
+      border-radius: 999px;
+      outline: none;
+      border: 1px solid #334155;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #38bdf8;
+      cursor: pointer;
+      border: 2px solid #0f172a;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
+      transition: transform 0.1s ease, background-color 0.15s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+      background: #7dd3fc;
+    }
+
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.82);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(51, 65, 85, 0.6);
+    }
+
+    .dimension-badge {
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.2s ease;
+    }
+  </style>
+</head>
+<body class="h-screen w-screen flex flex-col bg-[#090b10] text-slate-100">
+
+  <!-- TOP HEADER BAR -->
+  <header class="h-14 border-b border-slate-800/80 bg-slate-950/90 px-4 flex items-center justify-between z-20 shrink-0">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-lg bg-sky-500/10 border border-sky-400/30 flex items-center justify-center text-sky-400 shadow-inner">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+        </svg>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="font-semibold text-sm tracking-tight text-white">ELEVATE<span class="text-sky-400">CAD</span></h1>
+          <span class="text-[10px] font-mono-tech uppercase px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-300 border border-sky-500/30">Parametric v2.4</span>
+        </div>
+        <p class="text-[11px] text-slate-400">Procedural 3D Elevator & Hoistway Asset Generator</p>
+      </div>
+    </div>
+
+    <!-- STYLE PRESETS BAR -->
+    <div class="hidden xl:flex items-center gap-1.5 bg-slate-900/90 p-1 rounded-lg border border-slate-800">
+      <span class="text-[11px] font-medium text-slate-400 px-2">Archetype:</span>
+      <button data-preset="commercial" class="preset-btn px-2.5 py-1 rounded text-xs font-medium bg-sky-500/20 text-sky-300 border border-sky-500/40 transition">Modern Commercial</button>
+      <button data-preset="panoramic" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Panoramic Glass</button>
+      <button data-preset="freight" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Heavy Freight</button>
+      <button data-preset="luxury" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Luxury Brass</button>
+      <button data-preset="scifi" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Sci-Fi Orbital</button>
+      <button data-preset="dungeon" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-purple-300 hover:bg-purple-950/50 border border-purple-500/30 transition">100F Dungeon Abyss</button>
+    </div>
+
+    <!-- EXPORT ACTIONS -->
+    <div class="flex items-center gap-2">
+      <button id="btnRandomize" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5" title="Generate Random Valid Configuration">
+        <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+        <span>Randomize</span>
+      </button>
+      <button id="btnExportJSON" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5" title="Export Parametric JSON Recipe for Game Engine">
+        <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+        <span>.JSON</span>
+      </button>
+      <button id="btnExportOBJ" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+        <span>Export .OBJ</span>
+      </button>
+      <button id="btnExportGLB" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-sky-500 hover:bg-sky-400 text-slate-950 shadow-lg shadow-sky-500/20 transition flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+        <span>Export .GLB</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE -->
+  <div class="flex-1 flex relative overflow-hidden">
+
+    <!-- LEFT PANEL: PARAMETRIC CONTROLS -->
+    <aside class="w-80 md:w-96 border-r border-slate-800/80 bg-slate-950/95 flex flex-col z-10 shrink-0">
+      <!-- Category Tabs -->
+      <div class="grid grid-cols-5 border-b border-slate-800 bg-slate-900/60 p-1 gap-1 text-[11px] font-medium">
+        <button data-tab="tab-dimensions" class="tab-btn py-2 rounded bg-slate-800 text-sky-400 shadow-sm transition">Geometry</button>
+        <button data-tab="tab-doors" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Doors</button>
+        <button data-tab="tab-interior" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Interior</button>
+        <button data-tab="tab-buttons" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Buttons</button>
+        <button data-tab="tab-mechanical" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Hoistway</button>
+      </div>
+
+      <!-- Scrollable Parameter Form -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-5">
+
+        <!-- TAB 1: GEOMETRY & DIMENSIONS -->
+        <div id="tab-dimensions" class="tab-content space-y-5">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Cab Envelope Dimensions</h2>
+              <span class="text-[11px] font-mono-tech text-sky-400">ISO-4190</span>
+            </div>
+
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <!-- Cab Width -->
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Cab Clear Width (X)</label>
+                  <span id="val-width" class="font-mono-tech text-sky-400">2.10 m</span>
+                </div>
+                <input id="param-width" type="range" min="1.10" max="3.80" step="0.05" value="2.10">
+              </div>
+
+              <!-- Cab Depth -->
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Cab Clear Depth (Z)</label>
+                  <span id="val-depth" class="font-mono-tech text-sky-400">1.80 m</span>
+                </div>
+                <input id="param-depth" type="range" min="1.10" max="3.80" step="0.05" value="1.80">
+              </div>
+
+              <!-- Cab Height -->
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Cab Internal Height (Y)</label>
+                  <span id="val-height" class="font-mono-tech text-sky-400">2.50 m</span>
+                </div>
+                <input id="param-height" type="range" min="2.10" max="3.60" step="0.05" value="2.50">
+              </div>
+
+              <!-- Wall Thickness -->
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Shell Wall Thickness</label>
+                  <span id="val-wallThickness" class="font-mono-tech text-sky-400">0.08 m</span>
+                </div>
+                <input id="param-wallThickness" type="range" min="0.04" max="0.18" step="0.01" value="0.08">
+              </div>
+            </div>
+          </div>
+
+          <!-- Wall Transparency / Fenestration -->
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Wall Panel Architecture</h2>
+            <div class="space-y-3 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Rear Wall Construction</label>
+                <select id="param-rearWallType" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500">
+                  <option value="solid">Solid Architectural Panel</option>
+                  <option value="glass">Full Panoramic Structural Glass</option>
+                  <option value="half-glass">Upper Observation Glass</option>
+                  <option value="slats">Vertical Acoustic Wood Slats</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Side Walls Construction</label>
+                <select id="param-sideWallType" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500">
+                  <option value="solid">Solid Segmented Panels</option>
+                  <option value="glass">Panoramic Structural Glass</option>
+                  <option value="half-glass">Half-Height Observation Glass</option>
+                </select>
+              </div>
+
+              <!-- Cutaway Mode Toggle -->
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Inspector Cutaway Mode</span>
+                  <span class="text-[11px] text-slate-400">Hide right wall for interior view</span>
+                </div>
+                <input id="param-cutaway" type="checkbox" class="w-4 h-4 accent-sky-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: DOORS & ACTUATION -->
+        <div id="tab-doors" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Door System Configuration</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Opening Mechanism</label>
+                <select id="param-doorType" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500">
+                  <option value="center-2">2-Panel Center Parting</option>
+                  <option value="center-4">4-Panel Center Telescopic</option>
+                  <option value="side-2">2-Panel Side Telescopic</option>
+                  <option value="biparting">Vertical Bi-Parting Freight</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Door Leaf Material</label>
+                <select id="param-doorStyle" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500">
+                  <option value="metal">Brushed Metallic Finish</option>
+                  <option value="glass-framed">Framed Vision Glass</option>
+                  <option value="safety-mesh">Industrial Hazard Grate</option>
+                  <option value="iron-portcullis">Forged Iron Portcullis Bars</option>
+                </select>
+              </div>
+
+              <!-- Door Opening Width -->
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Door Clear Width</label>
+                  <span id="val-doorWidth" class="font-mono-tech text-sky-400">1.10 m</span>
+                </div>
+                <input id="param-doorWidth" type="range" min="0.80" max="2.60" step="0.05" value="1.10">
+              </div>
+
+              <!-- Door Opening Height -->
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Door Clear Height</label>
+                  <span id="val-doorHeight" class="font-mono-tech text-sky-400">2.10 m</span>
+                </div>
+                <input id="param-doorHeight" type="range" min="1.90" max="3.00" step="0.05" value="2.10">
+              </div>
+
+              <!-- Pass-Through Rear Door -->
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Dual-Entry Pass-Through</span>
+                  <span class="text-[11px] text-slate-400">Add secondary rear door assembly</span>
+                </div>
+                <input id="param-rearDoor" type="checkbox" class="w-4 h-4 accent-sky-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+
+          <!-- Door Actuation Control -->
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Kinematics & Door State</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Door Open Ratio</label>
+                  <span id="val-doorOpen" class="font-mono-tech text-emerald-400">65%</span>
+                </div>
+                <input id="param-doorOpen" type="range" min="0" max="100" step="1" value="65">
+              </div>
+
+              <div class="flex gap-2">
+                <button id="btnToggleDoors" class="flex-1 py-2 px-3 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/30 text-xs font-medium transition">
+                  Cycle Doors Open / Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: INTERIOR & FINISHES -->
+        <div id="tab-interior" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Surface Finishes & Materials</h2>
+            <div class="space-y-3.5 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Primary Metal Finish</label>
+                <select id="param-metalFinish" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500">
+                  <option value="stainless">Brushed Stainless Steel</option>
+                  <option value="titanium">Anodized Gunmetal Titanium</option>
+                  <option value="brass">Polished Champagne Brass</option>
+                  <option value="copper">Brushed Architectural Bronze</option>
+                  <option value="industrial">Safety Yellow / Matte Charcoal</option>
+                  <option value="wrought-iron">Blackened Dungeon Wrought Iron</option>
+                  <option value="ancient-gold">Ancient Runic Orichalcum</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Flooring Surface</label>
+                <select id="param-floorStyle" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500">
+                  <option value="granite">Polished Dark Nero Granite</option>
+                  <option value="marble-grid">Checkerboard Carrara Marble</option>
+                  <option value="diamond-plate">Industrial Diamond Tread Plate</option>
+                  <option value="wood-parquet">Herringbone Walnut Timber</option>
+                  <option value="rubber">High-Traffic Studded Rubber</option>
+                  <option value="runic-stone">Carved Dungeon Runic Flagstone</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Ceiling Luminaires</label>
+                <select id="param-ceilingStyle" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500">
+                  <option value="led-grid">6-Panel Recessed LED Matrix</option>
+                  <option value="perimeter-cove">Suspended Perimeter Halo Cove</option>
+                  <option value="linear-bars">Architectural Linear Light Bars</option>
+                  <option value="industrial-cage">Heavy-Duty Work Lamp Strip</option>
+                </select>
+              </div>
+
+              <!-- Surface Weathering / Dungeon Patina -->
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Surface Weathering / Roughness</label>
+                  <span id="val-weathering" class="font-mono-tech text-sky-400">15%</span>
+                </div>
+                <input id="param-weathering" type="range" min="0" max="100" step="5" value="15">
+              </div>
+
+              <!-- Lighting Temperature / Color -->
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Ceiling Light Kelvin</label>
+                  <span id="val-lightKelvin" class="font-mono-tech text-sky-400">4500 K</span>
+                </div>
+                <input id="param-lightKelvin" type="range" min="2700" max="6500" step="100" value="4500">
+              </div>
+            </div>
+          </div>
+
+          <!-- Fixtures & Accessories -->
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Interior Fixtures</h2>
+            <div class="space-y-3 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Tubular Safety Handrails</span>
+                  <span class="text-[11px] text-slate-400">Side & rear accessibility rails</span>
+                </div>
+                <input id="param-handrails" type="checkbox" checked class="w-4 h-4 accent-sky-500 rounded cursor-pointer">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Rear Vanity Mirror</span>
+                  <span class="text-[11px] text-slate-400">Half-height reflective glass panel</span>
+                </div>
+                <input id="param-mirror" type="checkbox" checked class="w-4 h-4 accent-sky-500 rounded cursor-pointer">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Dual Car Operating Panels</span>
+                  <span class="text-[11px] text-slate-400">COP button column on both sides</span>
+                </div>
+                <input id="param-dualCop" type="checkbox" class="w-4 h-4 accent-sky-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: PARAMETRIC BUTTONS & COP -->
+        <div id="tab-buttons" class="tab-content hidden space-y-5">
+          <div class="bg-sky-500/10 border border-sky-500/30 rounded-xl p-3 space-y-2.5">
+            <div class="flex items-center justify-between gap-2">
+              <div>
+                <span class="text-xs font-semibold text-sky-300 block">3D Button Click Mode</span>
+                <span class="text-[11px] text-slate-400">Click any 3D button to edit without moving car</span>
+              </div>
+              <button id="btnFocusCOP" class="px-2.5 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-950 font-semibold text-[11px] transition shrink-0 shadow">
+                Zoom to COP
+              </button>
+            </div>
+
+            <!-- Edit vs Test Dispatch Mode Switch -->
+            <div class="grid grid-cols-2 gap-1.5 bg-slate-950/90 p-1 rounded-lg border border-slate-800">
+              <button type="button" id="modeBtnEdit" class="py-1.5 px-2 rounded-md text-[11px] font-semibold bg-purple-500/25 text-purple-200 border border-purple-400/50 transition">
+                ✏️ Click to Edit Button
+              </button>
+              <button type="button" id="modeBtnDispatch" class="py-1.5 px-2 rounded-md text-[11px] font-medium text-slate-400 hover:text-slate-200 border border-transparent transition">
+                🚀 Click to Move Car
+              </button>
+            </div>
+
+            <div class="pt-2 border-t border-sky-500/20 flex items-center justify-between">
+              <div>
+                <span class="text-xs font-medium text-amber-300 block">3D Drag & Reposition Mode</span>
+                <span class="text-[10px] text-slate-400">Drag individual buttons or the whole COP panel</span>
+              </div>
+              <input id="param-dragButtonsMode" type="checkbox" class="w-4 h-4 accent-amber-400 rounded cursor-pointer">
+            </div>
+          </div>
+
+          <!-- UNIFIED BUTTON EDITOR (EDIT ANY EXISTING COP BUTTON OR CUSTOM BUTTON) -->
+          <div>
+            <div class="flex items-center justify-between mb-2.5">
+              <div>
+                <h2 class="text-xs font-semibold uppercase tracking-wider text-purple-300">Button Inspector & Maker</h2>
+                <span id="selected-btn-badge" class="text-[10px] font-mono-tech text-emerald-400">Editing: COP Floor #1</span>
+              </div>
+              <button id="btnAddCustomButton" class="px-2.5 py-1 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 border border-purple-500/40 text-[11px] font-semibold transition flex items-center gap-1">
+                <span>+ Add Wall Button</span>
+              </button>
+            </div>
+
+            <div class="space-y-3.5 bg-slate-900/60 p-3.5 rounded-xl border border-purple-500/30">
+              <!-- All Current COP Buttons Selector -->
+              <div>
+                <label class="block text-[10px] uppercase tracking-wider text-slate-400 mb-1.5">Current COP Panel Buttons (Click in 3D or below to edit)</label>
+                <div id="cop-buttons-list" class="flex flex-wrap gap-1"></div>
+              </div>
+
+              <!-- Standalone Custom Wall Buttons Selector -->
+              <div>
+                <label class="block text-[10px] uppercase tracking-wider text-slate-400 mb-1.5">Extra Standalone Wall Buttons</label>
+                <div id="custom-buttons-list" class="flex flex-wrap gap-1.5 min-h-[24px]"></div>
+              </div>
+
+              <!-- Selected Button Live Editor -->
+              <div id="custom-button-editor" class="space-y-3 pt-2.5 border-t border-slate-800">
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-[11px] text-slate-300 font-medium mb-1">Legend / Rune Text</label>
+                    <input id="cb-label" type="text" maxlength="5" value="L" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs font-mono-tech text-amber-300 focus:outline-none focus:border-purple-400">
+                  </div>
+                  <div id="cb-wall-wrap">
+                    <label class="block text-[11px] text-slate-300 font-medium mb-1">Mount Surface</label>
+                    <select id="cb-wall" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-purple-400">
+                      <option value="left">Left Wall</option>
+                      <option value="right">Right Wall</option>
+                      <option value="rear">Rear Wall</option>
+                      <option value="pedestal">Center Pedestal</option>
+                    </select>
+                  </div>
+                  <div id="cb-lit-wrap" class="hidden flex flex-col justify-end pb-1">
+                    <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-200">
+                      <input id="cb-islit" type="checkbox" class="w-4 h-4 accent-purple-500 rounded cursor-pointer">
+                      <span>Force Illuminated</span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Quick Rune / Icon Stamp Bar -->
+                <div>
+                  <span class="block text-[10px] text-slate-400 mb-1">Quick Dungeon & Sci-Fi Symbols:</span>
+                  <div class="flex flex-wrap gap-1">
+                    <button type="button" data-sym="☠" class="sym-btn px-2 py-0.5 rounded bg-slate-950 hover:bg-slate-800 border border-slate-700 text-xs">☠</button>
+                    <button type="button" data-sym="⚔" class="sym-btn px-2 py-0.5 rounded bg-slate-950 hover:bg-slate-800 border border-slate-700 text-xs">⚔</button>
+                    <button type="button" data-sym="👑" class="sym-btn px-2 py-0.5 rounded bg-slate-950 hover:bg-slate-800 border border-slate-700 text-xs">👑</button>
+                    <button type="button" data-sym="⚡" class="sym-btn px-2 py-0.5 rounded bg-slate-950 hover:bg-slate-800 border border-slate-700 text-xs">⚡</button>
+                    <button type="button" data-sym="💎" class="sym-btn px-2 py-0.5 rounded bg-slate-950 hover:bg-slate-800 border border-slate-700 text-xs">💎</button>
+                    <button type="button" data-sym="B100" class="sym-btn px-2 py-0.5 rounded bg-slate-950 hover:bg-slate-800 border border-slate-700 text-[10px] font-mono-tech">B100</button>
+                    <button type="button" data-sym="BOSS" class="sym-btn px-2 py-0.5 rounded bg-slate-950 hover:bg-slate-800 border border-slate-700 text-[10px] font-mono-tech">BOSS</button>
+                    <button type="button" data-sym="SAFE" class="sym-btn px-2 py-0.5 rounded bg-slate-950 hover:bg-slate-800 border border-slate-700 text-[10px] font-mono-tech">SAFE</button>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-[11px] text-slate-300 font-medium mb-1">Button Shape</label>
+                    <select id="cb-shape" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-purple-400">
+                      <option value="default">Match COP Default</option>
+                      <option value="round">Round Collared</option>
+                      <option value="square">Square Chamfered</option>
+                      <option value="octagon">Octagon Heavy</option>
+                      <option value="diamond">Diamond Rune</option>
+                      <option value="pill">Vertical Pill</option>
+                      <option value="mushroom">Emergency Mushroom</option>
+                      <option value="touch">Flush Glass Touch</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-[11px] text-slate-300 font-medium mb-1">Glow Color</label>
+                    <select id="cb-color" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-purple-400">
+                      <option value="default">Match COP Default</option>
+                      <option value="crimson">Ruby Boss Red</option>
+                      <option value="arcane-purple">Arcane Violet</option>
+                      <option value="amber">Signal Amber</option>
+                      <option value="emerald">Safe Emerald</option>
+                      <option value="ice-blue">Cyber Ice Blue</option>
+                      <option value="white">Pure White</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Button Size -->
+                <div>
+                  <div class="flex justify-between text-xs mb-1">
+                    <label class="text-slate-300 font-medium">Button Size</label>
+                    <span id="val-cb-size" class="font-mono-tech text-purple-300">32 mm</span>
+                  </div>
+                  <input id="cb-size" type="range" min="20" max="110" step="1" value="32">
+                </div>
+
+                <!-- Button Horizontal & Vertical Coordinates / Nudge -->
+                <div>
+                  <div class="flex justify-between text-xs mb-1">
+                    <label id="lbl-cb-h" class="text-slate-300 font-medium">Horizontal Position (H)</label>
+                    <span id="val-cb-h" class="font-mono-tech text-purple-300">0.00 m</span>
+                  </div>
+                  <input id="cb-h" type="range" min="-0.35" max="0.35" step="0.005" value="0.00">
+                </div>
+
+                <div>
+                  <div class="flex justify-between text-xs mb-1">
+                    <label id="lbl-cb-v" class="text-slate-300 font-medium">Vertical Position (Y)</label>
+                    <span id="val-cb-v" class="font-mono-tech text-purple-300">0.00 m</span>
+                  </div>
+                  <input id="cb-v" type="range" min="-0.35" max="0.35" step="0.005" value="0.00">
+                </div>
+
+                <!-- Action Buttons for COP vs Custom Button -->
+                <div id="cb-actions-custom" class="flex items-center justify-between pt-1">
+                  <button id="btnDuplicateCustomBtn" type="button" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] transition">
+                    Duplicate
+                  </button>
+                  <button id="btnDeleteCustomBtn" type="button" class="px-2.5 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 text-[11px] transition">
+                    Delete Button
+                  </button>
+                </div>
+
+                <div id="cb-actions-cop" class="hidden flex items-center justify-between pt-1">
+                  <button id="btnResetCopBtn" type="button" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] transition">
+                    Reset This Button
+                  </button>
+                  <button id="btnTestSelectedFloor" type="button" class="px-2.5 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/30 text-[11px] transition">
+                    Test Dispatch Here
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- COP PANEL MOUNTING & POSITIONING -->
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400">COP Panel Placement & Mount</h2>
+              <span class="text-[11px] font-mono-tech text-emerald-400">XYZ Movable</span>
+            </div>
+
+            <div class="space-y-3.5 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Primary Panel Mount Location</label>
+                <select id="param-copMountWall" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500">
+                  <option value="left">Left Side Wall</option>
+                  <option value="right">Right Side Wall</option>
+                  <option value="rear">Rear Back Wall</option>
+                  <option value="front-jamb">Front Entrance Return Jamb</option>
+                  <option value="pedestal">Center Floor Pedestal Kiosk</option>
+                </select>
+              </div>
+
+              <!-- Horizontal Wall Offset -->
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Horizontal Position Along Wall</label>
+                  <span id="val-copOffsetH" class="font-mono-tech text-sky-400">0.45 m</span>
+                </div>
+                <input id="param-copOffsetH" type="range" min="-1.40" max="1.40" step="0.02" value="0.45">
+              </div>
+
+              <!-- Vertical Mounting Elevation -->
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Vertical Panel Center Height</label>
+                  <span id="val-copOffsetV" class="font-mono-tech text-sky-400">1.20 m</span>
+                </div>
+                <input id="param-copOffsetV" type="range" min="0.65" max="2.10" step="0.02" value="1.20">
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400">COP Array Button Geometry</h2>
+              <span class="text-[11px] font-mono-tech text-sky-400">EN 81-70</span>
+            </div>
+
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <!-- Button Shape -->
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Pushbutton Profile Shape</label>
+                <select id="param-btnShape" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500">
+                  <option value="round">Circular Micro-Travel Collared</option>
+                  <option value="square">Square Chamfered Architectural</option>
+                  <option value="pill">Vertical Lozenge / Pill</option>
+                  <option value="touch">Flush Capacitive Glass Touch</option>
+                </select>
+              </div>
+
+              <!-- Matrix Layout -->
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">COP Button Array Layout</label>
+                <select id="param-btnLayout" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500">
+                  <option value="double-col">2-Column Staggered Standard</option>
+                  <option value="single-col">Single Vertical Linear Column</option>
+                  <option value="grid-3">3-Column High-Density Matrix</option>
+                </select>
+              </div>
+
+              <!-- Number of Floors -->
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Floor Call Count</label>
+                  <span id="val-copFloorCount" class="font-mono-tech text-sky-400">6 flrs</span>
+                </div>
+                <input id="param-copFloorCount" type="range" min="2" max="14" step="1" value="6">
+              </div>
+
+              <!-- Floor Legend Numbering Scheme (100-Layer Dungeon Support) -->
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Floor Legend Numbering</label>
+                <select id="param-floorNumbering" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500">
+                  <option value="standard">Standard Tower (L, 2, 3... PH)</option>
+                  <option value="dungeon-strata">100-Layer Dungeon Milestones (B10..B100)</option>
+                  <option value="dungeon-b">Descending Basement Sub-Levels (B1, B2...)</option>
+                  <option value="roman">Ancient Roman Numerals (I, II, III...)</option>
+                </select>
+              </div>
+
+              <!-- Starting Floor / Layer Offset -->
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Starting Layer Offset</label>
+                  <span id="val-floorOffset" class="font-mono-tech text-sky-400">0</span>
+                </div>
+                <input id="param-floorOffset" type="range" min="0" max="90" step="5" value="0">
+              </div>
+
+              <!-- Button Diameter / Width -->
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Button Actuator Size</label>
+                  <span id="val-btnSize" class="font-mono-tech text-sky-400">32 mm</span>
+                </div>
+                <input id="param-btnSize" type="range" min="22" max="44" step="1" value="32">
+              </div>
+
+              <!-- Bezel Relief / Protrusion -->
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Bezel Relief & Plunger Depth</label>
+                  <span id="val-btnBezelDepth" class="font-mono-tech text-sky-400">8 mm</span>
+                </div>
+                <input id="param-btnBezelDepth" type="range" min="2" max="16" step="1" value="8">
+              </div>
+
+              <!-- Vertical Pitch Spacing -->
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Button Vertical Pitch</label>
+                  <span id="val-btnPitch" class="font-mono-tech text-sky-400">58 mm</span>
+                </div>
+                <input id="param-btnPitch" type="range" min="44" max="78" step="2" value="58">
+              </div>
+            </div>
+          </div>
+
+          <!-- Illumination & ADA Accessories -->
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Halo Illumination & ADA</h2>
+            <div class="space-y-3.5 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">LED Halo Ring Color</label>
+                <select id="param-btnHaloColor" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500">
+                  <option value="amber">Warm Signal Amber (ISO)</option>
+                  <option value="ice-blue">Cybernetic Ice Blue</option>
+                  <option value="emerald">High-Contrast Emerald</option>
+                  <option value="crimson">Emergency Ruby Red</option>
+                  <option value="arcane-purple">Arcane Dungeon Violet</option>
+                  <option value="white">Architectural Pure White</option>
+                </select>
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">ADA Tactile Braille Plates</span>
+                  <span class="text-[11px] text-slate-400">Raised legend & 6-dot braille tag</span>
+                </div>
+                <input id="param-btnBraille" type="checkbox" checked class="w-4 h-4 accent-sky-500 rounded cursor-pointer">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Auxiliary Service Row</span>
+                  <span class="text-[11px] text-slate-400">Door Open/Close, Alarm & Key switch</span>
+                </div>
+                <input id="param-btnServiceRow" type="checkbox" checked class="w-4 h-4 accent-sky-500 rounded cursor-pointer">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Exterior Hall Call Station</span>
+                  <span class="text-[11px] text-slate-400">Up/Down landing buttons on front jamb</span>
+                </div>
+                <input id="param-hallCallStation" type="checkbox" checked class="w-4 h-4 accent-sky-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 5: HOISTWAY & MECHANICAL SUBSYSTEMS -->
+        <div id="tab-mechanical" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Structural & Hoistway Systems</h2>
+            <div class="space-y-3 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Structural Steel Car Sling</span>
+                  <span class="text-[11px] text-slate-400">Crosshead beam, vertical stiles & plank</span>
+                </div>
+                <input id="param-showSling" type="checkbox" checked class="w-4 h-4 accent-sky-500 rounded cursor-pointer">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">T-Section Guide Rails</span>
+                  <span class="text-[11px] text-slate-400">Main car & counterweight guide tracks</span>
+                </div>
+                <input id="param-showRails" type="checkbox" checked class="w-4 h-4 accent-sky-500 rounded cursor-pointer">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Traction Hoist Ropes & Sheave</span>
+                  <span class="text-[11px] text-slate-400">Suspension cables & counterweight</span>
+                </div>
+                <input id="param-showCables" type="checkbox" checked class="w-4 h-4 accent-sky-500 rounded cursor-pointer">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Rooftop HVAC & Escape Hatch</span>
+                  <span class="text-[11px] text-slate-400">Car top ventilation & safety enclosure</span>
+                </div>
+                <input id="param-showRoofEquip" type="checkbox" checked class="w-4 h-4 accent-sky-500 rounded cursor-pointer">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Hoistway Shaft Floor Rings</span>
+                  <span class="text-[11px] text-slate-400">Show multi-story concrete landing slabs</span>
+                </div>
+                <input id="param-showShaft" type="checkbox" class="w-4 h-4 accent-sky-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">CAD Helpers & Game Export</h2>
+            <div class="space-y-3 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">3D Export Mesh Scope</label>
+                <select id="param-exportScope" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500">
+                  <option value="full">Full Assembly (Cab + Hoistway Rails)</option>
+                  <option value="cab-only">Movable Cab & Sling Actor Only</option>
+                </select>
+              </div>
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-200">3D Dimension Callouts</span>
+                <input id="param-showDimensions" type="checkbox" checked class="w-4 h-4 accent-sky-500 rounded cursor-pointer">
+              </div>
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-200">Wireframe Overlay Pass</span>
+                <input id="param-wireframe" type="checkbox" class="w-4 h-4 accent-sky-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- BOTTOM ENGINEERING TELEMETRY -->
+      <div class="p-3.5 border-t border-slate-800 bg-slate-900/90 space-y-2">
+        <div class="flex items-center justify-between text-[11px] text-slate-400">
+          <span class="uppercase font-semibold tracking-wider">Engineering Specifications</span>
+          <span id="stat-triangles" class="font-mono-tech text-slate-300">0 tris</span>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">Floor Area</span>
+            <span id="stat-area" class="font-mono-tech text-xs font-semibold text-sky-400">3.78 m²</span>
+          </div>
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">Rated Load</span>
+            <span id="stat-capacity" class="font-mono-tech text-xs font-semibold text-emerald-400">1600 kg</span>
+          </div>
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">Passengers</span>
+            <span id="stat-passengers" class="font-mono-tech text-xs font-semibold text-amber-400">21 pers</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER 3D VIEWPORT -->
+    <main class="flex-1 relative bg-gradient-to-b from-[#0b111e] via-[#090d16] to-[#06080e] overflow-hidden" id="viewport-container">
+      <!-- 3D Canvas injected here -->
+      <div id="canvas-mount" class="w-full h-full"></div>
+
+      <!-- 3D HTML Dimension Labels Overlay -->
+      <div id="labels-container" class="absolute inset-0 pointer-events-none overflow-hidden">
+        <div id="label-width" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/90 border border-sky-500/50 text-[11px] font-mono-tech text-sky-300 shadow-lg">W: 2.10m</div>
+        <div id="label-depth" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/90 border border-sky-500/50 text-[11px] font-mono-tech text-sky-300 shadow-lg">D: 1.80m</div>
+        <div id="label-height" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/90 border border-sky-500/50 text-[11px] font-mono-tech text-sky-300 shadow-lg">H: 2.50m</div>
+      </div>
+
+      <!-- TOP-LEFT CAMERA PRESETS FLOATING BAR -->
+      <div class="absolute top-4 left-4 glass-panel rounded-xl p-1.5 flex items-center gap-1 shadow-xl">
+        <span class="text-[10px] font-mono-tech uppercase text-slate-400 px-2">Camera:</span>
+        <button data-cam="iso" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-sky-500/20 text-sky-300 border border-sky-500/30 transition">Perspective</button>
+        <button data-cam="front" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">Front Entrance</button>
+        <button data-cam="interior" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">Inside Cab</button>
+        <button data-cam="cop" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">COP Buttons</button>
+        <button data-cam="top" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">Roof / Sling</button>
+      </div>
+
+      <!-- RIGHT FLOATING LIVE ELEVATOR DISPATCH CONTROLLER -->
+      <div class="absolute top-4 right-4 w-56 glass-panel rounded-2xl p-3.5 shadow-2xl flex flex-col gap-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-300">Live Dispatch Test</span>
+          <span id="sim-status-dot" class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]"></span>
+        </div>
+
+        <!-- LED Floor Matrix Display -->
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 flex items-center justify-between">
+          <div>
+            <span class="text-[10px] text-slate-400 uppercase block">Car Position</span>
+            <span id="sim-status-text" class="text-[11px] font-mono-tech text-emerald-400">IDLE • DOORS OPEN</span>
+          </div>
+          <div class="flex items-center gap-1.5 bg-black/80 px-2.5 py-1 rounded border border-slate-800">
+            <span id="sim-direction" class="text-amber-400 font-mono-tech text-sm font-bold">•</span>
+            <span id="sim-floor-readout" class="font-mono-tech text-xl font-bold text-amber-400">1</span>
+          </div>
+        </div>
+
+        <!-- Floor Call Buttons -->
+        <div>
+          <span class="text-[10px] text-slate-400 uppercase block mb-1.5">Select Target Landing</span>
+          <div id="dispatch-floor-grid" class="grid grid-cols-3 gap-1.5 max-h-40 overflow-y-auto pr-0.5">
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTTOM-LEFT INTERACTION HINT -->
+      <div class="absolute bottom-4 left-4 glass-panel rounded-lg px-3 py-1.5 text-[11px] text-slate-400 flex items-center gap-3 pointer-events-none">
+        <span><strong class="text-slate-200">LMB:</strong> Orbit / Click 3D Buttons</span>
+        <span>•</span>
+        <span><strong class="text-amber-300">Shift+Drag:</strong> Move Panels/Buttons</span>
+        <span>•</span>
+        <span><strong class="text-slate-200">RMB:</strong> Pan</span>
+      </div>
+
+      <!-- EXPORT NOTIFICATION TOAST -->
+      <div id="toast-notification" class=" devout pointer-events-none opacity-0 transition-opacity duration-300 absolute bottom-4 right-4 glass-panel border-emerald-500/40 bg-slate-900/95 text-emerald-300 px-4 py-2.5 rounded-xl text-xs font-medium shadow-2xl flex items-center gap-2">
+        <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        <span id="toast-text">Asset exported successfully!</span>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- MAIN APPLICATION SCRIPT -->
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+    import { OBJExporter } from 'three/addons/exporters/OBJExporter.js';
+
+    // =========================================================================
+    // 1. STATE & PARAMETRIC CONFIGURATION
+    // =========================================================================
+    const state = {
+      // Envelope Dimensions (meters)
+      width: 2.10,
+      depth: 1.80,
+      height: 2.50,
+      wallThickness: 0.08,
+
+      // Wall Construction
+      rearWallType: 'solid',      // 'solid' | 'glass' | 'half-glass' | 'slats'
+      sideWallType: 'solid',      // 'solid' | 'glass' | 'half-glass'
+      cutaway: false,
+
+      // Door Configuration
+      doorType: 'center-2',       // 'center-2' | 'center-4' | 'side-2' | 'biparting'
+      doorStyle: 'metal',         // 'metal' | 'glass-framed' | 'safety-mesh'
+      doorWidth: 1.10,
+      doorHeight: 2.10,
+      rearDoor: false,
+      doorOpenRatio: 0.65,
+
+      // Finishes & Interior
+      metalFinish: 'stainless',   // 'stainless' | 'titanium' | 'brass' | 'copper' | 'industrial' | 'wrought-iron' | 'ancient-gold'
+      floorStyle: 'granite',      // 'granite' | 'marble-grid' | 'diamond-plate' | 'wood-parquet' | 'rubber' | 'runic-stone'
+      ceilingStyle: 'led-grid',   // 'led-grid' | 'perimeter-cove' | 'linear-bars' | 'industrial-cage'
+      weathering: 15,             // 0 - 100% surface roughness/patina modifier
+      lightKelvin: 4500,
+      handrails: true,
+      mirror: true,
+      dualCop: false,
+
+      // Parametric Buttons & COP
+      copFloorCount: 6,
+      floorNumbering: 'standard', // 'standard' | 'dungeon-strata' | 'dungeon-b' | 'roman'
+      floorOffset: 0,             // 0 - 90 starting layer offset
+      copMountWall: 'left',       // 'left' | 'right' | 'rear' | 'front-jamb' | 'pedestal'
+      copOffsetH: 0.45,           // meters along wall
+      copOffsetV: 1.20,           // meters above floor
+      dragButtonsMode: false,     // interactive 3D drag mode for COP & custom buttons
+      btnShape: 'round',          // 'round' | 'square' | 'pill' | 'touch'
+      btnLayout: 'double-col',    // 'double-col' | 'single-col' | 'grid-3'
+      btnSize: 32,                // mm (22 - 44)
+      btnBezelDepth: 8,           // mm (2 - 16)
+      btnPitch: 58,               // mm (44 - 78)
+      btnHaloColor: 'amber',      // 'amber' | 'ice-blue' | 'emerald' | 'crimson' | 'arcane-purple' | 'white'
+      btnBraille: true,
+      btnServiceRow: true,
+      hallCallStation: true,
+
+      // 3D Button Click Mode & Individual COP Button Overrides
+      buttonClickMode: 'edit',    // 'edit' (click to customize without moving elevator) | 'dispatch' (click to move car)
+      selectedButtonTarget: { kind: 'cop', key: 'floor_1' }, // { kind: 'cop', key: 'floor_1' | 'srv_doorOpen' } | { kind: 'custom', id: 1 }
+      copButtonOverrides: {},     // e.g. { 'floor_1': { label: 'SAFE', shape: 'octagon', color: 'emerald', size: 38, offsetH: 0, offsetV: 0, isLit: true } }
+
+      // Custom Standalone Buttons (Button Maker)
+      selectedCustomBtnId: 1,
+      customButtons: [
+        {
+          id: 1,
+          label: 'BOSS',
+          wall: 'rear',
+          h: 0.0,
+          v: 1.35,
+          size: 58,
+          bezelDepth: 12,
+          shape: 'octagon',
+          color: 'crimson',
+          isLit: true
+        }
+      ],
+
+      // Mechanical & Hoistway
+      showSling: true,
+      showRails: true,
+      showCables: true,
+      showRoofEquip: true,
+      showShaft: false,
+      exportScope: 'full',        // 'full' | 'cab-only'
+
+      // Helpers
+      showDimensions: true,
+      wireframe: false,
+
+      // Simulation State
+      currentFloor: 1,
+      targetFloor: 1,
+      elevatorY: 0,
+      simPhase: 'idle',           // 'idle' | 'closing' | 'moving' | 'opening'
+      targetDoorOpen: 0.65,
+      alarmActiveTimer: 0
+    };
+
+    const PRESETS = {
+      commercial: {
+        width: 2.10, depth: 1.80, height: 2.50, wallThickness: 0.08,
+        rearWallType: 'solid', sideWallType: 'solid',
+        doorType: 'center-2', doorStyle: 'metal', doorWidth: 1.10, doorHeight: 2.10, rearDoor: false,
+        metalFinish: 'stainless', floorStyle: 'granite', ceilingStyle: 'led-grid', weathering: 15, lightKelvin: 4500,
+        handrails: true, mirror: true, dualCop: false,
+        copFloorCount: 6, floorNumbering: 'standard', floorOffset: 0, btnShape: 'round', btnLayout: 'double-col', btnSize: 32, btnBezelDepth: 8, btnPitch: 58, btnHaloColor: 'amber', btnBraille: true, btnServiceRow: true, hallCallStation: true,
+        showSling: true, showRails: true, showCables: true, showRoofEquip: true
+      },
+      panoramic: {
+        width: 2.20, depth: 2.00, height: 2.65, wallThickness: 0.07,
+        rearWallType: 'glass', sideWallType: 'glass',
+        doorType: 'center-2', doorStyle: 'glass-framed', doorWidth: 1.20, doorHeight: 2.20, rearDoor: false,
+        metalFinish: 'titanium', floorStyle: 'marble-grid', ceilingStyle: 'perimeter-cove', weathering: 5, lightKelvin: 5200,
+        handrails: true, mirror: false, dualCop: true,
+        copFloorCount: 8, floorNumbering: 'standard', floorOffset: 0, btnShape: 'touch', btnLayout: 'double-col', btnSize: 34, btnBezelDepth: 4, btnPitch: 56, btnHaloColor: 'ice-blue', btnBraille: true, btnServiceRow: true, hallCallStation: true,
+        showSling: true, showRails: true, showCables: true, showRoofEquip: false
+      },
+      freight: {
+        width: 2.80, depth: 3.20, height: 3.00, wallThickness: 0.12,
+        rearWallType: 'solid', sideWallType: 'solid',
+        doorType: 'biparting', doorStyle: 'safety-mesh', doorWidth: 2.20, doorHeight: 2.50, rearDoor: true,
+        metalFinish: 'industrial', floorStyle: 'diamond-plate', ceilingStyle: 'industrial-cage', weathering: 55, lightKelvin: 4000,
+        handrails: true, mirror: false, dualCop: false,
+        copFloorCount: 5, floorNumbering: 'standard', floorOffset: 0, btnShape: 'square', btnLayout: 'single-col', btnSize: 40, btnBezelDepth: 14, btnPitch: 68, btnHaloColor: 'emerald', btnBraille: true, btnServiceRow: true, hallCallStation: true,
+        showSling: true, showRails: true, showCables: true, showRoofEquip: true
+      },
+      luxury: {
+        width: 2.00, depth: 1.75, height: 2.60, wallThickness: 0.09,
+        rearWallType: 'slats', sideWallType: 'solid',
+        doorType: 'center-2', doorStyle: 'metal', doorWidth: 1.05, doorHeight: 2.15, rearDoor: false,
+        metalFinish: 'brass', floorStyle: 'marble-grid', ceilingStyle: 'perimeter-cove', weathering: 10, lightKelvin: 3000,
+        handrails: true, mirror: true, dualCop: true,
+        copFloorCount: 10, floorNumbering: 'standard', floorOffset: 0, btnShape: 'pill', btnLayout: 'double-col', btnSize: 30, btnBezelDepth: 9, btnPitch: 54, btnHaloColor: 'amber', btnBraille: true, btnServiceRow: true, hallCallStation: true,
+        showSling: false, showRails: false, showCables: false, showRoofEquip: false
+      },
+      scifi: {
+        width: 2.40, depth: 2.40, height: 2.80, wallThickness: 0.10,
+        rearWallType: 'half-glass', sideWallType: 'half-glass',
+        doorType: 'center-4', doorStyle: 'glass-framed', doorWidth: 1.50, doorHeight: 2.30, rearDoor: true,
+        metalFinish: 'titanium', floorStyle: 'rubber', ceilingStyle: 'linear-bars', weathering: 20, lightKelvin: 6200,
+        handrails: true, mirror: false, dualCop: true,
+        copFloorCount: 12, floorNumbering: 'standard', floorOffset: 0, btnShape: 'touch', btnLayout: 'grid-3', btnSize: 30, btnBezelDepth: 3, btnPitch: 50, btnHaloColor: 'ice-blue', btnBraille: false, btnServiceRow: true, hallCallStation: true,
+        showSling: true, showRails: true, showCables: true, showRoofEquip: true
+      },
+      dungeon: {
+        width: 2.50, depth: 2.50, height: 2.90, wallThickness: 0.12,
+        rearWallType: 'half-glass', sideWallType: 'half-glass',
+        doorType: 'center-2', doorStyle: 'iron-portcullis', doorWidth: 1.60, doorHeight: 2.40, rearDoor: true,
+        metalFinish: 'wrought-iron', floorStyle: 'runic-stone', ceilingStyle: 'industrial-cage', weathering: 75, lightKelvin: 2900,
+        handrails: true, mirror: false, dualCop: true,
+        copFloorCount: 10, floorNumbering: 'dungeon-strata', floorOffset: 0, btnShape: 'square', btnLayout: 'double-col', btnSize: 36, btnBezelDepth: 12, btnPitch: 60, btnHaloColor: 'arcane-purple', btnBraille: false, btnServiceRow: true, hallCallStation: true,
+        showSling: true, showRails: true, showCables: true, showRoofEquip: false
+      }
+    };
+
+    const HALO_COLOR_MAP = {
+      'amber':         { hex: '#f59e0b', three: 0xf59e0b },
+      'ice-blue':      { hex: '#38bdf8', three: 0x38bdf8 },
+      'emerald':       { hex: '#10b981', three: 0x10b981 },
+      'crimson':       { hex: '#f43f5e', three: 0xf43f5e },
+      'arcane-purple': { hex: '#c084fc', three: 0xc084fc },
+      'white':         { hex: '#f8fafc', three: 0xf8fafc }
+    };
+
+    // =========================================================================
+    // 2. PROCEDURAL CANVAS TEXTURES & PBR MATERIALS
+    // =========================================================================
+    const textureCache = {};
+
+    function createFloorTexture(style) {
+      if (textureCache[style]) return textureCache[style];
+
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+
+      if (style === 'granite') {
+        ctx.fillStyle = '#181c24';
+        ctx.fillRect(0, 0, 512, 512);
+        for (let i = 0; i < 6500; i++) {
+          const x = Math.random() * 512;
+          const y = Math.random() * 512;
+          const v = 25 + Math.floor(Math.random() * 45);
+          ctx.fillStyle = `rgb(${v},${v + 2},${v + 6})`;
+          ctx.fillRect(x, y, 2, 2);
+        }
+        ctx.strokeStyle = '#0f1319';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(4, 4, 504, 504);
+        ctx.beginPath();
+        ctx.moveTo(256, 0); ctx.lineTo(256, 512);
+        ctx.moveTo(0, 256); ctx.lineTo(512, 256);
+        ctx.stroke();
+      } else if (style === 'marble-grid') {
+        const tiles = 4;
+        const size = 512 / tiles;
+        for (let r = 0; r < tiles; r++) {
+          for (let c = 0; c < tiles; c++) {
+            const isLight = (r + c) % 2 === 0;
+            ctx.fillStyle = isLight ? '#e2e8f0' : '#1e293b';
+            ctx.fillRect(c * size, r * size, size, size);
+            ctx.strokeStyle = isLight ? '#94a3b8' : '#334155';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(c * size, r * size, size, size);
+          }
+        }
+      } else if (style === 'diamond-plate') {
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(0, 0, 512, 512);
+        ctx.fillStyle = '#64748b';
+        const step = 32;
+        for (let y = 0; y < 512; y += step) {
+          for (let x = 0; x < 512; x += step) {
+            ctx.save();
+            ctx.translate(x + step / 2, y + step / 2);
+            ctx.rotate(((x + y) / step) % 2 === 0 ? Math.PI / 4 : -Math.PI / 4);
+            ctx.fillRect(-8, -3, 16, 6);
+            ctx.restore();
+          }
+        }
+      } else if (style === 'wood-parquet') {
+        ctx.fillStyle = '#5c3a21';
+        ctx.fillRect(0, 0, 512, 512);
+        const plankH = 32;
+        for (let y = 0; y < 512; y += plankH) {
+          ctx.fillStyle = (y / plankH) % 2 === 0 ? '#694226' : '#52321b';
+          ctx.fillRect(0, y, 512, plankH - 2);
+        }
+      } else if (style === 'rubber') {
+        ctx.fillStyle = '#1e242b';
+        ctx.fillRect(0, 0, 512, 512);
+        ctx.fillStyle = '#2d3748';
+        for (let y = 16; y < 512; y += 32) {
+          for (let x = 16; x < 512; x += 32) {
+            ctx.beginPath();
+            ctx.arc(x, y, 9, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      } else if (style === 'runic-stone') {
+        // Carved Dungeon Flagstone with 100-Layer Abyssal Magic Circle
+        ctx.fillStyle = '#171921';
+        ctx.fillRect(0, 0, 512, 512);
+        for (let i = 0; i < 4500; i++) {
+          const x = Math.random() * 512;
+          const y = Math.random() * 512;
+          const v = 18 + Math.floor(Math.random() * 28);
+          ctx.fillStyle = `rgb(${v},${v},${v + 5})`;
+          ctx.fillRect(x, y, 3, 3);
+        }
+        // Stone block mortar seams
+        ctx.strokeStyle = '#090b10';
+        ctx.lineWidth = 5;
+        for (let y = 0; y <= 512; y += 128) {
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(512, y); ctx.stroke();
+        }
+        for (let x = 0; x <= 512; x += 128) {
+          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 512); ctx.stroke();
+        }
+        // Engraved geometric dungeon sigil in center
+        ctx.strokeStyle = '#6b21a8';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(256, 256, 170, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(256, 256, 145, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(style === 'runic-stone' ? 1 : 2, style === 'runic-stone' ? 1 : 2);
+      textureCache[style] = tex;
+      return tex;
+    }
+
+    const ROMAN_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XX', 'L', 'C'];
+
+    function getFloorLabel(floorIndex, totalFloors) {
+      const offset = state.floorOffset || 0;
+      const mode = state.floorNumbering || 'standard';
+
+      if (mode === 'dungeon-strata') {
+        // e.g., B10, B20, B30 ... B100 for 100-layer dungeon milestones
+        const layer = Math.min(100, offset + floorIndex * Math.max(1, Math.round(100 / totalFloors)));
+        return `B${layer}`;
+      }
+      if (mode === 'dungeon-b') {
+        return `B${offset + floorIndex}`;
+      }
+      if (mode === 'roman') {
+        return ROMAN_NUMERALS[(floorIndex - 1) % ROMAN_NUMERALS.length] || String(floorIndex);
+      }
+
+      // Standard Architectural Numbering
+      if (offset === 0 && floorIndex === 1) return 'L';
+      if (offset === 0 && floorIndex === totalFloors && totalFloors >= 6) return 'PH';
+      return String(offset + floorIndex);
+    }
+
+    function createButtonCapTexture(label, haloKey, isLit, isServiceAlert = false) {
+      const cacheKey = `btn_${label}_${haloKey}_${isLit ? 1 : 0}_${isServiceAlert ? 1 : 0}`;
+      if (textureCache[cacheKey]) return textureCache[cacheKey];
+
+      const canvas = document.createElement('canvas');
+      canvas.width = 128;
+      canvas.height = 128;
+      const ctx = canvas.getContext('2d');
+
+      const haloInfo = isServiceAlert
+        ? { hex: '#f59e0b' }
+        : (HALO_COLOR_MAP[haloKey] || HALO_COLOR_MAP.amber);
+
+      // Dark brushed metallic button face background
+      const grad = ctx.createRadialGradient(64, 64, 8, 64, 64, 64);
+      grad.addColorStop(0, isLit ? '#1e293b' : '#151c28');
+      grad.addColorStop(1, '#090d14');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 128, 128);
+
+      // Subtle glowing halo border on the cap face
+      ctx.strokeStyle = isLit ? haloInfo.hex : '#334155';
+      ctx.lineWidth = isLit ? 8 : 4;
+      ctx.beginPath();
+      ctx.arc(64, 64, 52, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Crisp engraved legend text
+      ctx.fillStyle = isLit ? haloInfo.hex : '#cbd5e1';
+      ctx.font = label.length > 2 ? 'bold 34px "JetBrains Mono", monospace' : 'bold 46px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      if (isLit) {
+        ctx.shadowColor = haloInfo.hex;
+        ctx.shadowBlur = 12;
+      }
+      ctx.fillText(label, 64, 66);
+
+      const tex = new THREE.CanvasTexture(canvas);
+      textureCache[cacheKey] = tex;
+      return tex;
+    }
+
+    function createBraillePlateTexture(label) {
+      const cacheKey = `braille_${label}`;
+      if (textureCache[cacheKey]) return textureCache[cacheKey];
+
+      const canvas = document.createElement('canvas');
+      canvas.width = 128;
+      canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = '#090d14';
+      ctx.fillRect(0, 0, 128, 64);
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(2, 2, 124, 60);
+
+      // Raised tactile text on left half
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = 'bold 28px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, 38, 33);
+
+      // Tactile 6-dot Braille cell pattern on right half
+      const seed = label.charCodeAt(0) || 1;
+      for (let r = 0; r < 3; r++) {
+        for (let c = 0; c < 2; c++) {
+          const active = ((seed + r * 2 + c) % 2 === 0) || (r === 0 && c === 0);
+          ctx.fillStyle = active ? '#f8fafc' : '#334155';
+          ctx.beginPath();
+          ctx.arc(82 + c * 14, 18 + r * 14, active ? 3.5 : 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      const tex = new THREE.CanvasTexture(canvas);
+      textureCache[cacheKey] = tex;
+      return tex;
+    }
+
+    // Dynamic Canvas Texture for Floor Indicator LED Display
+    const ledCanvas = document.createElement('canvas');
+    ledCanvas.width = 256;
+    ledCanvas.height = 128;
+    const ledCtx = ledCanvas.getContext('2d');
+    const ledTexture = new THREE.CanvasTexture(ledCanvas);
+
+    function updateLedDisplayTexture(floorNum, dirSymbol) {
+      ledCtx.fillStyle = '#05070a';
+      ledCtx.fillRect(0, 0, 256, 128);
+      ledCtx.strokeStyle = '#1e293b';
+      ledCtx.lineWidth = 6;
+      ledCtx.strokeRect(3, 3, 250, 122);
+
+      const haloInfo = HALO_COLOR_MAP[state.btnHaloColor] || HALO_COLOR_MAP.amber;
+      ledCtx.fillStyle = haloInfo.hex;
+      ledCtx.font = 'bold 74px "JetBrains Mono", monospace';
+      ledCtx.textAlign = 'center';
+      ledCtx.textBaseline = 'middle';
+      const label = getFloorLabel(floorNum, state.copFloorCount);
+      ledCtx.fillText(`${dirSymbol}${label}`, 128, 66);
+      ledTexture.needsUpdate = true;
+    }
+    updateLedDisplayTexture(1, '');
+
+    function kelvinToRGB(kelvin) {
+      const temp = kelvin / 100;
+      let r, g, b;
+      if (temp <= 66) {
+        r = 255;
+        g = Math.min(255, Math.max(0, 99.4708025861 * Math.log(temp) - 161.1195681661));
+        b = temp <= 19 ? 0 : Math.min(255, Math.max(0, 138.5177312231 * Math.log(temp - 10) - 305.0447927307));
+      } else {
+        r = Math.min(255, Math.max(0, 329.698727446 * Math.pow(temp - 60, -0.1332047592)));
+        g = Math.min(255, Math.max(0, 288.1221695283 * Math.pow(temp - 60, -0.0755148492)));
+        b = 255;
+      }
+      return new THREE.Color(r / 255, g / 255, b / 255);
+    }
+
+    function getMaterialPalette() {
+      const wf = state.wireframe;
+      const wear = (state.weathering || 0) / 100;
+      const metalConfigs = {
+        stainless:      { color: 0xcbd5e1, metalness: 0.85, roughness: 0.22 },
+        titanium:       { color: 0x475569, metalness: 0.88, roughness: 0.26 },
+        brass:          { color: 0xd4af37, metalness: 0.92, roughness: 0.16 },
+        copper:         { color: 0xb87333, metalness: 0.88, roughness: 0.24 },
+        industrial:     { color: 0xeab308, metalness: 0.45, roughness: 0.42 },
+        'wrought-iron': { color: 0x262930, metalness: 0.78, roughness: 0.52 },
+        'ancient-gold': { color: 0x9a7b2c, metalness: 0.86, roughness: 0.34 }
+      };
+      const mc = metalConfigs[state.metalFinish] || metalConfigs.stainless;
+      const lightColor = kelvinToRGB(state.lightKelvin);
+
+      return {
+        primaryMetal: new THREE.MeshStandardMaterial({
+          color: mc.color,
+          metalness: Math.max(0.2, mc.metalness - wear * 0.25),
+          roughness: Math.min(0.95, mc.roughness + wear * 0.45),
+          wireframe: wf
+        }),
+        secondaryDark: new THREE.MeshStandardMaterial({
+          color: 0x1e293b,
+          metalness: 0.6,
+          roughness: Math.min(0.95, 0.35 + wear * 0.4),
+          wireframe: wf
+        }),
+        structuralSteel: new THREE.MeshStandardMaterial({
+          color: state.metalFinish === 'industrial' ? 0x334155 : 0x273244,
+          metalness: 0.75,
+          roughness: Math.min(0.95, 0.40 + wear * 0.4),
+          wireframe: wf
+        }),
+        safetyAccent: new THREE.MeshStandardMaterial({
+          color: 0xd97706,
+          metalness: 0.5,
+          roughness: 0.4,
+          wireframe: wf
+        }),
+        railSteel: new THREE.MeshStandardMaterial({
+          color: 0x94a3b8,
+          metalness: 0.9,
+          roughness: 0.2,
+          wireframe: wf
+        }),
+        glass: new THREE.MeshPhysicalMaterial({
+          color: 0xbae6fd,
+          transparent: true,
+          opacity: 0.32,
+          roughness: 0.05,
+          metalness: 0.1,
+          transmission: 0.6,
+          reflectivity: 0.9,
+          wireframe: wf
+        }),
+        mirror: new THREE.MeshStandardMaterial({
+          color: 0xe2e8f0,
+          metalness: 0.98,
+          roughness: 0.03,
+          wireframe: wf
+        }),
+        wood: new THREE.MeshStandardMaterial({
+          color: 0x7c4a27,
+          metalness: 0.1,
+          roughness: 0.65,
+          wireframe: wf
+        }),
+        floor: new THREE.MeshStandardMaterial({
+          map: createFloorTexture(state.floorStyle),
+          roughness: state.floorStyle === 'granite' || state.floorStyle === 'marble-grid' ? 0.18 : 0.55,
+          metalness: state.floorStyle === 'diamond-plate' ? 0.7 : 0.1,
+          wireframe: wf
+        }),
+        emissiveLight: new THREE.MeshStandardMaterial({
+          color: lightColor,
+          emissive: lightColor,
+          emissiveIntensity: 2.2,
+          wireframe: wf
+        }),
+        ledDisplay: new THREE.MeshBasicMaterial({
+          map: ledTexture
+        })
+      };
+    }
+
+    // =========================================================================
+    // 3. THREE.JS SCENE INITIALIZATION
+    // =========================================================================
+    const mount = document.getElementById('canvas-mount');
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(42, mount.clientWidth / mount.clientHeight, 0.1, 100);
+    camera.position.set(3.8, 2.4, 4.2);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setSize(mount.clientWidth, mount.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+    mount.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.target.set(0, 1.25, 0);
+    controls.maxDistance = 28;
+    controls.minDistance = 0.5;
+
+    // Studio Lighting Setup
+    const ambientLight = new THREE.HemisphereLight(0xdbeafe, 0x0f172a, 0.85);
+    scene.add(ambientLight);
+
+    const mainDirLight = new THREE.DirectionalLight(0xffffff, 1.8);
+    mainDirLight.position.set(6, 10, 7);
+    mainDirLight.castShadow = true;
+    mainDirLight.shadow.mapSize.width = 2048;
+    mainDirLight.shadow.mapSize.height = 2048;
+    mainDirLight.shadow.camera.near = 0.5;
+    mainDirLight.shadow.camera.far = 25;
+    const d = 6;
+    mainDirLight.shadow.camera.left = -d;
+    mainDirLight.shadow.camera.right = d;
+    mainDirLight.shadow.camera.top = d;
+    mainDirLight.shadow.camera.bottom = -d;
+    mainDirLight.shadow.bias = -0.0005;
+    scene.add(mainDirLight);
+
+    const rimLight = new THREE.DirectionalLight(0x38bdf8, 0.75);
+    rimLight.position.set(-6, 4, -5);
+    scene.add(rimLight);
+
+    // Interior Cab PointLight (moves with cab)
+    const cabInternalLight = new THREE.PointLight(0xffffff, 1.8, 6);
+    scene.add(cabInternalLight);
+
+    // Reference Ground Grid
+    const gridHelper = new THREE.GridHelper(16, 32, 0x38bdf8, 0x1e293b);
+    gridHelper.position.y = -0.14;
+    scene.add(gridHelper);
+
+    // Root Group for Exportable Asset
+    const assetRoot = new THREE.Group();
+    assetRoot.name = 'Parametric_Elevator_Asset';
+    scene.add(assetRoot);
+
+    // Movable Car Group (Cab + Sling) vs Stationary Hoistway Group
+    const elevatorCarGroup = new THREE.Group();
+    elevatorCarGroup.name = 'Elevator_Car_Assembly';
+    assetRoot.add(elevatorCarGroup);
+
+    const hoistwayGroup = new THREE.Group();
+    hoistwayGroup.name = 'Hoistway_Static_Assembly';
+    assetRoot.add(hoistwayGroup);
+
+    let counterweightGroup = null;
+    const doorPanels = []; // Dynamic door references for smooth real-time animation
+    const interactiveButtons = []; // Clickable 3D elevator pushbuttons
+    const draggableAssemblies = []; // 3D Draggable COP panels & Custom Buttons
+    const wallColliderMeshes = []; // Invisible interior wall planes for 3D dragging
+
+    // =========================================================================
+    // 4. PROCEDURAL PARAMETRIC ELEVATOR BUILDER
+    // =========================================================================
+    function clearGroup(group) {
+      while (group.children.length > 0) {
+        const child = group.children[0];
+        group.remove(child);
+        if (child.geometry) child.geometry.dispose();
+      }
+    }
+
+    function buildWallSection(w, h, t, wallType, mats) {
+      const group = new THREE.Group();
+
+      if (wallType === 'solid') {
+        const panel = new THREE.Mesh(new THREE.BoxGeometry(w, h, t), mats.primaryMetal);
+        panel.castShadow = true;
+        panel.receiveShadow = true;
+        group.add(panel);
+
+        // Decorative architectural reveal grooves on interior face
+        const segs = 3;
+        const pad = 0.06;
+        const innerW = (w - pad * (segs + 1)) / segs;
+        for (let i = 0; i < segs; i++) {
+          const x = -w / 2 + pad + innerW / 2 + i * (innerW + pad);
+          const inset = new THREE.Mesh(
+            new THREE.BoxGeometry(innerW, h - 0.24, 0.015),
+            mats.secondaryDark
+          );
+          inset.position.set(x, 0, t / 2 + 0.002);
+          group.add(inset);
+        }
+      } else if (wallType === 'glass') {
+        const frameThick = 0.08;
+        // Top & bottom rails
+        const topRail = new THREE.Mesh(new THREE.BoxGeometry(w, frameThick, t), mats.primaryMetal);
+        topRail.position.y = h / 2 - frameThick / 2;
+        const botRail = new THREE.Mesh(new THREE.BoxGeometry(w, frameThick * 1.5, t), mats.primaryMetal);
+        botRail.position.y = -h / 2 + (frameThick * 1.5) / 2;
+        // Left & right stiles
+        const leftStile = new THREE.Mesh(new THREE.BoxGeometry(frameThick, h, t), mats.primaryMetal);
+        leftStile.position.x = -w / 2 + frameThick / 2;
+        const rightStile = new THREE.Mesh(new THREE.BoxGeometry(frameThick, h, t), mats.primaryMetal);
+        rightStile.position.x = w / 2 - frameThick / 2;
+
+        // Structural glass pane
+        const glassPane = new THREE.Mesh(
+          new THREE.BoxGeometry(w - frameThick * 2, h - frameThick * 2.5, t * 0.35),
+          mats.glass
+        );
+        glassPane.position.y = frameThick * 0.25;
+
+        group.add(topRail, botRail, leftStile, rightStile, glassPane);
+      } else if (wallType === 'half-glass') {
+        const lowerH = h * 0.42;
+        const upperH = h - lowerH;
+        const lowerWall = new THREE.Mesh(new THREE.BoxGeometry(w, lowerH, t), mats.primaryMetal);
+        lowerWall.position.y = -h / 2 + lowerH / 2;
+
+        const glassPane = new THREE.Mesh(new THREE.BoxGeometry(w - 0.14, upperH - 0.1, t * 0.35), mats.glass);
+        glassPane.position.y = -h / 2 + lowerH + upperH / 2;
+
+        const topCap = new THREE.Mesh(new THREE.BoxGeometry(w, 0.08, t), mats.primaryMetal);
+        topCap.position.y = h / 2 - 0.04;
+
+        group.add(lowerWall, glassPane, topCap);
+      } else if (wallType === 'slats') {
+        const backing = new THREE.Mesh(new THREE.BoxGeometry(w, h, t * 0.7), mats.secondaryDark);
+        group.add(backing);
+        const slatCount = Math.floor(w / 0.07);
+        const step = w / slatCount;
+        for (let i = 0; i < slatCount; i++) {
+          const slat = new THREE.Mesh(new THREE.BoxGeometry(step * 0.55, h - 0.12, 0.025), mats.wood);
+          slat.position.set(-w / 2 + step / 2 + i * step, 0, t * 0.4);
+          group.add(slat);
+        }
+      }
+
+      return group;
+    }
+
+    function buildDoorAssembly(zSign, mats) {
+      const doorGroup = new THREE.Group();
+      const W = state.width;
+      const H = state.height;
+      const D = state.depth;
+      const T = state.wallThickness;
+
+      // Clamp door width & height safely to cab dimensions
+      const dw = Math.min(state.doorWidth, W - 0.22);
+      const dh = Math.min(state.doorHeight, H - 0.18);
+
+      const wallZ = zSign * (D / 2 + T / 2);
+
+      // Left & Right Front Wall Pillars flanking the door
+      const sidePillarW = (W + T * 2 - dw) / 2;
+      if (sidePillarW > 0.02) {
+        const leftPillar = new THREE.Mesh(new THREE.BoxGeometry(sidePillarW, H, T), mats.primaryMetal);
+        leftPillar.position.set(-(dw / 2 + sidePillarW / 2), H / 2, wallZ);
+        leftPillar.castShadow = true;
+
+        const rightPillar = new THREE.Mesh(new THREE.BoxGeometry(sidePillarW, H, T), mats.primaryMetal);
+        rightPillar.position.set(dw / 2 + sidePillarW / 2, H / 2, wallZ);
+        rightPillar.castShadow = true;
+
+        doorGroup.add(leftPillar, rightPillar);
+      }
+
+      // Upper Transom Header above Door
+      const transomH = H - dh;
+      if (transomH > 0.02) {
+        const transom = new THREE.Mesh(new THREE.BoxGeometry(dw, transomH, T), mats.primaryMetal);
+        transom.position.set(0, dh + transomH / 2, wallZ);
+        doorGroup.add(transom);
+      }
+
+      // Exterior Hallway Transom LED Floor Indicator
+      const indicatorBox = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.14, 0.03), mats.secondaryDark);
+      indicatorBox.position.set(0, dh + Math.min(0.14, transomH * 0.5), wallZ + zSign * (T / 2 + 0.01));
+      const indicatorScreen = new THREE.Mesh(new THREE.PlaneGeometry(0.28, 0.11), mats.ledDisplay);
+      indicatorScreen.position.z = zSign * 0.016;
+      if (zSign < 0) indicatorScreen.rotation.y = Math.PI;
+      indicatorBox.add(indicatorScreen);
+      doorGroup.add(indicatorBox);
+
+      // Grooved Aluminum Threshold Sill Track
+      const sill = new THREE.Mesh(new THREE.BoxGeometry(dw + 0.1, 0.04, T + 0.08), mats.railSteel);
+      sill.position.set(0, 0.01, wallZ + zSign * 0.02);
+      doorGroup.add(sill);
+
+      // Door Header Operator Track Box
+      const headerOperator = new THREE.Mesh(
+        new THREE.BoxGeometry(W * 0.96, 0.16, 0.12),
+        mats.structuralSteel
+      );
+      headerOperator.position.set(0, dh + 0.1, wallZ + zSign * (T / 2 + 0.05));
+      doorGroup.add(headerOperator);
+
+      // Helper to create a single Door Leaf Panel
+      let leafCounter = 0;
+      const createDoorLeaf = (leafW, leafH) => {
+        const leaf = new THREE.Group();
+        leaf.name = `Door_${zSign > 0 ? 'Front' : 'Rear'}_Leaf_${leafCounter++}`;
+        const leafThick = 0.035;
+
+        if (state.doorStyle === 'metal') {
+          const mesh = new THREE.Mesh(new THREE.BoxGeometry(leafW, leafH, leafThick), mats.primaryMetal);
+          mesh.castShadow = true;
+          leaf.add(mesh);
+        } else if (state.doorStyle === 'glass-framed') {
+          const f = 0.06;
+          const top = new THREE.Mesh(new THREE.BoxGeometry(leafW, f, leafThick), mats.primaryMetal);
+          top.position.y = leafH / 2 - f / 2;
+          const bot = new THREE.Mesh(new THREE.BoxGeometry(leafW, f * 1.4, leafThick), mats.primaryMetal);
+          bot.position.y = -leafH / 2 + f * 0.7;
+          const l = new THREE.Mesh(new THREE.BoxGeometry(f, leafH, leafThick), mats.primaryMetal);
+          l.position.x = -leafW / 2 + f / 2;
+          const r = new THREE.Mesh(new THREE.BoxGeometry(f, leafH, leafThick), mats.primaryMetal);
+          r.position.x = leafW / 2 - f / 2;
+          const glass = new THREE.Mesh(new THREE.BoxGeometry(leafW - f * 2, leafH - f * 2.4, 0.012), mats.glass);
+          leaf.add(top, bot, l, r, glass);
+        } else if (state.doorStyle === 'iron-portcullis') {
+          // Forged Dungeon Iron Portcullis Bars & Cross-Straps
+          const f = 0.05;
+          const top = new THREE.Mesh(new THREE.BoxGeometry(leafW, f, leafThick), mats.primaryMetal);
+          top.position.y = leafH / 2 - f / 2;
+          const bot = new THREE.Mesh(new THREE.BoxGeometry(leafW, f * 1.5, leafThick), mats.primaryMetal);
+          bot.position.y = -leafH / 2 + f * 0.75;
+          const midStrap = new THREE.Mesh(new THREE.BoxGeometry(leafW, f * 0.8, leafThick * 1.1), mats.primaryMetal);
+          leaf.add(top, bot, midStrap);
+
+          const barCount = Math.max(3, Math.floor(leafW / 0.11));
+          const step = leafW / barCount;
+          for (let b = 0; b <= barCount; b++) {
+            const bar = new THREE.Mesh(
+              new THREE.CylinderGeometry(0.012, 0.012, leafH - f, 8),
+              mats.primaryMetal
+            );
+            bar.position.x = -leafW / 2 + b * step;
+            bar.castShadow = true;
+            leaf.add(bar);
+          }
+        } else {
+          // Industrial safety mesh
+          const frame = new THREE.Mesh(new THREE.BoxGeometry(leafW, leafH, leafThick), mats.safetyAccent);
+          const inner = new THREE.Mesh(new THREE.BoxGeometry(leafW - 0.1, leafH - 0.1, leafThick + 0.004), mats.secondaryDark);
+          leaf.add(frame, inner);
+        }
+        return leaf;
+      };
+
+      // Build Moving Door Panels based on Door Type
+      const doorZ = wallZ + zSign * 0.025;
+
+      if (state.doorType === 'center-2') {
+        const leafW = dw / 2 + 0.01;
+        const leftLeaf = createDoorLeaf(leafW, dh);
+        const rightLeaf = createDoorLeaf(leafW, dh);
+
+        doorPanels.push({
+          mesh: leftLeaf,
+          type: 'horizontal',
+          closedX: -dw / 4,
+          openX: -dw / 4 - (dw / 2) * 0.95,
+          y: dh / 2,
+          z: doorZ
+        });
+        doorPanels.push({
+          mesh: rightLeaf,
+          type: 'horizontal',
+          closedX: dw / 4,
+          openX: dw / 4 + (dw / 2) * 0.95,
+          y: dh / 2,
+          z: doorZ
+        });
+        doorGroup.add(leftLeaf, rightLeaf);
+      } else if (state.doorType === 'center-4') {
+        const leafW = dw / 4 + 0.01;
+        for (const side of [-1, 1]) {
+          const outerLeaf = createDoorLeaf(leafW, dh);
+          const innerLeaf = createDoorLeaf(leafW, dh);
+          doorPanels.push({
+            mesh: outerLeaf,
+            type: 'horizontal',
+            closedX: side * (dw * 0.375),
+            openX: side * (dw * 0.375 + dw * 0.24),
+            y: dh / 2,
+            z: doorZ
+          });
+          doorPanels.push({
+            mesh: innerLeaf,
+            type: 'horizontal',
+            closedX: side * (dw * 0.125),
+            openX: side * (dw * 0.375 + dw * 0.24),
+            y: dh / 2,
+            z: doorZ + zSign * 0.038
+          });
+          doorGroup.add(outerLeaf, innerLeaf);
+        }
+      } else if (state.doorType === 'side-2') {
+        const leafW = dw / 2 + 0.015;
+        const slowLeaf = createDoorLeaf(leafW, dh);
+        const fastLeaf = createDoorLeaf(leafW, dh);
+        doorPanels.push({
+          mesh: slowLeaf,
+          type: 'horizontal',
+          closedX: -dw / 4,
+          openX: -dw * 0.72,
+          y: dh / 2,
+          z: doorZ
+        });
+        doorPanels.push({
+          mesh: fastLeaf,
+          type: 'horizontal',
+          closedX: dw / 4,
+          openX: -dw * 0.72,
+          y: dh / 2,
+          z: doorZ + zSign * 0.038
+        });
+        doorGroup.add(slowLeaf, fastLeaf);
+      } else if (state.doorType === 'biparting') {
+        const leafH = dh / 2 + 0.01;
+        const upperLeaf = createDoorLeaf(dw, leafH);
+        const lowerLeaf = createDoorLeaf(dw, leafH);
+        doorPanels.push({
+          mesh: upperLeaf,
+          type: 'vertical',
+          x: 0,
+          closedY: dh * 0.75,
+          openY: dh * 1.24,
+          z: doorZ
+        });
+        doorPanels.push({
+          mesh: lowerLeaf,
+          type: 'vertical',
+          x: 0,
+          closedY: dh * 0.25,
+          openY: -dh * 0.24,
+          z: doorZ
+        });
+        doorGroup.add(upperLeaf, lowerLeaf);
+      }
+
+      return doorGroup;
+    }
+
+    function updateDoorPositions() {
+      const ratio = state.doorOpenRatio;
+      for (const p of doorPanels) {
+        if (p.type === 'horizontal') {
+          p.mesh.position.set(
+            THREE.MathUtils.lerp(p.closedX, p.openX, ratio),
+            p.y,
+            p.z
+          );
+        } else {
+          p.mesh.position.set(
+            p.x,
+            THREE.MathUtils.lerp(p.closedY, p.openY, ratio),
+            p.z
+          );
+        }
+      }
+    }
+
+    function buildElevatorAsset() {
+      clearGroup(elevatorCarGroup);
+      clearGroup(hoistwayGroup);
+      doorPanels.length = 0;
+
+      const mats = getMaterialPalette();
+      const W = state.width;
+      const D = state.depth;
+      const H = state.height;
+      const T = state.wallThickness;
+
+      // -----------------------------------------------------------------------
+      // 1. FLOOR PLATFORM & SUBFLOOR
+      // -----------------------------------------------------------------------
+      const subFloor = new THREE.Mesh(
+        new THREE.BoxGeometry(W + T * 2 + 0.08, 0.12, D + T * 2 + 0.08),
+        mats.structuralSteel
+      );
+      subFloor.position.set(0, -0.06, 0);
+      subFloor.receiveShadow = true;
+      elevatorCarGroup.add(subFloor);
+
+      const finishFloor = new THREE.Mesh(
+        new THREE.BoxGeometry(W, 0.02, D),
+        mats.floor
+      );
+      finishFloor.position.set(0, 0.01, 0);
+      finishFloor.receiveShadow = true;
+      elevatorCarGroup.add(finishFloor);
+
+      // -----------------------------------------------------------------------
+      // 2. CAB ENCLOSURE WALLS (REAR, LEFT, RIGHT)
+      // -----------------------------------------------------------------------
+      if (!state.rearDoor) {
+        const rearWall = buildWallSection(W + T * 2, H, T, state.rearWallType, mats);
+        rearWall.position.set(0, H / 2, -(D / 2 + T / 2));
+        elevatorCarGroup.add(rearWall);
+
+        // Optional Vanity Mirror on Solid Rear Wall
+        if (state.mirror && state.rearWallType === 'solid') {
+          const mirrorPane = new THREE.Mesh(
+            new THREE.BoxGeometry(W * 0.72, H * 0.48, 0.015),
+            mats.mirror
+          );
+          mirrorPane.position.set(0, H * 0.58, -(D / 2) + 0.012);
+          elevatorCarGroup.add(mirrorPane);
+        }
+      } else {
+        const rearDoorGroup = buildDoorAssembly(-1, mats);
+        elevatorCarGroup.add(rearDoorGroup);
+      }
+
+      // Left Wall (-X)
+      const leftWall = buildWallSection(D, H, T, state.sideWallType, mats);
+      leftWall.rotation.y = Math.PI / 2;
+      leftWall.position.set(-(W / 2 + T / 2), H / 2, 0);
+      elevatorCarGroup.add(leftWall);
+
+      // Right Wall (+X) - Respects Inspector Cutaway toggle
+      if (!state.cutaway) {
+        const rightWall = buildWallSection(D, H, T, state.sideWallType, mats);
+        rightWall.rotation.y = -Math.PI / 2;
+        rightWall.position.set(W / 2 + T / 2, H / 2, 0);
+        elevatorCarGroup.add(rightWall);
+      }
+
+      // -----------------------------------------------------------------------
+      // 3. FRONT DOOR ASSEMBLY (+Z)
+      // -----------------------------------------------------------------------
+      const frontDoorGroup = buildDoorAssembly(1, mats);
+      elevatorCarGroup.add(frontDoorGroup);
+      updateDoorPositions();
+
+      // -----------------------------------------------------------------------
+      // 4. INTERIOR HANDRAILS & CAR OPERATING PANEL (COP)
+      // -----------------------------------------------------------------------
+      if (state.handrails) {
+        const railY = 0.90;
+        const railRadius = 0.02;
+        const railOffset = 0.065;
+
+        // Left Handrail
+        const leftRail = new THREE.Mesh(
+          new THREE.CylinderGeometry(railRadius, railRadius, D * 0.76, 16),
+          mats.primaryMetal
+        );
+        leftRail.rotation.x = Math.PI / 2;
+        leftRail.position.set(-W / 2 + railOffset, railY, 0);
+        elevatorCarGroup.add(leftRail);
+
+        // Right Handrail (if not cutaway)
+        if (!state.cutaway) {
+          const rightRail = leftRail.clone();
+          rightRail.position.set(W / 2 - railOffset, railY, 0);
+          elevatorCarGroup.add(rightRail);
+        }
+
+        // Rear Handrail (if not pass-through rear door)
+        if (!state.rearDoor) {
+          const rearRail = new THREE.Mesh(
+            new THREE.CylinderGeometry(railRadius, railRadius, W * 0.78, 16),
+            mats.primaryMetal
+          );
+          rearRail.rotation.z = Math.PI / 2;
+          rearRail.position.set(0, railY, -D / 2 + railOffset);
+          elevatorCarGroup.add(rearRail);
+        }
+      }
+
+      // -----------------------------------------------------------------------
+      // PARAMETRIC 3D PUSHBUTTON & COP BUILDER
+      // -----------------------------------------------------------------------
+      interactiveButtons.length = 0;
+      const haloInfo = HALO_COLOR_MAP[state.btnHaloColor] || HALO_COLOR_MAP.amber;
+
+      const haloLitMat = new THREE.MeshStandardMaterial({
+        color: haloInfo.three,
+        emissive: haloInfo.three,
+        emissiveIntensity: 2.8,
+        roughness: 0.2,
+        wireframe: state.wireframe
+      });
+
+      const haloDimMat = new THREE.MeshStandardMaterial({
+        color: haloInfo.three,
+        emissive: haloInfo.three,
+        emissiveIntensity: 0.45,
+        roughness: 0.35,
+        wireframe: state.wireframe
+      });
+
+      const alarmLitMat = new THREE.MeshStandardMaterial({
+        color: 0xf59e0b,
+        emissive: 0xf59e0b,
+        emissiveIntensity: 3.0,
+        roughness: 0.2,
+        wireframe: state.wireframe
+      });
+
+      // Helper to construct a single detailed 3D Parametric Pushbutton Assembly
+      const createParametricButtonUnit = ({
+        label,
+        isLit,
+        actionType,
+        actionValue,
+        buttonKey = null,
+        sizeMeters,
+        bezelDepthMeters,
+        isService = false,
+        shapeOverride = null,
+        colorOverride = null,
+        showBrailleOverride = null,
+        isSelectedForEdit = false
+      }) => {
+        const unit = new THREE.Group();
+        const r = sizeMeters / 2;
+        const depth = bezelDepthMeters;
+        const activeShape = (shapeOverride && shapeOverride !== 'default') ? shapeOverride : state.btnShape;
+        const activeColorKey = (colorOverride && colorOverride !== 'default') ? colorOverride : state.btnHaloColor;
+        const activeHaloInfo = HALO_COLOR_MAP[activeColorKey] || haloInfo;
+
+        const capTex = createButtonCapTexture(label, activeColorKey, isLit, isService && label === 'ALRM');
+        const capMat = new THREE.MeshStandardMaterial({
+          map: capTex,
+          roughness: 0.25,
+          metalness: 0.5,
+          emissive: isLit ? new THREE.Color(activeHaloInfo.three) : new THREE.Color(0x000000),
+          emissiveMap: capTex,
+          emissiveIntensity: isLit ? 1.35 : 0.0,
+          wireframe: state.wireframe
+        });
+
+        const customRingMat = new THREE.MeshStandardMaterial({
+          color: activeHaloInfo.three,
+          emissive: activeHaloInfo.three,
+          emissiveIntensity: isLit ? 2.8 : 0.55,
+          roughness: 0.22,
+          wireframe: state.wireframe
+        });
+
+        const ringMat = (isService && label === 'ALRM' && state.alarmActiveTimer > 0)
+          ? alarmLitMat
+          : ((colorOverride && colorOverride !== 'default') ? customRingMat : (isLit ? haloLitMat : haloDimMat));
+
+        let bezelMesh, haloMesh, plungerMesh;
+
+        if (activeShape === 'round') {
+          // Stepped metallic outer bezel collar
+          bezelMesh = new THREE.Mesh(
+            new THREE.CylinderGeometry(r * 1.12, r * 1.24, depth * 0.65, 24),
+            mats.primaryMetal
+          );
+          bezelMesh.rotation.z = Math.PI / 2;
+          bezelMesh.position.x = depth * 0.32;
+
+          // Illuminated translucent LED halo ring
+          haloMesh = new THREE.Mesh(
+            new THREE.CylinderGeometry(r * 0.98, r * 0.98, depth * 0.82, 24),
+            ringMat
+          );
+          haloMesh.rotation.z = Math.PI / 2;
+          haloMesh.position.x = depth * 0.42;
+
+          // Tactile micro-travel plunger cap with legend face
+          plungerMesh = new THREE.Mesh(
+            new THREE.CylinderGeometry(r * 0.84, r * 0.84, depth * 0.95, 24),
+            [mats.secondaryDark, capMat, capMat]
+          );
+          plungerMesh.rotation.z = Math.PI / 2;
+          plungerMesh.rotation.x = Math.PI / 2;
+          plungerMesh.position.x = depth * (isLit ? 0.38 : 0.54);
+        } else if (activeShape === 'octagon') {
+          bezelMesh = new THREE.Mesh(
+            new THREE.CylinderGeometry(r * 1.18, r * 1.28, depth * 0.68, 8),
+            mats.primaryMetal
+          );
+          bezelMesh.rotation.z = Math.PI / 2;
+          bezelMesh.rotation.x = Math.PI / 8;
+          bezelMesh.position.x = depth * 0.32;
+
+          haloMesh = new THREE.Mesh(
+            new THREE.CylinderGeometry(r * 1.02, r * 1.02, depth * 0.84, 8),
+            ringMat
+          );
+          haloMesh.rotation.z = Math.PI / 2;
+          haloMesh.rotation.x = Math.PI / 8;
+          haloMesh.position.x = depth * 0.42;
+
+          plungerMesh = new THREE.Mesh(
+            new THREE.CylinderGeometry(r * 0.86, r * 0.86, depth * 0.96, 8),
+            [mats.secondaryDark, capMat, capMat]
+          );
+          plungerMesh.rotation.z = Math.PI / 2;
+          plungerMesh.rotation.x = Math.PI / 2;
+          plungerMesh.position.x = depth * (isLit ? 0.38 : 0.54);
+        } else if (activeShape === 'diamond') {
+          bezelMesh = new THREE.Mesh(
+            new THREE.BoxGeometry(depth * 0.65, sizeMeters * 1.05, sizeMeters * 1.05),
+            mats.primaryMetal
+          );
+          bezelMesh.rotation.x = Math.PI / 4;
+          bezelMesh.position.x = depth * 0.32;
+
+          haloMesh = new THREE.Mesh(
+            new THREE.BoxGeometry(depth * 0.82, sizeMeters * 0.90, sizeMeters * 0.90),
+            ringMat
+          );
+          haloMesh.rotation.x = Math.PI / 4;
+          haloMesh.position.x = depth * 0.42;
+
+          plungerMesh = new THREE.Mesh(
+            new THREE.BoxGeometry(depth * 0.95, sizeMeters * 0.76, sizeMeters * 0.76),
+            [capMat, capMat, mats.secondaryDark, mats.secondaryDark, mats.secondaryDark, mats.secondaryDark]
+          );
+          plungerMesh.position.x = depth * (isLit ? 0.38 : 0.54);
+        } else if (activeShape === 'mushroom') {
+          bezelMesh = new THREE.Mesh(
+            new THREE.CylinderGeometry(r * 0.95, r * 1.15, depth * 0.7, 24),
+            mats.safetyAccent
+          );
+          bezelMesh.rotation.z = Math.PI / 2;
+          bezelMesh.position.x = depth * 0.35;
+
+          haloMesh = new THREE.Mesh(
+            new THREE.CylinderGeometry(r * 0.75, r * 0.75, depth * 1.1, 24),
+            ringMat
+          );
+          haloMesh.rotation.z = Math.PI / 2;
+          haloMesh.position.x = depth * 0.55;
+
+          plungerMesh = new THREE.Mesh(
+            new THREE.CylinderGeometry(r * 1.18, r * 0.85, depth * 0.95, 24),
+            [ringMat, capMat, capMat]
+          );
+          plungerMesh.rotation.z = Math.PI / 2;
+          plungerMesh.rotation.x = Math.PI / 2;
+          plungerMesh.position.x = depth * (isLit ? 0.75 : 0.95);
+        } else if (activeShape === 'square') {
+          bezelMesh = new THREE.Mesh(
+            new THREE.BoxGeometry(depth * 0.65, sizeMeters * 1.16, sizeMeters * 1.16),
+            mats.primaryMetal
+          );
+          bezelMesh.position.x = depth * 0.32;
+
+          haloMesh = new THREE.Mesh(
+            new THREE.BoxGeometry(depth * 0.82, sizeMeters * 0.98, sizeMeters * 0.98),
+            ringMat
+          );
+          haloMesh.position.x = depth * 0.42;
+
+          plungerMesh = new THREE.Mesh(
+            new THREE.BoxGeometry(depth * 0.95, sizeMeters * 0.84, sizeMeters * 0.84),
+            [capMat, capMat, mats.secondaryDark, mats.secondaryDark, mats.secondaryDark, mats.secondaryDark]
+          );
+          plungerMesh.position.x = depth * (isLit ? 0.38 : 0.54);
+        } else if (activeShape === 'pill') {
+          bezelMesh = new THREE.Mesh(
+            new THREE.BoxGeometry(depth * 0.65, sizeMeters * 1.32, sizeMeters * 0.92),
+            mats.primaryMetal
+          );
+          bezelMesh.position.x = depth * 0.32;
+
+          haloMesh = new THREE.Mesh(
+            new THREE.BoxGeometry(depth * 0.82, sizeMeters * 1.16, sizeMeters * 0.78),
+            ringMat
+          );
+          haloMesh.position.x = depth * 0.42;
+
+          plungerMesh = new THREE.Mesh(
+            new THREE.BoxGeometry(depth * 0.95, sizeMeters * 1.02, sizeMeters * 0.66),
+            [capMat, capMat, mats.secondaryDark, mats.secondaryDark, mats.secondaryDark, mats.secondaryDark]
+          );
+          plungerMesh.position.x = depth * (isLit ? 0.38 : 0.54);
+        } else {
+          // Capacitive Flush Glass Touch Button
+          bezelMesh = new THREE.Mesh(
+            new THREE.BoxGeometry(depth * 0.35, sizeMeters * 1.12, sizeMeters * 1.12),
+            mats.secondaryDark
+          );
+          bezelMesh.position.x = depth * 0.18;
+
+          haloMesh = new THREE.Mesh(
+            new THREE.BoxGeometry(depth * 0.45, sizeMeters * 0.98, sizeMeters * 0.98),
+            ringMat
+          );
+          haloMesh.position.x = depth * 0.24;
+
+          plungerMesh = new THREE.Mesh(
+            new THREE.BoxGeometry(depth * 0.52, sizeMeters * 0.88, sizeMeters * 0.88),
+            [capMat, capMat, mats.secondaryDark, mats.secondaryDark, mats.secondaryDark, mats.secondaryDark]
+          );
+          plungerMesh.position.x = depth * 0.28;
+        }
+
+        unit.add(bezelMesh, haloMesh, plungerMesh);
+
+        // Selection indicator ring when editing this specific button in 3D
+        if (isSelectedForEdit && state.buttonClickMode === 'edit') {
+          const selRing = new THREE.Mesh(
+            new THREE.RingGeometry(r * 1.28, r * 1.44, 24),
+            new THREE.MeshBasicMaterial({ color: 0xc084fc, side: THREE.DoubleSide })
+          );
+          selRing.rotation.y = Math.PI / 2;
+          selRing.position.x = 0.002;
+          unit.add(selRing);
+        }
+
+        // Optional ADA Tactile & Braille Tag Plate beside the Button
+        const useBraille = showBrailleOverride !== null ? showBrailleOverride : (state.btnBraille && !isService);
+        if (useBraille) {
+          const brailleTex = createBraillePlateTexture(label);
+          const brailleMat = new THREE.MeshStandardMaterial({
+            map: brailleTex,
+            roughness: 0.4,
+            metalness: 0.3,
+            wireframe: state.wireframe
+          });
+          const tagW = sizeMeters * 0.95;
+          const tagH = sizeMeters * 0.52;
+          const tagPlate = new THREE.Mesh(
+            new THREE.BoxGeometry(0.003, tagH, tagW),
+            [brailleMat, brailleMat, mats.secondaryDark, mats.secondaryDark, mats.secondaryDark, mats.secondaryDark]
+          );
+          tagPlate.position.set(0.002, 0, -sizeMeters * 0.68 - tagW * 0.5);
+          unit.add(tagPlate);
+        }
+
+        // Register Plunger & Halo for 3D Raycast Clicking & Press Animation
+        plungerMesh.userData.buttonAction = {
+          actionType,
+          actionValue,
+          buttonKey,
+          label,
+          plungerMesh,
+          baseX: plungerMesh.position.x,
+          pressedOffset: depth * 0.28,
+          pressTimer: 0
+        };
+        bezelMesh.userData.buttonAction = plungerMesh.userData.buttonAction;
+        haloMesh.userData.buttonAction = plungerMesh.userData.buttonAction;
+        interactiveButtons.push(plungerMesh, bezelMesh, haloMesh);
+
+        return unit;
+      };
+
+      // Helper to position any local +X facing assembly onto a chosen cab wall or pedestal
+      const placeAssemblyOnMount = (group, mountWall, hOffset, vHeight) => {
+        const clampedY = THREE.MathUtils.clamp(vHeight, 0.35, H - 0.25);
+        if (mountWall === 'left') {
+          const zPos = THREE.MathUtils.clamp(hOffset, -D / 2 + 0.16, D / 2 - 0.16);
+          group.rotation.set(0, 0, 0);
+          group.position.set(-W / 2 + 0.012, clampedY, zPos);
+        } else if (mountWall === 'right') {
+          const zPos = THREE.MathUtils.clamp(hOffset, -D / 2 + 0.16, D / 2 - 0.16);
+          group.rotation.set(0, Math.PI, 0);
+          group.position.set(W / 2 - 0.012, clampedY, zPos);
+        } else if (mountWall === 'rear') {
+          const xPos = THREE.MathUtils.clamp(hOffset, -W / 2 + 0.16, W / 2 - 0.16);
+          group.rotation.set(0, -Math.PI / 2, 0);
+          group.position.set(xPos, clampedY, -D / 2 + 0.012);
+        } else if (mountWall === 'front-jamb') {
+          const dw = Math.min(state.doorWidth, W - 0.22);
+          const jambCenter = (W / 2 + dw / 2) / 2;
+          const sideSign = hOffset >= 0 ? -1 : 1;
+          group.rotation.set(0, Math.PI / 2, 0);
+          group.position.set(sideSign * jambCenter, clampedY, D / 2 - 0.012);
+        } else if (mountWall === 'pedestal') {
+          const xPos = THREE.MathUtils.clamp(hOffset, -W / 3, W / 3);
+          group.rotation.set(0, -Math.PI / 2, 0);
+          group.position.set(xPos, clampedY, 0);
+        }
+      };
+
+      draggableAssemblies.length = 0;
+      wallColliderMeshes.length = 0;
+
+      // Invisible interior wall planes for smooth 3D raycast dragging
+      const colliderMat = new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide });
+      const leftCollider = new THREE.Mesh(new THREE.PlaneGeometry(D, H), colliderMat);
+      leftCollider.rotation.y = Math.PI / 2;
+      leftCollider.position.set(-W / 2 + 0.02, H / 2, 0);
+      leftCollider.userData.wallType = 'left';
+
+      const rightCollider = new THREE.Mesh(new THREE.PlaneGeometry(D, H), colliderMat);
+      rightCollider.rotation.y = -Math.PI / 2;
+      rightCollider.position.set(W / 2 - 0.02, H / 2, 0);
+      rightCollider.userData.wallType = 'right';
+
+      const rearCollider = new THREE.Mesh(new THREE.PlaneGeometry(W, H), colliderMat);
+      rearCollider.position.set(0, H / 2, -D / 2 + 0.02);
+      rearCollider.userData.wallType = 'rear';
+
+      elevatorCarGroup.add(leftCollider, rightCollider, rearCollider);
+      wallColliderMeshes.push(leftCollider, rightCollider, rearCollider);
+
+      // Car Operating Panel (COP) inside Cab (Built in canonical +X normal space)
+      const buildCOP = (mountWall, hOffset, vHeight, isSecondary = false) => {
+        const copGroup = new THREE.Group();
+        copGroup.name = isSecondary ? 'COP_Panel_Secondary' : 'COP_Panel_Primary';
+        const btnSizeM = state.btnSize / 1000;
+        const bezelDepthM = state.btnBezelDepth / 1000;
+        const pitchY = state.btnPitch / 1000;
+
+        const cols = state.btnLayout === 'single-col' ? 1 : (state.btnLayout === 'grid-3' ? 3 : 2);
+        const rows = Math.ceil(state.copFloorCount / cols);
+
+        const colSpacing = state.btnBraille
+          ? btnSizeM * 2.45
+          : btnSizeM * 1.55;
+
+        const panelWidthZ = Math.max(0.26, cols * colSpacing + 0.10);
+        const panelHeightY = Math.min(H * 0.86, Math.max(0.68, rows * pitchY + 0.56));
+
+        // Optional Floor Pedestal Stand if mounted in Center Kiosk mode
+        if (mountWall === 'pedestal') {
+          const postH = Math.max(0.3, vHeight);
+          const post = new THREE.Mesh(
+            new THREE.BoxGeometry(0.12, postH, 0.14),
+            mats.structuralSteel
+          );
+          post.position.set(-0.06, -postH / 2, 0);
+          const basePlate = new THREE.Mesh(
+            new THREE.BoxGeometry(0.28, 0.03, 0.34),
+            mats.primaryMetal
+          );
+          basePlate.position.set(-0.06, -postH + 0.015, 0);
+          copGroup.add(post, basePlate);
+        }
+
+        // Brushed Metallic Faceplate with Dark Recessed Reveal Trim
+        const backingFrame = new THREE.Mesh(
+          new THREE.BoxGeometry(0.014, panelHeightY + 0.02, panelWidthZ + 0.02),
+          mats.secondaryDark
+        );
+        const panelPlate = new THREE.Mesh(
+          new THREE.BoxGeometry(0.022, panelHeightY, panelWidthZ),
+          mats.primaryMetal
+        );
+        panelPlate.position.x = 0.004;
+        copGroup.add(backingFrame, panelPlate);
+
+        // Register COP faceplate for 3D dragging
+        panelPlate.userData.dragItem = { type: 'cop' };
+        backingFrame.userData.dragItem = { type: 'cop' };
+        draggableAssemblies.push(panelPlate, backingFrame);
+
+        const surfaceX = 0.015;
+
+        // Top Digital LED Position & Direction Matrix Screen
+        const screenTopY = panelHeightY / 2 - 0.11;
+        const screenBezel = new THREE.Mesh(
+          new THREE.BoxGeometry(0.008, 0.12, Math.min(0.20, panelWidthZ * 0.76)),
+          mats.secondaryDark
+        );
+        screenBezel.position.set(surfaceX, screenTopY, 0);
+        copGroup.add(screenBezel);
+
+        const screen = new THREE.Mesh(
+          new THREE.PlaneGeometry(Math.min(0.18, panelWidthZ * 0.70), 0.095),
+          mats.ledDisplay
+        );
+        screen.rotation.y = Math.PI / 2;
+        screen.position.set(surfaceX + 0.005, screenTopY, 0);
+        copGroup.add(screen);
+
+        // Perforated Intercom Speaker Grille below LED screen
+        const grilleY = screenTopY - 0.09;
+        for (let gy = -1; gy <= 1; gy++) {
+          const slot = new THREE.Mesh(
+            new THREE.BoxGeometry(0.004, 0.005, 0.09),
+            mats.secondaryDark
+          );
+          slot.position.set(surfaceX + 0.002, grilleY + gy * 0.011, 0);
+          copGroup.add(slot);
+        }
+
+        // Parametric Floor Call Pushbuttons Matrix (Bottom-to-Top ISO order)
+        const matrixTopY = grilleY - 0.065;
+        const matrixStartY = matrixTopY - (rows - 1) * pitchY;
+
+        for (let f = 1; f <= state.copFloorCount; f++) {
+          const idx = f - 1;
+          const r = Math.floor(idx / cols);
+          const c = idx % cols;
+          const btnKey = `floor_${f}`;
+          const ov = state.copButtonOverrides[btnKey] || {};
+
+          const btnY = matrixStartY + r * pitchY + (ov.offsetV || 0);
+          const btnZ = (c - (cols - 1) / 2) * colSpacing + (state.btnBraille ? btnSizeM * 0.35 : 0) + (ov.offsetH || 0);
+          const defaultLit = (f === state.targetFloor && state.simPhase !== 'idle') || (f === state.currentFloor && state.simPhase === 'idle');
+          const isLit = ov.isLit !== undefined ? Boolean(ov.isLit) : defaultLit;
+          const label = (ov.label !== undefined && ov.label !== '') ? ov.label : getFloorLabel(f, state.copFloorCount);
+          const customSizeM = (ov.size || state.btnSize) / 1000;
+          const isSelectedForEdit = !isSecondary && state.selectedButtonTarget?.kind === 'cop' && state.selectedButtonTarget?.key === btnKey;
+
+          const btnUnit = createParametricButtonUnit({
+            label,
+            isLit,
+            actionType: 'floor',
+            actionValue: f,
+            buttonKey: btnKey,
+            sizeMeters: customSizeM,
+            bezelDepthMeters: bezelDepthM,
+            isService: false,
+            shapeOverride: ov.shape || null,
+            colorOverride: ov.color || null,
+            isSelectedForEdit
+          });
+          btnUnit.name = `COP_Button_Floor_${label}`;
+          btnUnit.position.set(surfaceX, btnY, btnZ);
+
+          // Allow individual COP buttons to be dragged on the panel
+          btnUnit.traverse((child) => {
+            if (child.isMesh) {
+              child.userData.dragItem = {
+                type: 'copBtn',
+                key: btnKey,
+                baseY: matrixStartY + r * pitchY,
+                baseZ: (c - (cols - 1) / 2) * colSpacing + (state.btnBraille ? btnSizeM * 0.35 : 0)
+              };
+              draggableAssemblies.push(child);
+            }
+          });
+
+          copGroup.add(btnUnit);
+        }
+
+        // Auxiliary Service Row (Door Open ◄►, Door Close ►◄, Alarm, Key Switch)
+        if (state.btnServiceRow) {
+          const serviceY = matrixStartY - pitchY * 1.05;
+          const serviceSpecs = [
+            { key: 'srv_doorOpen', label: '◄►', actionType: 'doorOpen', isLit: state.targetDoorOpen > 0.5 },
+            { key: 'srv_doorClose', label: '►◄', actionType: 'doorClose', isLit: state.targetDoorOpen <= 0.1 },
+            { key: 'srv_alarm', label: 'ALRM', actionType: 'alarm', isLit: state.alarmActiveTimer > 0 }
+          ];
+          const srvSpacing = Math.min(0.068, (panelWidthZ - 0.05) / 3);
+
+          serviceSpecs.forEach((spec, sIdx) => {
+            const ov = state.copButtonOverrides[spec.key] || {};
+            const srvZ = (sIdx - 1) * srvSpacing + (ov.offsetH || 0);
+            const srvY = serviceY + (ov.offsetV || 0);
+            const srvLabel = (ov.label !== undefined && ov.label !== '') ? ov.label : spec.label;
+            const srvSizeM = ov.size ? (ov.size / 1000) : (btnSizeM * 0.88);
+            const srvLit = ov.isLit !== undefined ? Boolean(ov.isLit) : spec.isLit;
+            const isSelectedForEdit = !isSecondary && state.selectedButtonTarget?.kind === 'cop' && state.selectedButtonTarget?.key === spec.key;
+
+            const srvUnit = createParametricButtonUnit({
+              label: srvLabel,
+              isLit: srvLit,
+              actionType: spec.actionType,
+              actionValue: null,
+              buttonKey: spec.key,
+              sizeMeters: srvSizeM,
+              bezelDepthMeters: bezelDepthM * 0.9,
+              isService: true,
+              shapeOverride: ov.shape || null,
+              colorOverride: ov.color || null,
+              isSelectedForEdit
+            });
+            srvUnit.position.set(surfaceX, srvY, srvZ);
+
+            srvUnit.traverse((child) => {
+              if (child.isMesh) {
+                child.userData.dragItem = {
+                  type: 'copBtn',
+                  key: spec.key,
+                  baseY: serviceY,
+                  baseZ: (sIdx - 1) * srvSpacing
+                };
+                draggableAssemblies.push(child);
+              }
+            });
+
+            copGroup.add(srvUnit);
+          });
+
+          // Fire Service Key Switch & Locked Cabinet Seam at bottom of COP
+          const keyY = serviceY - pitchY * 0.82;
+          const keyBezel = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.012, 0.014, 0.008, 16),
+            mats.railSteel
+          );
+          keyBezel.rotation.z = Math.PI / 2;
+          keyBezel.position.set(surfaceX + 0.003, keyY, -0.035);
+
+          const keySlot = new THREE.Mesh(
+            new THREE.BoxGeometry(0.004, 0.012, 0.003),
+            mats.secondaryDark
+          );
+          keySlot.position.set(surfaceX + 0.007, keyY, -0.035);
+
+          // Red Emergency Fire Service Indicator Jewel
+          const fireJewel = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.007, 0.007, 0.006, 12),
+            state.alarmActiveTimer > 0 ? alarmLitMat : mats.safetyAccent
+          );
+          fireJewel.rotation.z = Math.PI / 2;
+          fireJewel.position.set(surfaceX + 0.003, keyY, 0.035);
+
+          copGroup.add(keyBezel, keySlot, fireJewel);
+        }
+
+        placeAssemblyOnMount(copGroup, mountWall, hOffset, vHeight);
+        return copGroup;
+      };
+
+      if (!(state.copMountWall === 'right' && state.cutaway)) {
+        elevatorCarGroup.add(buildCOP(state.copMountWall, state.copOffsetH, state.copOffsetV, false));
+      }
+      if (state.dualCop && !state.cutaway && state.copMountWall === 'left') {
+        elevatorCarGroup.add(buildCOP('right', state.copOffsetH, state.copOffsetV, true));
+      }
+
+      // -----------------------------------------------------------------------
+      // CUSTOM STANDALONE BUTTONS (FROM CUSTOM BUTTON MAKER)
+      // -----------------------------------------------------------------------
+      for (const cb of state.customButtons) {
+        if (cb.wall === 'right' && state.cutaway) continue;
+
+        const cbGroup = new THREE.Group();
+        cbGroup.name = `Custom_Button_${cb.label}_${cb.id}`;
+        const sizeM = (cb.size || 48) / 1000;
+        const depthM = (cb.bezelDepth || 10) / 1000;
+        const isSelected = cb.id === state.selectedCustomBtnId;
+
+        // Mounting Backplate / Escutcheon Plaque
+        const plaqueSize = sizeM * 1.55;
+        const plaqueMat = isSelected && state.dragButtonsMode
+          ? mats.safetyAccent
+          : mats.primaryMetal;
+
+        const plaque = new THREE.Mesh(
+          new THREE.BoxGeometry(0.012, plaqueSize, plaqueSize),
+          plaqueMat
+        );
+        plaque.position.x = 0.006;
+        cbGroup.add(plaque);
+
+        // If mounted on center pedestal, add dedicated mini-pedestal post
+        if (cb.wall === 'pedestal') {
+          const postH = Math.max(0.3, cb.v);
+          const post = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.035, 0.045, postH, 16),
+            mats.structuralSteel
+          );
+          post.position.set(-0.02, -postH / 2, 0);
+          cbGroup.add(post);
+        }
+
+        const btnUnit = createParametricButtonUnit({
+          label: cb.label || 'BTN',
+          isLit: cb.isLit !== false,
+          actionType: 'custom',
+          actionValue: cb.id,
+          buttonKey: `custom_${cb.id}`,
+          sizeMeters: sizeM,
+          bezelDepthMeters: depthM,
+          isService: false,
+          shapeOverride: cb.shape || 'round',
+          colorOverride: cb.color || 'crimson',
+          showBrailleOverride: false,
+          isSelectedForEdit: state.selectedButtonTarget?.kind === 'custom' && state.selectedButtonTarget?.id === cb.id
+        });
+        btnUnit.position.set(0.012, 0, 0);
+        cbGroup.add(btnUnit);
+
+        // Register all children of this custom button so it can be dragged in 3D
+        cbGroup.traverse((child) => {
+          if (child.isMesh) {
+            child.userData.dragItem = { type: 'customBtn', id: cb.id };
+            draggableAssemblies.push(child);
+          }
+        });
+
+        placeAssemblyOnMount(cbGroup, cb.wall || 'rear', cb.h || 0, cb.v || 1.35);
+        elevatorCarGroup.add(cbGroup);
+      }
+
+      // -----------------------------------------------------------------------
+      // EXTERIOR HALL CALL BUTTON STATION ON FRONT ENTRANCE JAMB
+      // -----------------------------------------------------------------------
+      if (state.hallCallStation) {
+        const hallGroup = new THREE.Group();
+        const btnSizeM = state.btnSize / 1000;
+        const bezelDepthM = state.btnBezelDepth / 1000;
+        const dw = Math.min(state.doorWidth, W - 0.22);
+
+        const hallPlate = new THREE.Mesh(
+          new THREE.BoxGeometry(0.095, 0.24, 0.016),
+          mats.primaryMetal
+        );
+        hallGroup.add(hallPlate);
+
+        const upBtn = createParametricButtonUnit({
+          label: '▲',
+          isLit: state.targetDoorOpen > 0.5,
+          actionType: 'doorOpen',
+          actionValue: null,
+          sizeMeters: btnSizeM * 0.95,
+          bezelDepthMeters: bezelDepthM,
+          isService: true
+        });
+        upBtn.rotation.y = -Math.PI / 2;
+        upBtn.position.set(0, 0.048, 0.008);
+
+        const dnBtn = createParametricButtonUnit({
+          label: '▼',
+          isLit: false,
+          actionType: 'doorOpen',
+          actionValue: null,
+          sizeMeters: btnSizeM * 0.95,
+          bezelDepthMeters: bezelDepthM,
+          isService: true
+        });
+        dnBtn.rotation.y = -Math.PI / 2;
+        dnBtn.position.set(0, -0.048, 0.008);
+
+        hallGroup.add(upBtn, dnBtn);
+        hallGroup.position.set(
+          Math.min(W / 2 + T - 0.07, dw / 2 + 0.14),
+          1.05,
+          D / 2 + T + 0.008
+        );
+        elevatorCarGroup.add(hallGroup);
+      }
+
+      // -----------------------------------------------------------------------
+      // 5. CEILING & LUMINAIRE ARCHITECTURE
+      // -----------------------------------------------------------------------
+      const roofDeck = new THREE.Mesh(
+        new THREE.BoxGeometry(W + T * 2, 0.09, D + T * 2),
+        mats.structuralSteel
+      );
+      roofDeck.position.set(0, H + 0.045, 0);
+      roofDeck.castShadow = true;
+      elevatorCarGroup.add(roofDeck);
+
+      if (state.ceilingStyle === 'led-grid') {
+        const cols = 2;
+        const rows = 3;
+        const pad = 0.14;
+        const pW = (W - pad * (cols + 1)) / cols;
+        const pD = (D - pad * (rows + 1)) / rows;
+        for (let c = 0; c < cols; c++) {
+          for (let r = 0; r < rows; r++) {
+            const panel = new THREE.Mesh(new THREE.BoxGeometry(pW, 0.02, pD), mats.emissiveLight);
+            panel.position.set(
+              -W / 2 + pad + pW / 2 + c * (pW + pad),
+              H - 0.015,
+              -D / 2 + pad + pD / 2 + r * (pD + pad)
+            );
+            elevatorCarGroup.add(panel);
+          }
+        }
+      } else if (state.ceilingStyle === 'perimeter-cove') {
+        const coveGlow = new THREE.Mesh(
+          new THREE.BoxGeometry(W * 0.92, 0.015, D * 0.92),
+          mats.emissiveLight
+        );
+        coveGlow.position.set(0, H - 0.01, 0);
+        const dropPlate = new THREE.Mesh(
+          new THREE.BoxGeometry(W * 0.76, 0.03, D * 0.76),
+          mats.primaryMetal
+        );
+        dropPlate.position.set(0, H - 0.035, 0);
+        elevatorCarGroup.add(coveGlow, dropPlate);
+      } else if (state.ceilingStyle === 'linear-bars') {
+        for (let i = -1; i <= 1; i++) {
+          const bar = new THREE.Mesh(
+            new THREE.BoxGeometry(0.08, 0.025, D * 0.82),
+            mats.emissiveLight
+          );
+          bar.position.set(i * (W * 0.28), H - 0.02, 0);
+          elevatorCarGroup.add(bar);
+        }
+      } else {
+        // Industrial Cage Strip
+        const strip = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.05, 0.05, D * 0.7, 12),
+          mats.emissiveLight
+        );
+        strip.rotation.x = Math.PI / 2;
+        strip.position.set(0, H - 0.06, 0);
+        elevatorCarGroup.add(strip);
+      }
+
+      // Update Real-time PointLight inside Cab
+      cabInternalLight.color.copy(kelvinToRGB(state.lightKelvin));
+
+      // -----------------------------------------------------------------------
+      // 6. ROOFTOP EQUIPMENT (HVAC UNIT & SAFETY BALUSTRADE)
+      // -----------------------------------------------------------------------
+      if (state.showRoofEquip) {
+        const hvac = new THREE.Mesh(
+          new THREE.BoxGeometry(W * 0.38, 0.26, D * 0.35),
+          mats.secondaryDark
+        );
+        hvac.position.set(-W * 0.2, H + 0.22, -D * 0.15);
+        elevatorCarGroup.add(hvac);
+
+        // Emergency Roof Escape Hatch
+        const hatch = new THREE.Mesh(
+          new THREE.BoxGeometry(0.50, 0.05, 0.60),
+          mats.safetyAccent
+        );
+        hatch.position.set(W * 0.22, H + 0.11, D * 0.15);
+        elevatorCarGroup.add(hatch);
+      }
+
+      // -----------------------------------------------------------------------
+      // 7. STRUCTURAL CAR SLING FRAME (CROSSHEAD, STILES, SAFETY PLANK)
+      // -----------------------------------------------------------------------
+      const slingSpanX = W + T * 2 + 0.24;
+      const crossheadY = H + 0.55;
+
+      if (state.showSling) {
+        const slingGroup = new THREE.Group();
+
+        // Left & Right Vertical Steel Channel Stiles
+        for (const s of [-1, 1]) {
+          const stile = new THREE.Mesh(
+            new THREE.BoxGeometry(0.10, crossheadY + 0.35, 0.18),
+            mats.structuralSteel
+          );
+          stile.position.set(s * (slingSpanX / 2 - 0.05), (crossheadY - 0.35) / 2, 0);
+          slingGroup.add(stile);
+
+          // Upper & Lower Roller Guide Shoes on Stiles
+          for (const gy of [-0.15, crossheadY - 0.05]) {
+            const shoe = new THREE.Mesh(
+              new THREE.BoxGeometry(0.18, 0.22, 0.24),
+              mats.safetyAccent
+            );
+            shoe.position.set(s * (slingSpanX / 2), gy, 0);
+            slingGroup.add(shoe);
+          }
+        }
+
+        // Top Crosshead Crown Beam
+        const crosshead = new THREE.Mesh(
+          new THREE.BoxGeometry(slingSpanX + 0.12, 0.24, 0.32),
+          mats.structuralSteel
+        );
+        crosshead.position.set(0, crossheadY, 0);
+        slingGroup.add(crosshead);
+
+        // Bottom Safety Plank Under Platform
+        const safetyPlank = new THREE.Mesh(
+          new THREE.BoxGeometry(slingSpanX, 0.16, 0.28),
+          mats.structuralSteel
+        );
+        safetyPlank.position.set(0, -0.20, 0);
+        slingGroup.add(safetyPlank);
+
+        elevatorCarGroup.add(slingGroup);
+      }
+
+      // -----------------------------------------------------------------------
+      // 8. HOISTWAY GUIDE RAILS, COUNTERWEIGHT & TRACTION ROPES
+      // -----------------------------------------------------------------------
+      const railHeight = 14.0;
+      const railBaseY = 4.5;
+
+      if (state.showRails) {
+        const railX = slingSpanX / 2 + 0.08;
+        for (const s of [-1, 1]) {
+          // Main T-Rail Stem
+          const rail = new THREE.Mesh(
+            new THREE.BoxGeometry(0.08, railHeight, 0.12),
+            mats.railSteel
+          );
+          rail.position.set(s * railX, railBaseY, 0);
+          hoistwayGroup.add(rail);
+
+          // Periodic Brackets along the Guide Rail
+          for (let by = -1; by <= 10; by += 2.2) {
+            const bracket = new THREE.Mesh(
+              new THREE.BoxGeometry(0.14, 0.08, 0.24),
+              mats.structuralSteel
+            );
+            bracket.position.set(s * (railX + 0.05), by, 0);
+            hoistwayGroup.add(bracket);
+          }
+        }
+      }
+
+      if (state.showCables) {
+        // Hitch Plate & Sheave Assembly on Crosshead
+        const hitch = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.24, 0.24, 0.14, 24),
+          mats.safetyAccent
+        );
+        hitch.rotation.z = Math.PI / 2;
+        hitch.position.set(0, crossheadY + 0.18, 0);
+        elevatorCarGroup.add(hitch);
+
+        // 5 Parallel Steel Hoist Ropes
+        for (let i = -2; i <= 2; i++) {
+          const rope = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.008, 0.008, 12, 8),
+            mats.railSteel
+          );
+          rope.position.set(i * 0.03, crossheadY + 6.0, 0);
+          elevatorCarGroup.add(rope);
+        }
+
+        // Counterweight Assembly (moves inversely to car)
+        counterweightGroup = new THREE.Group();
+        const cwFrame = new THREE.Mesh(
+          new THREE.BoxGeometry(W * 0.55, 2.2, 0.16),
+          mats.structuralSteel
+        );
+        const cwBlocks = new THREE.Mesh(
+          new THREE.BoxGeometry(W * 0.48, 1.8, 0.20),
+          mats.secondaryDark
+        );
+        counterweightGroup.add(cwFrame, cwBlocks);
+        counterweightGroup.position.set(0, 3.5 - state.elevatorY, -(D / 2 + T + 0.28));
+        hoistwayGroup.add(counterweightGroup);
+      } else {
+        counterweightGroup = null;
+      }
+
+      // Optional Multi-Floor Shaft Rings
+      if (state.showShaft) {
+        const shaftW = W + T * 2 + 0.65;
+        const shaftD = D + T * 2 + 0.75;
+        for (let f = 0; f < 4; f++) {
+          const ringY = f * 3.2;
+          const slab = new THREE.Mesh(
+            new THREE.BoxGeometry(shaftW + 0.8, 0.18, 0.6),
+            mats.secondaryDark
+          );
+          slab.position.set(0, ringY - 0.09, shaftD / 2 + 0.2);
+          hoistwayGroup.add(slab);
+        }
+      }
+
+      updateEngineeringTelemetry();
+    }
+
+    // =========================================================================
+    // 5. ENGINEERING TELEMETRY & 3D DIMENSION LABELS
+    // =========================================================================
+    function updateEngineeringTelemetry() {
+      const area = state.width * state.depth;
+      // Standard EN-81 / ISO passenger & load approximation (~420 kg per m²)
+      const ratedLoad = Math.round((area * 425) / 50) * 50;
+      const passengers = Math.max(2, Math.floor(ratedLoad / 75));
+
+      document.getElementById('stat-area').textContent = `${area.toFixed(2)} m²`;
+      document.getElementById('stat-capacity').textContent = `${ratedLoad} kg`;
+      document.getElementById('stat-passengers').textContent = `${passengers} pers`;
+
+      // Count total triangles in generated asset
+      let tris = 0;
+      assetRoot.traverse((obj) => {
+        if (obj.isMesh && obj.geometry) {
+          const geom = obj.geometry;
+          tris += geom.index ? geom.index.count / 3 : geom.attributes.position.count / 3;
+        }
+      });
+      document.getElementById('stat-triangles').textContent = `${Math.round(tris).toLocaleString()} tris`;
+
+      // Update 3D dimension badge text
+      document.getElementById('label-width').textContent = `W: ${state.width.toFixed(2)}m`;
+      document.getElementById('label-depth').textContent = `D: ${state.depth.toFixed(2)}m`;
+      document.getElementById('label-height').textContent = `H: ${state.height.toFixed(2)}m`;
+    }
+
+    function updateDimensionLabelsOverlay() {
+      const container = document.getElementById('labels-container');
+      if (!state.showDimensions) {
+        container.style.opacity = '0';
+        return;
+      }
+      container.style.opacity = '1';
+
+      const W = state.width;
+      const D = state.depth;
+      const H = state.height;
+      const Y = state.elevatorY;
+
+      const points = [
+        { id: 'label-width', pos: new THREE.Vector3(0, Y - 0.15, D / 2 + 0.35) },
+        { id: 'label-depth', pos: new THREE.Vector3(W / 2 + 0.35, Y - 0.15, 0) },
+        { id: 'label-height', pos: new THREE.Vector3(-W / 2 - 0.35, Y + H / 2, D / 2 + 0.2) }
+      ];
+
+      const rect = mount.getBoundingClientRect();
+      for (const item of points) {
+        const v = item.pos.clone().project(camera);
+        const el = document.getElementById(item.id);
+        if (v.z > 1) {
+          el.style.opacity = '0';
+        } else {
+          const x = (v.x * 0.5 + 0.5) * rect.width;
+          const y = (-(v.y * 0.5) + 0.5) * rect.height;
+          el.style.opacity = '1';
+          el.style.left = `${x}px`;
+          el.style.top = `${y}px`;
+        }
+      }
+    }
+
+    // =========================================================================
+    // 6. UI CONTROLS, PRESETS & EVENT LISTENERS
+    // =========================================================================
+    function rebuildDispatchFloorButtons() {
+      const grid = document.getElementById('dispatch-floor-grid');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      if (state.targetFloor > state.copFloorCount) {
+        state.targetFloor = state.copFloorCount;
+      }
+      if (state.currentFloor > state.copFloorCount) {
+        state.currentFloor = state.copFloorCount;
+      }
+
+      for (let f = 1; f <= state.copFloorCount; f++) {
+        const btn = document.createElement('button');
+        btn.dataset.floor = String(f);
+        const lbl = getFloorLabel(f, state.copFloorCount);
+        btn.textContent = lbl;
+        const isSelected = f === state.targetFloor;
+        btn.className = isSelected
+          ? 'floor-btn py-1.5 rounded-lg font-mono-tech text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/50 transition'
+          : 'floor-btn py-1.5 rounded-lg font-mono-tech text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 transition';
+        btn.addEventListener('click', () => dispatchElevatorToFloor(f));
+        grid.appendChild(btn);
+      }
+    }
+
+    function dispatchElevatorToFloor(requestedFloor) {
+      state.targetFloor = requestedFloor;
+      rebuildDispatchFloorButtons();
+
+      if (requestedFloor !== state.currentFloor || state.simPhase !== 'idle') {
+        state.simPhase = 'closing';
+        state.targetDoorOpen = 0;
+      } else {
+        state.targetDoorOpen = 0.85;
+      }
+      buildElevatorAsset();
+    }
+
+    function renderCustomButtonsListUI() {
+      const copListEl = document.getElementById('cop-buttons-list');
+      const listEl = document.getElementById('custom-buttons-list');
+      const editorEl = document.getElementById('custom-button-editor');
+      const badgeEl = document.getElementById('selected-btn-badge');
+      if (!listEl || !editorEl || !copListEl) return;
+
+      // Sync Edit vs Dispatch Mode toggle button styling
+      const modeEditBtn = document.getElementById('modeBtnEdit');
+      const modeDispBtn = document.getElementById('modeBtnDispatch');
+      if (modeEditBtn && modeDispBtn) {
+        if (state.buttonClickMode === 'edit') {
+          modeEditBtn.className = 'py-1.5 px-2 rounded-md text-[11px] font-semibold bg-purple-500/25 text-purple-200 border border-purple-400/50 transition';
+          modeDispBtn.className = 'py-1.5 px-2 rounded-md text-[11px] font-medium text-slate-400 hover:text-slate-200 border border-transparent transition';
+        } else {
+          modeDispBtn.className = 'py-1.5 px-2 rounded-md text-[11px] font-semibold bg-sky-500/25 text-sky-200 border border-sky-400/50 transition';
+          modeEditBtn.className = 'py-1.5 px-2 rounded-md text-[11px] font-medium text-slate-400 hover:text-slate-200 border border-transparent transition';
+        }
+      }
+
+      // Ensure a valid selectedButtonTarget exists
+      if (!state.selectedButtonTarget) {
+        state.selectedButtonTarget = { kind: 'cop', key: 'floor_1' };
+      }
+
+      // 1. Render all current COP buttons (Floors + Service row)
+      copListEl.innerHTML = '';
+      const copItems = [];
+      for (let f = 1; f <= state.copFloorCount; f++) {
+        const key = `floor_${f}`;
+        const ov = state.copButtonOverrides[key] || {};
+        const defaultLbl = getFloorLabel(f, state.copFloorCount);
+        copItems.push({ key, label: ov.label || defaultLbl, title: `COP Floor #${f}` });
+      }
+      if (state.btnServiceRow) {
+        const srvDefs = [
+          { key: 'srv_doorOpen', def: '◄►', title: 'COP Door Open' },
+          { key: 'srv_doorClose', def: '►◄', title: 'COP Door Close' },
+          { key: 'srv_alarm', def: 'ALRM', title: 'COP Alarm' }
+        ];
+        for (const s of srvDefs) {
+          const ov = state.copButtonOverrides[s.key] || {};
+          copItems.push({ key: s.key, label: ov.label || s.def, title: s.title });
+        }
+      }
+
+      for (const item of copItems) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        const isSel = state.selectedButtonTarget.kind === 'cop' && state.selectedButtonTarget.key === item.key;
+        const hasOv = Boolean(state.copButtonOverrides[item.key]);
+        btn.className = isSel
+          ? 'px-2 py-1 rounded-md text-[11px] font-mono-tech font-semibold bg-purple-500/30 text-purple-200 border border-purple-400 shadow transition'
+          : (hasOv
+            ? 'px-2 py-1 rounded-md text-[11px] font-mono-tech bg-amber-500/15 text-amber-300 border border-amber-500/40 hover:bg-slate-800 transition'
+            : 'px-2 py-1 rounded-md text-[11px] font-mono-tech bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 transition');
+        btn.textContent = item.label;
+        btn.addEventListener('click', () => {
+          state.selectedButtonTarget = { kind: 'cop', key: item.key };
+          renderCustomButtonsListUI();
+          buildElevatorAsset();
+        });
+        copListEl.appendChild(btn);
+      }
+
+      // 2. Render standalone Custom Wall Buttons
+      listEl.innerHTML = '';
+      if (state.customButtons.length === 0) {
+        const empty = document.createElement('span');
+        empty.className = 'text-[11px] text-slate-500 italic';
+        empty.textContent = 'None — click "+ Add Wall Button" to place extra buttons';
+        listEl.appendChild(empty);
+      } else {
+        for (const cb of state.customButtons) {
+          const pill = document.createElement('button');
+          pill.type = 'button';
+          const active = state.selectedButtonTarget.kind === 'custom' && state.selectedButtonTarget.id === cb.id;
+          pill.className = active
+            ? 'px-2.5 py-1 rounded-lg text-xs font-mono-tech font-semibold bg-purple-500/30 text-purple-200 border border-purple-400 shadow transition'
+            : 'px-2.5 py-1 rounded-lg text-xs font-mono-tech bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 transition';
+          pill.textContent = `${cb.label} (${cb.wall})`;
+          pill.addEventListener('click', () => {
+            state.selectedCustomBtnId = cb.id;
+            state.selectedButtonTarget = { kind: 'custom', id: cb.id };
+            renderCustomButtonsListUI();
+            buildElevatorAsset();
+          });
+          listEl.appendChild(pill);
+        }
+      }
+
+      // 3. Populate Unified Editor Fields for Selected Target (COP Button or Custom Button)
+      editorEl.classList.remove('hidden');
+      const wallWrap = document.getElementById('cb-wall-wrap');
+      const litWrap = document.getElementById('cb-lit-wrap');
+      const actionsCustom = document.getElementById('cb-actions-custom');
+      const actionsCop = document.getElementById('cb-actions-cop');
+      const lblH = document.getElementById('lbl-cb-h');
+      const lblV = document.getElementById('lbl-cb-v');
+      const sliderH = document.getElementById('cb-h');
+      const sliderV = document.getElementById('cb-v');
+
+      if (state.selectedButtonTarget.kind === 'cop') {
+        const key = state.selectedButtonTarget.key;
+        const ov = state.copButtonOverrides[key] || {};
+        const copInfo = copItems.find((i) => i.key === key) || copItems[0] || { key: 'floor_1', label: 'L', title: 'COP Floor #1' };
+        if (badgeEl) badgeEl.textContent = `Editing: ${copInfo.title} [${copInfo.label}]`;
+
+        wallWrap.classList.add('hidden');
+        litWrap.classList.remove('hidden');
+        actionsCustom.classList.add('hidden');
+        actionsCop.classList.remove('hidden');
+
+        lblH.textContent = 'Panel Horizontal Offset (Z)';
+        lblV.textContent = 'Panel Vertical Offset (Y)';
+        sliderH.min = '-0.25'; sliderH.max = '0.25'; sliderH.step = '0.005';
+        sliderV.min = '-0.35'; sliderV.max = '0.35'; sliderV.step = '0.005';
+
+        document.getElementById('cb-label').value = ov.label !== undefined ? ov.label : copInfo.label;
+        document.getElementById('cb-shape').value = ov.shape || 'default';
+        document.getElementById('cb-color').value = ov.color || 'default';
+        document.getElementById('cb-islit').checked = Boolean(ov.isLit);
+
+        const sz = ov.size || state.btnSize;
+        document.getElementById('cb-size').value = sz;
+        document.getElementById('val-cb-size').textContent = `${sz} mm`;
+
+        const offH = ov.offsetH || 0;
+        const offV = ov.offsetV || 0;
+        sliderH.value = offH;
+        document.getElementById('val-cb-h').textContent = `${offH >= 0 ? '+' : ''}${Number(offH).toFixed(3)} m`;
+        sliderV.value = offV;
+        document.getElementById('val-cb-v').textContent = `${offV >= 0 ? '+' : ''}${Number(offV).toFixed(3)} m`;
+      } else {
+        let selected = state.customButtons.find((b) => b.id === state.selectedButtonTarget.id) || state.customButtons[0];
+        if (!selected) {
+          state.selectedButtonTarget = { kind: 'cop', key: 'floor_1' };
+          renderCustomButtonsListUI();
+          return;
+        }
+        state.selectedCustomBtnId = selected.id;
+        if (badgeEl) badgeEl.textContent = `Editing: Wall Button [${selected.label}]`;
+
+        wallWrap.classList.remove('hidden');
+        litWrap.classList.add('hidden');
+        actionsCustom.classList.remove('hidden');
+        actionsCop.classList.add('hidden');
+
+        lblH.textContent = 'Wall Horizontal Position (H)';
+        lblV.textContent = 'Wall Vertical Height (Y)';
+        sliderH.min = '-1.40'; sliderH.max = '1.40'; sliderH.step = '0.02';
+        sliderV.min = '0.40'; sliderV.max = '2.30'; sliderV.step = '0.02';
+
+        document.getElementById('cb-label').value = selected.label;
+        document.getElementById('cb-wall').value = selected.wall;
+        document.getElementById('cb-shape').value = selected.shape;
+        document.getElementById('cb-color').value = selected.color;
+        document.getElementById('cb-size').value = selected.size;
+        document.getElementById('val-cb-size').textContent = `${selected.size} mm`;
+        sliderH.value = selected.h;
+        document.getElementById('val-cb-h').textContent = `${Number(selected.h).toFixed(2)} m`;
+        sliderV.value = selected.v;
+        document.getElementById('val-cb-v').textContent = `${Number(selected.v).toFixed(2)} m`;
+      }
+    }
+
+    function syncUIFromState() {
+      const sliders = [
+        ['width', ' m', 2],
+        ['depth', ' m', 2],
+        ['height', ' m', 2],
+        ['wallThickness', ' m', 2],
+        ['doorWidth', ' m', 2],
+        ['doorHeight', ' m', 2],
+        ['weathering', '%', 0],
+        ['lightKelvin', ' K', 0],
+        ['copFloorCount', ' flrs', 0],
+        ['floorOffset', '', 0],
+        ['copOffsetH', ' m', 2],
+        ['copOffsetV', ' m', 2],
+        ['btnSize', ' mm', 0],
+        ['btnBezelDepth', ' mm', 0],
+        ['btnPitch', ' mm', 0]
+      ];
+      for (const [key, unit, dec] of sliders) {
+        const input = document.getElementById(`param-${key}`);
+        const label = document.getElementById(`val-${key}`);
+        if (input) input.value = state[key];
+        if (label) label.textContent = Number(state[key]).toFixed(dec) + unit;
+      }
+
+      const doorOpenSlider = document.getElementById('param-doorOpen');
+      doorOpenSlider.value = Math.round(state.doorOpenRatio * 100);
+      document.getElementById('val-doorOpen').textContent = `${Math.round(state.doorOpenRatio * 100)}%`;
+
+      const selects = ['rearWallType', 'sideWallType', 'doorType', 'doorStyle', 'metalFinish', 'floorStyle', 'ceilingStyle', 'floorNumbering', 'copMountWall', 'btnShape', 'btnLayout', 'btnHaloColor', 'exportScope'];
+      for (const key of selects) {
+        const el = document.getElementById(`param-${key}`);
+        if (el) el.value = state[key];
+      }
+
+      const checks = ['cutaway', 'rearDoor', 'handrails', 'mirror', 'dualCop', 'dragButtonsMode', 'btnBraille', 'btnServiceRow', 'hallCallStation', 'showSling', 'showRails', 'showCables', 'showRoofEquip', 'showShaft', 'showDimensions', 'wireframe'];
+      for (const key of checks) {
+        const el = document.getElementById(`param-${key}`);
+        if (el) el.checked = Boolean(state[key]);
+      }
+
+      rebuildDispatchFloorButtons();
+      renderCustomButtonsListUI();
+    }
+
+    // Bind Range Sliders
+    ['width', 'depth', 'height', 'wallThickness', 'doorWidth', 'doorHeight', 'weathering', 'lightKelvin', 'copFloorCount', 'floorOffset', 'copOffsetH', 'copOffsetV', 'btnSize', 'btnBezelDepth', 'btnPitch'].forEach((key) => {
+      const el = document.getElementById(`param-${key}`);
+      if (!el) return;
+      el.addEventListener('input', (e) => {
+        state[key] = parseFloat(e.target.value);
+        // Keep door dimensions within valid cab bounds
+        if (state.doorWidth > state.width - 0.20) {
+          state.doorWidth = Math.max(0.8, +(state.width - 0.20).toFixed(2));
+        }
+        if (state.doorHeight > state.height - 0.15) {
+          state.doorHeight = Math.max(1.9, +(state.height - 0.15).toFixed(2));
+        }
+        syncUIFromState();
+        updateLedDisplayTexture(state.currentFloor, '');
+        buildElevatorAsset();
+      });
+    });
+
+    // Door Open Slider (fast kinematic update without full geometry rebuild)
+    document.getElementById('param-doorOpen').addEventListener('input', (e) => {
+      state.doorOpenRatio = parseFloat(e.target.value) / 100;
+      state.targetDoorOpen = state.doorOpenRatio;
+      document.getElementById('val-doorOpen').textContent = `${Math.round(state.doorOpenRatio * 100)}%`;
+      updateDoorPositions();
+    });
+
+    // Cycle Doors Button
+    document.getElementById('btnToggleDoors').addEventListener('click', () => {
+      state.targetDoorOpen = state.doorOpenRatio > 0.5 ? 0 : 1;
+    });
+
+    // Bind Select Dropdowns & Checkboxes
+    ['rearWallType', 'sideWallType', 'doorType', 'doorStyle', 'metalFinish', 'floorStyle', 'ceilingStyle', 'floorNumbering', 'copMountWall', 'btnShape', 'btnLayout', 'btnHaloColor', 'exportScope'].forEach((key) => {
+      const el = document.getElementById(`param-${key}`);
+      if (!el) return;
+      el.addEventListener('change', (e) => {
+        state[key] = e.target.value;
+        syncUIFromState();
+        updateLedDisplayTexture(state.currentFloor, '');
+        buildElevatorAsset();
+      });
+    });
+
+    ['cutaway', 'rearDoor', 'handrails', 'mirror', 'dualCop', 'dragButtonsMode', 'btnBraille', 'btnServiceRow', 'hallCallStation', 'showSling', 'showRails', 'showCables', 'showRoofEquip', 'showShaft', 'showDimensions', 'wireframe'].forEach((key) => {
+      const el = document.getElementById(`param-${key}`);
+      if (!el) return;
+      el.addEventListener('change', (e) => {
+        state[key] = e.target.checked;
+        buildElevatorAsset();
+      });
+    });
+
+    // =========================================================================
+    // CUSTOM & COP BUTTON INSPECTOR UI BINDINGS
+    // =========================================================================
+    const getSelectedCustomBtn = () => state.customButtons.find((b) => b.id === state.selectedCustomBtnId);
+    const getOrCreateCopOverride = (key) => {
+      if (!state.copButtonOverrides[key]) {
+        state.copButtonOverrides[key] = {};
+      }
+      return state.copButtonOverrides[key];
+    };
+
+    document.getElementById('modeBtnEdit').addEventListener('click', () => {
+      state.buttonClickMode = 'edit';
+      renderCustomButtonsListUI();
+      buildElevatorAsset();
+      showToast('Edit Mode: Click any 3D button to customize it without moving the elevator');
+    });
+
+    document.getElementById('modeBtnDispatch').addEventListener('click', () => {
+      state.buttonClickMode = 'dispatch';
+      renderCustomButtonsListUI();
+      buildElevatorAsset();
+      showToast('Test Mode: Click any 3D button to dispatch the elevator');
+    });
+
+    document.getElementById('btnAddCustomButton').addEventListener('click', () => {
+      const nextId = state.customButtons.reduce((m, b) => Math.max(m, b.id), 0) + 1;
+      const newBtn = {
+        id: nextId,
+        label: `B${nextId}`,
+        wall: 'rear',
+        h: +((Math.random() - 0.5) * 0.6).toFixed(2),
+        v: +(1.1 + Math.random() * 0.4).toFixed(2),
+        size: 52,
+        bezelDepth: 12,
+        shape: 'round',
+        color: 'arcane-purple',
+        isLit: true
+      };
+      state.customButtons.push(newBtn);
+      state.selectedCustomBtnId = nextId;
+      state.selectedButtonTarget = { kind: 'custom', id: nextId };
+      renderCustomButtonsListUI();
+      buildElevatorAsset();
+      showToast(`Created Wall Button [${newBtn.label}] — Drag it in 3D or use sliders!`);
+    });
+
+    document.getElementById('btnDuplicateCustomBtn').addEventListener('click', () => {
+      const cur = getSelectedCustomBtn();
+      if (!cur) return;
+      const nextId = state.customButtons.reduce((m, b) => Math.max(m, b.id), 0) + 1;
+      const copy = {
+        ...cur,
+        id: nextId,
+        h: +(cur.h + 0.14).toFixed(2)
+      };
+      state.customButtons.push(copy);
+      state.selectedCustomBtnId = nextId;
+      state.selectedButtonTarget = { kind: 'custom', id: nextId };
+      renderCustomButtonsListUI();
+      buildElevatorAsset();
+    });
+
+    document.getElementById('btnDeleteCustomBtn').addEventListener('click', () => {
+      state.customButtons = state.customButtons.filter((b) => b.id !== state.selectedCustomBtnId);
+      state.selectedCustomBtnId = state.customButtons[0]?.id || null;
+      state.selectedButtonTarget = state.selectedCustomBtnId
+        ? { kind: 'custom', id: state.selectedCustomBtnId }
+        : { kind: 'cop', key: 'floor_1' };
+      renderCustomButtonsListUI();
+      buildElevatorAsset();
+    });
+
+    document.getElementById('btnResetCopBtn').addEventListener('click', () => {
+      if (state.selectedButtonTarget?.kind === 'cop') {
+        delete state.copButtonOverrides[state.selectedButtonTarget.key];
+        renderCustomButtonsListUI();
+        buildElevatorAsset();
+        showToast('Reset COP button to default array styling');
+      }
+    });
+
+    document.getElementById('btnTestSelectedFloor').addEventListener('click', () => {
+      if (state.selectedButtonTarget?.kind === 'cop') {
+        const key = state.selectedButtonTarget.key;
+        if (key.startsWith('floor_')) {
+          const f = parseInt(key.replace('floor_', ''), 10);
+          dispatchElevatorToFloor(f);
+        } else if (key === 'srv_doorOpen') {
+          state.targetDoorOpen = 0.92;
+        } else if (key === 'srv_doorClose') {
+          state.targetDoorOpen = 0.0;
+        } else if (key === 'srv_alarm') {
+          state.alarmActiveTimer = 2.5;
+          buildElevatorAsset();
+        }
+      }
+    });
+
+    document.getElementById('cb-label').addEventListener('input', (e) => {
+      const val = e.target.value.toUpperCase() || 'BTN';
+      if (state.selectedButtonTarget?.kind === 'cop') {
+        const ov = getOrCreateCopOverride(state.selectedButtonTarget.key);
+        ov.label = val;
+      } else {
+        const cur = getSelectedCustomBtn();
+        if (cur) cur.label = val;
+      }
+      renderCustomButtonsListUI();
+      buildElevatorAsset();
+    });
+
+    document.getElementById('cb-islit').addEventListener('change', (e) => {
+      if (state.selectedButtonTarget?.kind === 'cop') {
+        const ov = getOrCreateCopOverride(state.selectedButtonTarget.key);
+        ov.isLit = e.target.checked;
+        renderCustomButtonsListUI();
+        buildElevatorAsset();
+      }
+    });
+
+    document.querySelectorAll('.sym-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (state.selectedButtonTarget?.kind === 'cop') {
+          const ov = getOrCreateCopOverride(state.selectedButtonTarget.key);
+          ov.label = btn.dataset.sym;
+        } else {
+          const cur = getSelectedCustomBtn();
+          if (cur) cur.label = btn.dataset.sym;
+        }
+        renderCustomButtonsListUI();
+        buildElevatorAsset();
+      });
+    });
+
+    document.getElementById('cb-wall').addEventListener('change', (e) => {
+      const cur = getSelectedCustomBtn();
+      if (!cur) return;
+      cur.wall = e.target.value;
+      renderCustomButtonsListUI();
+      buildElevatorAsset();
+    });
+
+    ['shape', 'color'].forEach((prop) => {
+      document.getElementById(`cb-${prop}`).addEventListener('change', (e) => {
+        if (state.selectedButtonTarget?.kind === 'cop') {
+          const ov = getOrCreateCopOverride(state.selectedButtonTarget.key);
+          ov[prop] = e.target.value;
+        } else {
+          const cur = getSelectedCustomBtn();
+          if (cur) cur[prop] = e.target.value === 'default' ? 'round' : e.target.value;
+        }
+        renderCustomButtonsListUI();
+        buildElevatorAsset();
+      });
+    });
+
+    document.getElementById('cb-size').addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      if (state.selectedButtonTarget?.kind === 'cop') {
+        const ov = getOrCreateCopOverride(state.selectedButtonTarget.key);
+        ov.size = val;
+      } else {
+        const cur = getSelectedCustomBtn();
+        if (cur) cur.size = val;
+      }
+      renderCustomButtonsListUI();
+      buildElevatorAsset();
+    });
+
+    ['h', 'v'].forEach((prop) => {
+      document.getElementById(`cb-${prop}`).addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        if (state.selectedButtonTarget?.kind === 'cop') {
+          const ov = getOrCreateCopOverride(state.selectedButtonTarget.key);
+          if (prop === 'h') ov.offsetH = val;
+          else ov.offsetV = val;
+        } else {
+          const cur = getSelectedCustomBtn();
+          if (cur) cur[prop] = val;
+        }
+        renderCustomButtonsListUI();
+        buildElevatorAsset();
+      });
+    });
+
+    // Category Tabs Switching
+    document.querySelectorAll('.tab-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach((b) => {
+          b.className = 'tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition';
+        });
+        btn.className = 'tab-btn py-2 rounded bg-slate-800 text-sky-400 shadow-sm transition';
+
+        const targetId = btn.dataset.tab;
+        document.querySelectorAll('.tab-content').forEach((panel) => {
+          panel.classList.toggle('hidden', panel.id !== targetId);
+        });
+      });
+    });
+
+    // Style Archetype Presets
+    document.querySelectorAll('.preset-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const presetKey = btn.dataset.preset;
+        const p = PRESETS[presetKey];
+        if (!p) return;
+
+        Object.assign(state, p);
+        syncUIFromState();
+        buildElevatorAsset();
+
+        document.querySelectorAll('.preset-btn').forEach((b) => {
+          b.className = 'preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition';
+        });
+        btn.className = 'preset-btn px-2.5 py-1 rounded text-xs font-medium bg-sky-500/20 text-sky-300 border border-sky-500/40 transition';
+      });
+    });
+
+    // Randomize Valid Asset Configuration
+    document.getElementById('btnRandomize').addEventListener('click', () => {
+      const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+      state.width = +(1.5 + Math.random() * 1.6).toFixed(2);
+      state.depth = +(1.5 + Math.random() * 1.6).toFixed(2);
+      state.height = +(2.3 + Math.random() * 0.7).toFixed(2);
+      state.doorWidth = +(Math.min(state.width - 0.3, 0.9 + Math.random() * 0.9)).toFixed(2);
+      state.doorHeight = +(Math.min(state.height - 0.25, 2.0 + Math.random() * 0.4)).toFixed(2);
+      state.rearWallType = pick(['solid', 'glass', 'half-glass', 'slats']);
+      state.sideWallType = pick(['solid', 'glass', 'half-glass']);
+      state.doorType = pick(['center-2', 'center-4', 'side-2', 'biparting']);
+      state.doorStyle = pick(['metal', 'glass-framed', 'safety-mesh']);
+      state.metalFinish = pick(['stainless', 'titanium', 'brass', 'copper', 'industrial']);
+      state.floorStyle = pick(['granite', 'marble-grid', 'diamond-plate', 'wood-parquet', 'rubber']);
+      state.ceilingStyle = pick(['led-grid', 'perimeter-cove', 'linear-bars', 'industrial-cage']);
+      state.lightKelvin = Math.round(28 + Math.random() * 35) * 100;
+      state.copFloorCount = Math.floor(4 + Math.random() * 9);
+      state.btnShape = pick(['round', 'square', 'pill', 'touch']);
+      state.btnLayout = pick(['double-col', 'single-col', 'grid-3']);
+      state.btnSize = Math.floor(26 + Math.random() * 14);
+      state.btnBezelDepth = Math.floor(4 + Math.random() * 10);
+      state.btnHaloColor = pick(['amber', 'ice-blue', 'emerald', 'crimson', 'white']);
+      syncUIFromState();
+      updateLedDisplayTexture(state.currentFloor, '');
+      buildElevatorAsset();
+      showToast('Generated random parametric elevator & button configuration');
+    });
+
+    // Camera Viewpoint Presets
+    let cameraTargetPos = null;
+    let orbitTargetPos = null;
+
+    function focusCameraPreset(mode) {
+      const Y = state.elevatorY;
+      const W = state.width;
+      const D = state.depth;
+      const H = state.height;
+
+      if (mode === 'iso') {
+        cameraTargetPos = new THREE.Vector3(3.8, Y + 2.4, 4.2);
+        orbitTargetPos = new THREE.Vector3(0, Y + 1.25, 0);
+      } else if (mode === 'front') {
+        cameraTargetPos = new THREE.Vector3(0, Y + 1.35, 4.5);
+        orbitTargetPos = new THREE.Vector3(0, Y + 1.25, 0);
+      } else if (mode === 'interior') {
+        cameraTargetPos = new THREE.Vector3(0, Y + 1.5, D * 0.35);
+        orbitTargetPos = new THREE.Vector3(0, Y + 1.35, -D * 0.45);
+      } else if (mode === 'cop') {
+        // Position camera close-up in front of active Car Operating Panel (COP)
+        const vY = Y + state.copOffsetV;
+        if (state.copMountWall === 'right') {
+          cameraTargetPos = new THREE.Vector3(W / 2 - 0.62, vY, state.copOffsetH);
+          orbitTargetPos = new THREE.Vector3(W / 2, vY, state.copOffsetH);
+        } else if (state.copMountWall === 'rear') {
+          cameraTargetPos = new THREE.Vector3(state.copOffsetH, vY, -D / 2 + 0.68);
+          orbitTargetPos = new THREE.Vector3(state.copOffsetH, vY, -D / 2);
+        } else if (state.copMountWall === 'pedestal') {
+          cameraTargetPos = new THREE.Vector3(state.copOffsetH, vY + 0.12, 0.65);
+          orbitTargetPos = new THREE.Vector3(state.copOffsetH, vY, 0);
+        } else {
+          cameraTargetPos = new THREE.Vector3(-W / 2 + 0.62, vY, state.copOffsetH);
+          orbitTargetPos = new THREE.Vector3(-W / 2, vY, state.copOffsetH);
+        }
+      } else if (mode === 'top') {
+        cameraTargetPos = new THREE.Vector3(2.6, Y + H + 2.4, 2.6);
+        orbitTargetPos = new THREE.Vector3(0, Y + H + 0.2, 0);
+      }
+
+      document.querySelectorAll('.cam-btn').forEach((b) => {
+        const active = b.dataset.cam === mode;
+        b.className = active
+          ? 'cam-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-sky-500/20 text-sky-300 border border-sky-500/30 transition'
+          : 'cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition';
+      });
+    }
+
+    document.querySelectorAll('.cam-btn').forEach((btn) => {
+      btn.addEventListener('click', () => focusCameraPreset(btn.dataset.cam));
+    });
+
+    document.getElementById('btnFocusCOP').addEventListener('click', () => {
+      focusCameraPreset('cop');
+    });
+
+    // Cancel camera lerp if user manually drags OrbitControls
+    controls.addEventListener('start', () => {
+      cameraTargetPos = null;
+      orbitTargetPos = null;
+    });
+
+    // =========================================================================
+    // 7. 3D INTERACTIVE BUTTON RAYCASTER & DRAG-TO-MOVE SYSTEM
+    // =========================================================================
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    let pointerDownPos = { x: 0, y: 0 };
+    let activeDragTarget = null; // { type: 'cop' | 'customBtn', id?: number }
+
+    renderer.domElement.addEventListener('pointerdown', (e) => {
+      pointerDownPos = { x: e.clientX, y: e.clientY };
+
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+
+      // Start 3D Dragging if "3D Drag & Reposition Mode" is enabled OR Shift key is held
+      if (state.dragButtonsMode || e.shiftKey) {
+        const dragHits = raycaster.intersectObjects(draggableAssemblies, false);
+        if (dragHits.length > 0 && dragHits[0].object.userData.dragItem) {
+          activeDragTarget = dragHits[0].object.userData.dragItem;
+          controls.enabled = false;
+          renderer.domElement.style.cursor = 'grabbing';
+          if (activeDragTarget.type === 'customBtn') {
+            state.selectedCustomBtnId = activeDragTarget.id;
+            state.selectedButtonTarget = { kind: 'custom', id: activeDragTarget.id };
+            renderCustomButtonsListUI();
+          } else if (activeDragTarget.type === 'copBtn') {
+            state.selectedButtonTarget = { kind: 'cop', key: activeDragTarget.key };
+            renderCustomButtonsListUI();
+          }
+        }
+      }
+    });
+
+    renderer.domElement.addEventListener('pointermove', (e) => {
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+
+      // Handle live 3D dragging across interior elevator walls
+      if (activeDragTarget) {
+        const wallHits = raycaster.intersectObjects(wallColliderMeshes, false);
+        if (wallHits.length > 0) {
+          const hit = wallHits[0];
+          const wallType = hit.object.userData.wallType;
+          const localPt = hit.point.clone();
+          localPt.y -= state.elevatorY;
+
+          const newV = +THREE.MathUtils.clamp(localPt.y, 0.45, state.height - 0.25).toFixed(2);
+          const newH = +(wallType === 'rear' ? localPt.x : localPt.z).toFixed(2);
+
+          if (activeDragTarget.type === 'cop') {
+            state.copMountWall = wallType;
+            state.copOffsetH = newH;
+            state.copOffsetV = newV;
+            syncUIFromState();
+            buildElevatorAsset();
+          } else if (activeDragTarget.type === 'copBtn') {
+            const ov = getOrCreateCopOverride(activeDragTarget.key);
+            const relV = localPt.y - state.copOffsetV - (activeDragTarget.baseY || 0);
+            const wallCoordH = state.copMountWall === 'rear' ? localPt.x : localPt.z;
+            const signH = state.copMountWall === 'right' ? -1 : 1;
+            const relH = (wallCoordH - state.copOffsetH) * signH - (activeDragTarget.baseZ || 0);
+            ov.offsetV = +THREE.MathUtils.clamp(relV, -0.35, 0.35).toFixed(3);
+            ov.offsetH = +THREE.MathUtils.clamp(relH, -0.25, 0.25).toFixed(3);
+            renderCustomButtonsListUI();
+            buildElevatorAsset();
+          } else if (activeDragTarget.type === 'customBtn') {
+            const cb = state.customButtons.find((b) => b.id === activeDragTarget.id);
+            if (cb) {
+              cb.wall = wallType;
+              cb.h = newH;
+              cb.v = newV;
+              renderCustomButtonsListUI();
+              buildElevatorAsset();
+            }
+          }
+        }
+        return;
+      }
+
+      const checkList = state.dragButtonsMode ? draggableAssemblies : interactiveButtons;
+      const hits = raycaster.intersectObjects(checkList, false);
+      renderer.domElement.style.cursor = hits.length > 0
+        ? (state.dragButtonsMode || e.shiftKey ? 'grab' : 'pointer')
+        : 'default';
+    });
+
+    window.addEventListener('pointerup', (e) => {
+      if (activeDragTarget) {
+        activeDragTarget = null;
+        controls.enabled = true;
+        renderer.domElement.style.cursor = 'default';
+        showToast('Updated 3D button/panel position!');
+        return;
+      }
+
+      const moveDist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
+      if (moveDist > 6) return; // Ignore orbit drag releases
+
+      const rect = renderer.domElement.getBoundingClientRect();
+      if (
+        e.clientX < rect.left || e.clientX > rect.right ||
+        e.clientY < rect.top || e.clientY > rect.bottom
+      ) return;
+
+      pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+
+      const hits = raycaster.intersectObjects(interactiveButtons, false);
+      if (hits.length > 0) {
+        const data = hits[0].object.userData.buttonAction;
+        if (!data) return;
+
+        // Trigger tactile plunger press animation
+        data.pressTimer = 0.25;
+
+        // In "Edit Mode" (default), clicking ANY 3D button selects it for editing without moving the elevator!
+        if (state.buttonClickMode === 'edit') {
+          // Automatically switch left sidebar to the "Buttons" tab so the user can edit right away
+          const buttonsTabBtn = document.querySelector('[data-tab="tab-buttons"]');
+          if (buttonsTabBtn) buttonsTabBtn.click();
+
+          if (data.actionType === 'custom') {
+            state.selectedCustomBtnId = data.actionValue;
+            state.selectedButtonTarget = { kind: 'custom', id: data.actionValue };
+            renderCustomButtonsListUI();
+            buildElevatorAsset();
+            showToast(`Selected Wall Button [${data.label}] for editing`);
+          } else if (data.buttonKey) {
+            state.selectedButtonTarget = { kind: 'cop', key: data.buttonKey };
+            renderCustomButtonsListUI();
+            buildElevatorAsset();
+            showToast(`Selected COP Button [${data.label}] for editing (Elevator stays put!)`);
+          }
+          return;
+        }
+
+        // In "Test Dispatch Mode", clicking 3D buttons operates the elevator
+        if (data.actionType === 'floor') {
+          showToast(`Pressed COP Button [${data.label}] — Dispatching to Floor ${data.actionValue}`);
+          dispatchElevatorToFloor(data.actionValue);
+        } else if (data.actionType === 'custom') {
+          state.selectedCustomBtnId = data.actionValue;
+          const cb = state.customButtons.find((b) => b.id === data.actionValue);
+          if (cb) cb.isLit = !cb.isLit;
+          renderCustomButtonsListUI();
+          buildElevatorAsset();
+          showToast(`Activated Custom Button [${data.label}]!`);
+        } else if (data.actionType === 'doorOpen') {
+          state.targetDoorOpen = 0.92;
+          buildElevatorAsset();
+          showToast('Pressed Door Open [◄►]');
+        } else if (data.actionType === 'doorClose') {
+          state.targetDoorOpen = 0.0;
+          buildElevatorAsset();
+          showToast('Pressed Door Close [►◄]');
+        } else if (data.actionType === 'alarm') {
+          state.alarmActiveTimer = 2.5;
+          buildElevatorAsset();
+          showToast('Emergency Alarm Bell Activated [ALRM]');
+        }
+      }
+    });
+
+    // =========================================================================
+    // 8. 3D MODEL EXPORT (.GLB & .OBJ)
+    // =========================================================================
+    function showToast(msg) {
+      const toast = document.getElementById('toast-notification');
+      document.getElementById('toast-text').textContent = msg;
+      toast.style.opacity = '1';
+      setTimeout(() => {
+        toast.style.opacity = '0';
+      }, 3200);
+    }
+
+    function triggerDownload(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function getExportTargetNode() {
+      return state.exportScope === 'cab-only' ? elevatorCarGroup : assetRoot;
+    }
+
+    document.getElementById('btnExportJSON').addEventListener('click', () => {
+      const recipe = JSON.stringify(state, null, 2);
+      const blob = new Blob([recipe], { type: 'application/json' });
+      triggerDownload(blob, `elevator-preset-${state.floorNumbering}-${state.width}x${state.depth}m.json`);
+      showToast('Exported Parametric Recipe (.JSON) for in-game procedural loading!');
+    });
+
+    document.getElementById('btnExportGLB').addEventListener('click', () => {
+      const exporter = new GLTFExporter();
+      const targetNode = getExportTargetNode();
+      exporter.parse(
+        targetNode,
+        (result) => {
+          const blob = new Blob([result], { type: 'application/octet-stream' });
+          const suffix = state.exportScope === 'cab-only' ? 'cab-actor' : 'full-assembly';
+          triggerDownload(blob, `parametric-elevator-${suffix}-${state.width}x${state.depth}m.glb`);
+          showToast(`Exported ${suffix} (.GLB) with named door & button nodes!`);
+        },
+        (err) => {
+          console.error('GLB Export Error:', err);
+        },
+        { binary: true }
+      );
+    });
+
+    document.getElementById('btnExportOBJ').addEventListener('click', () => {
+      const exporter = new OBJExporter();
+      const objText = exporter.parse(getExportTargetNode());
+      const blob = new Blob([objText], { type: 'text/plain' });
+      triggerDownload(blob, `parametric-elevator-${state.width}x${state.depth}m.obj`);
+      showToast('Exported Wavefront 3D mesh (.OBJ)');
+    });
+
+    // =========================================================================
+    // 9. ANIMATION & KINEMATICS LOOP
+    // =========================================================================
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = Math.min(clock.getDelta(), 0.1);
+
+      // Smooth Camera Preset Transitions
+      if (cameraTargetPos && orbitTargetPos) {
+        camera.position.lerp(cameraTargetPos, dt * 5);
+        controls.target.lerp(orbitTargetPos, dt * 5);
+        if (camera.position.distanceTo(cameraTargetPos) < 0.03) {
+          cameraTargetPos = null;
+          orbitTargetPos = null;
+        }
+      }
+
+      // Smooth Door Actuation
+      if (Math.abs(state.doorOpenRatio - state.targetDoorOpen) > 0.002) {
+        const dir = Math.sign(state.targetDoorOpen - state.doorOpenRatio);
+        state.doorOpenRatio = THREE.MathUtils.clamp(state.doorOpenRatio + dir * dt * 0.85, 0, 1);
+        document.getElementById('param-doorOpen').value = Math.round(state.doorOpenRatio * 100);
+        document.getElementById('val-doorOpen').textContent = `${Math.round(state.doorOpenRatio * 100)}%`;
+        updateDoorPositions();
+      }
+
+      // Live Elevator Dispatch State Machine
+      const statusText = document.getElementById('sim-status-text');
+      const dirText = document.getElementById('sim-direction');
+      const floorText = document.getElementById('sim-floor-readout');
+
+      if (state.simPhase === 'closing') {
+        statusText.textContent = 'DOORS CLOSING...';
+        if (state.doorOpenRatio <= 0.01) {
+          state.simPhase = 'moving';
+        }
+      } else if (state.simPhase === 'moving') {
+        const targetY = (state.targetFloor - 1) * 0.75; // Scaled vertical visual travel in viewport
+        const diff = targetY - state.elevatorY;
+        const dirSymbol = diff > 0 ? '▲' : '▼';
+        statusText.textContent = `IN TRANSIT (${dirSymbol})`;
+        dirText.textContent = dirSymbol;
+
+        if (Math.abs(diff) > 0.02) {
+          const step = Math.sign(diff) * dt * 1.4;
+          state.elevatorY += Math.abs(step) > Math.abs(diff) ? diff : step;
+          elevatorCarGroup.position.y = state.elevatorY;
+          if (counterweightGroup) {
+            counterweightGroup.position.y = 3.5 - state.elevatorY;
+          }
+
+          // Compute live passing floor number
+          const liveFloor = Math.min(state.copFloorCount, Math.max(1, Math.round(state.elevatorY / 0.75) + 1));
+          if (liveFloor !== state.currentFloor) {
+            state.currentFloor = liveFloor;
+            floorText.textContent = getFloorLabel(liveFloor, state.copFloorCount);
+            updateLedDisplayTexture(liveFloor, dirSymbol);
+          }
+        } else {
+          state.elevatorY = targetY;
+          elevatorCarGroup.position.y = state.elevatorY;
+          state.currentFloor = state.targetFloor;
+          floorText.textContent = getFloorLabel(state.currentFloor, state.copFloorCount);
+          dirText.textContent = '•';
+          updateLedDisplayTexture(state.currentFloor, '');
+          state.simPhase = 'opening';
+          state.targetDoorOpen = 0.85;
+          buildElevatorAsset();
+        }
+      } else if (state.simPhase === 'opening') {
+        statusText.textContent = 'ARRIVED • OPENING';
+        if (state.doorOpenRatio >= 0.83) {
+          state.simPhase = 'idle';
+          statusText.textContent = 'IDLE • DOORS OPEN';
+        }
+      }
+
+      // Animate 3D Button Plunger Depressions & Alarm Flash
+      if (state.alarmActiveTimer > 0) {
+        state.alarmActiveTimer -= dt;
+        if (state.alarmActiveTimer <= 0) {
+          state.alarmActiveTimer = 0;
+          buildElevatorAsset();
+        }
+      }
+
+      for (const obj of interactiveButtons) {
+        const data = obj.userData.buttonAction;
+        if (data && data.pressTimer > 0 && obj === data.plungerMesh) {
+          data.pressTimer = Math.max(0, data.pressTimer - dt);
+          const pressProgress = Math.sin((data.pressTimer / 0.25) * Math.PI);
+          data.plungerMesh.position.x = data.baseX - pressProgress * data.pressedOffset;
+        }
+      }
+
+      // Sync interior PointLight to Cab Center
+      cabInternalLight.position.set(0, state.elevatorY + state.height - 0.25, 0);
+
+      controls.update();
+      updateDimensionLabelsOverlay();
+      renderer.render(scene, camera);
+    }
+
+    // Responsive Viewport Resize
+    window.addEventListener('resize', () => {
+      camera.aspect = mount.clientWidth / mount.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(mount.clientWidth, mount.clientHeight);
+    });
+
+    // Initial Build & Start
+    syncUIFromState();
+    buildElevatorAsset();
+    animate();
+  </script>
+</body>
+</html>

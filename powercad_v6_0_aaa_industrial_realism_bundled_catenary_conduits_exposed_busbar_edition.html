@@ -1,0 +1,3722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>POWERCAD v6.0 — AAA Industrial Realism, Bundled Catenary Conduits & Exposed Busbar Edition</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<style>
+  :root {
+    --bg-panel: rgba(10, 14, 24, 0.94);
+    --border-subtle: rgba(56, 189, 248, 0.22);
+    --accent: #38bdf8;
+    --accent-emerald: #10b981;
+  }
+  * { box-sizing: border-box; user-select: none; }
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: #05070e;
+    color: #e2e8f0;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  .mono { font-family: 'JetBrains Mono', 'Fira Code', monospace; }
+  .custom-scroll::-webkit-scrollbar { width: 5px; height: 5px; }
+  .custom-scroll::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); }
+  .custom-scroll::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.35); border-radius: 3px; }
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 5px;
+    background: #1e293b;
+    border-radius: 4px;
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #38bdf8;
+    border: 2px solid #0f172a;
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.7);
+  }
+  .tab-btn {
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s ease;
+  }
+  .tab-btn.active {
+    color: #38bdf8;
+    border-bottom-color: #38bdf8;
+    background: rgba(56, 189, 248, 0.08);
+  }
+  .preset-card {
+    border: 1px solid rgba(51, 65, 85, 0.8);
+    background: rgba(15, 23, 42, 0.7);
+    transition: all 0.15s ease;
+  }
+  .preset-card:hover {
+    border-color: rgba(56, 189, 248, 0.5);
+    background: rgba(30, 41, 59, 0.75);
+  }
+  .preset-card.active {
+    border-color: #38bdf8;
+    background: rgba(56, 189, 248, 0.14);
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.22);
+  }
+  .state-pill-ONLINE {
+    background: rgba(16, 185, 129, 0.18);
+    border: 1px solid rgba(16, 185, 129, 0.6);
+    color: #34d399;
+  }
+  .state-pill-BROWNOUT {
+    background: rgba(245, 158, 11, 0.2);
+    border: 1px solid rgba(245, 158, 11, 0.7);
+    color: #fbbf24;
+  }
+  .state-pill-EMERGENCY_RESERVE {
+    background: rgba(244, 63, 94, 0.22);
+    border: 1px solid rgba(244, 63, 94, 0.75);
+    color: #fb7185;
+  }
+  .state-pill-OFFLINE {
+    background: rgba(100, 116, 139, 0.22);
+    border: 1px solid rgba(100, 116, 139, 0.6);
+    color: #94a3b8;
+  }
+</style>
+</head>
+<body class="flex flex-col h-screen w-screen overflow-hidden">
+
+  <!-- TOP HEADER -->
+  <header class="h-12 bg-slate-950/95 border-b border-cyan-500/25 px-3 flex items-center justify-between z-20 shrink-0">
+    <div class="flex items-center gap-2.5">
+      <div class="w-7 h-7 rounded bg-amber-500/15 border border-amber-400/50 flex items-center justify-center text-amber-300 font-bold text-xs mono shadow-inner">
+        ⚡
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="font-bold tracking-wider text-xs text-white mono">POWERCAD <span class="text-cyan-400">v6.0</span></span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-950/90 border border-amber-500/40 text-amber-300 mono">AAA PMREM + BUSBAR EDITION</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-950/90 border border-cyan-500/30 text-cyan-300 mono hidden md:inline">ELYSIUM_POWER_ENDPOINT</span>
+          <span id="hdr-grid-state" class="text-[10px] px-2 py-0.5 rounded font-bold mono state-pill-ONLINE">ONLINE</span>
+        </div>
+        <div class="text-[10px] text-slate-400 hidden sm:block">AAA Industrial Realism, 3-Strand Bundled Catenary Conduits, Ceramic Bushings &amp; Exposed Copper Busbar Switchgear</div>
+      </div>
+    </div>
+
+    <!-- Archetype Quick Pills -->
+    <div class="hidden xl:flex items-center gap-1 bg-slate-900/90 p-1 rounded border border-slate-800">
+      <button data-preset="abyssal-void" class="preset-top-btn px-2 py-1 rounded text-[10px] font-medium mono bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">1. Abyssal Void Reactor</button>
+      <button data-preset="scifi-fusion" class="preset-top-btn px-2 py-1 rounded text-[10px] font-medium mono text-slate-400 hover:text-white">2. Tokamak Fusion</button>
+      <button data-preset="industrial-diesel" class="preset-top-btn px-2 py-1 rounded text-[10px] font-medium mono text-slate-400 hover:text-white">3. V12 Diesel Gen</button>
+      <button data-preset="solar-battery" class="preset-top-btn px-2 py-1 rounded text-[10px] font-medium mono text-slate-400 hover:text-white">4. Bifacial Solar + LFP</button>
+    </div>
+
+    <!-- Exporters -->
+    <div class="flex items-center gap-1.5">
+      <button id="btnToggleBloom" type="button" class="px-2 py-1.5 rounded bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 font-semibold text-[11px] mono border border-cyan-400/40 transition" title="Toggle Selective ACES Filmic HDR UnrealBloom">✨ Bloom: ON</button>
+      <button id="btn-export-glb" class="px-2.5 py-1.5 rounded bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-[11px] mono transition flex items-center gap-1 shadow-lg shadow-cyan-500/20">
+        <span>Export .GLB</span>
+      </button>
+      <button id="btn-export-pbr" class="px-2.5 py-1.5 rounded bg-indigo-600/90 hover:bg-indigo-500 text-white font-semibold text-[11px] mono border border-indigo-400/40 transition">
+        PBR .PNGs
+      </button>
+      <button id="btn-export-json" class="px-2.5 py-1.5 rounded bg-emerald-600/90 hover:bg-emerald-500 text-slate-950 font-bold text-[11px] mono transition">
+        Export ELYSIUM .JSON
+      </button>
+      <button id="btn-export-obj" class="px-2 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] mono border border-slate-700 transition">
+        .OBJ
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE -->
+  <div class="flex-1 flex overflow-hidden relative">
+
+    <!-- LEFT PARAMETRIC PANEL -->
+    <aside class="w-80 lg:w-96 bg-slate-950/95 border-r border-slate-800/90 flex flex-col z-10 shrink-0">
+      <!-- 5 Studio Tabs -->
+      <div class="grid grid-cols-5 border-b border-slate-800 bg-slate-900/60 text-[10px] font-semibold mono">
+        <button data-tab="producer" class="tab-btn active py-2.5 text-center">1.PRODUCER</button>
+        <button data-tab="breaker" class="tab-btn py-2.5 text-center">2.BREAKER</button>
+        <button data-tab="cables" class="tab-btn py-2.5 text-center">3.CONDUIT</button>
+        <button data-tab="loads" class="tab-btn py-2.5 text-center">4.LOADS</button>
+        <button data-tab="pbr" class="tab-btn py-2.5 text-center">5.PBR MAPS</button>
+      </div>
+
+      <!-- Scrollable Tab Content -->
+      <div class="flex-1 overflow-y-auto custom-scroll p-3 space-y-3">
+
+        <!-- TAB 1: PRODUCER ARCHETYPE & GEOMETRY -->
+        <div id="tab-producer" class="tab-pane space-y-3">
+          <div class="bg-slate-900/80 border border-slate-800 rounded p-2.5 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-cyan-400 mono uppercase">Mixed-Archetype Presets</span>
+              <span id="lbl-kind-badge" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-cyan-300 mono">kind: "reactor"</span>
+            </div>
+            <div class="grid grid-cols-2 gap-1.5">
+              <button data-preset="abyssal-void" class="preset-card active p-2 rounded text-left">
+                <div class="text-[11px] font-bold text-white">Abyssal Void Core</div>
+                <div class="text-[9px] text-slate-400 mono">abyssal-void • reactor</div>
+              </button>
+              <button data-preset="scifi-fusion" class="preset-card p-2 rounded text-left">
+                <div class="text-[11px] font-bold text-white">Tokamak Fusion</div>
+                <div class="text-[9px] text-slate-400 mono">scifi-fusion • reactor</div>
+              </button>
+              <button data-preset="industrial-diesel" class="preset-card p-2 rounded text-left">
+                <div class="text-[11px] font-bold text-white">V12 Diesel Turbine</div>
+                <div class="text-[9px] text-slate-400 mono">industrial-diesel • gen</div>
+              </button>
+              <button data-preset="solar-battery" class="preset-card p-2 rounded text-left">
+                <div class="text-[11px] font-bold text-white">Bifacial Solar + LFP</div>
+                <div class="text-[9px] text-slate-400 mono">solar-battery • hybrid</div>
+              </button>
+            </div>
+
+            <div class="pt-1">
+              <label class="text-[10px] text-slate-400 mono block mb-1">ELYSIUM Producer Kind (`kind`)</label>
+              <select id="p-kind" class="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs text-white mono">
+                <option value="reactor">reactor (Void Core / Tokamak)</option>
+                <option value="generator">generator (V12 Diesel / Turbine)</option>
+                <option value="solar-array">solar-array (Bifacial Rack + Inverter)</option>
+                <option value="battery-bank">battery-bank (LFP Wall Reserve Only)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Output Power & Reserve -->
+          <div class="bg-slate-900/80 border border-slate-800 rounded p-2.5 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-emerald-400 mono uppercase">Power Output &amp; Reserve</span>
+              <label class="flex items-center gap-1.5 text-[10px] mono text-slate-300 cursor-pointer">
+                <input id="p-producerActive" type="checkbox" checked class="accent-cyan-400" />
+                <span>Producer Running</span>
+              </label>
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px] mono mb-1">
+                <span class="text-slate-300">Primary Supply Output (`supplyKw`)</span>
+                <span id="v-supplyKw" class="text-cyan-400 font-bold">110 kW</span>
+              </div>
+              <input id="p-supplyKw" type="range" min="0" max="200" step="1" value="110" />
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px] mono mb-1">
+                <span class="text-slate-300">LFP Battery Reserve (`batteryReserveKw`)</span>
+                <span id="v-batteryReserveKw" class="text-rose-400 font-bold">40 kW</span>
+              </div>
+              <input id="p-batteryReserveKw" type="range" min="0" max="120" step="1" value="40" />
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px] mono mb-1">
+                <span class="text-slate-300">Battery Energy Storage (`batteryKwh`)</span>
+                <span id="v-batteryKwh" class="text-emerald-400">260 kWh</span>
+              </div>
+              <input id="p-batteryKwh" type="range" min="20" max="600" step="10" value="260" />
+            </div>
+          </div>
+
+          <!-- Parametric Producer Dimensions & Details -->
+          <div class="bg-slate-900/80 border border-slate-800 rounded p-2.5 space-y-2.5">
+            <div class="text-[11px] font-bold text-cyan-400 mono uppercase">Producer Geometry &amp; Solar / Core Params</div>
+            <div>
+              <div class="flex justify-between text-[11px] mono mb-1">
+                <span class="text-slate-300">Producer Chassis Scale</span>
+                <span id="v-producerScale" class="text-cyan-300">1.00x</span>
+              </div>
+              <input id="p-producerScale" type="range" min="0.65" max="1.45" step="0.05" value="1.00" />
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px] mono mb-1">
+                <span class="text-slate-300">Core / Tower Height (m)</span>
+                <span id="v-coreHeight" class="text-cyan-300">2.70 m</span>
+              </div>
+              <input id="p-coreHeight" type="range" min="1.40" max="3.80" step="0.10" value="2.70" />
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px] mono mb-1">
+                <span class="text-slate-300">Gimbal Rings / Toroid Coils / Cylinders</span>
+                <span id="v-ringCount" class="text-cyan-300">6</span>
+              </div>
+              <input id="p-ringCount" type="range" min="2" max="12" step="1" value="6" />
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px] mono mb-1">
+                <span class="text-slate-300">Solar Tilt Angle (`panelTiltDeg`)</span>
+                <span id="v-panelTiltDeg" class="text-amber-300">28°</span>
+              </div>
+              <input id="p-panelTiltDeg" type="range" min="5" max="65" step="1" value="28" />
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <div class="flex justify-between text-[10px] mono mb-1">
+                  <span class="text-slate-300">Columns (`panelColumns`)</span>
+                  <span id="v-panelColumns" class="text-amber-300">4</span>
+                </div>
+                <input id="p-panelColumns" type="range" min="2" max="7" step="1" value="4" />
+              </div>
+              <div>
+                <div class="flex justify-between text-[10px] mono mb-1">
+                  <span class="text-slate-300">Rows (`panelRows`)</span>
+                  <span id="v-panelRows" class="text-amber-300">3</span>
+                </div>
+                <input id="p-panelRows" type="range" min="1" max="5" step="1" value="3" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: 3D DISTRIBUTION BREAKER BOX -->
+        <div id="tab-breaker" class="tab-pane hidden space-y-3">
+          <div class="bg-slate-900/80 border border-slate-800 rounded p-2.5 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-cyan-400 mono uppercase">NEMA Switchgear &amp; Busbar Cavity</span>
+              <span class="text-[9px] text-amber-300 mono">3-Phase Copper + Arc Sparks</span>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-relaxed">
+              Features a recessed polycarbonate inspection window over solid <span class="text-amber-400 font-semibold">3-phase copper busbars (`#d97736`)</span>, rotary Volt/Amp dial needles, DIN-rail MCCB handles (<span class="text-emerald-400 font-semibold">+35° ON</span> / <span class="text-rose-400 font-semibold">-35° OFF</span>), and live 3D electrical arc-flash spark bursts.
+            </p>
+
+            <!-- Breaker Toggles -->
+            <div class="space-y-2 pt-1">
+              <div class="flex items-center justify-between p-2 rounded bg-slate-950 border border-slate-800">
+                <div>
+                  <div class="text-xs font-bold text-white mono">MAIN BREAKER (200A MCCB)</div>
+                  <div class="text-[10px] text-slate-400 mono">Node: Breaker_Switch_Main</div>
+                </div>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input id="p-breakerMain" type="checkbox" checked class="accent-emerald-400 w-4 h-4" />
+                  <span id="lbl-b-main" class="text-xs font-bold mono text-emerald-400">ON (+35°)</span>
+                </label>
+              </div>
+
+              <div class="flex items-center justify-between p-2 rounded bg-slate-950 border border-slate-800">
+                <div>
+                  <div class="text-xs font-bold text-cyan-300 mono">C1: SANCTUARY_MAIN</div>
+                  <div class="text-[10px] text-slate-400 mono">Feeds Puck SpotLight • Breaker_Switch_C1</div>
+                </div>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input id="p-breakerC1" type="checkbox" checked class="accent-emerald-400 w-4 h-4" />
+                  <span id="lbl-b-c1" class="text-xs font-bold mono text-emerald-400">ON (+35°)</span>
+                </label>
+              </div>
+
+              <div class="flex items-center justify-between p-2 rounded bg-slate-950 border border-slate-800">
+                <div>
+                  <div class="text-xs font-bold text-purple-300 mono">C2: ABYSS_TRANSIT</div>
+                  <div class="text-[10px] text-slate-400 mono">Feeds Holo-Bridge • Breaker_Switch_C2</div>
+                </div>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input id="p-breakerC2" type="checkbox" checked class="accent-emerald-400 w-4 h-4" />
+                  <span id="lbl-b-c2" class="text-xs font-bold mono text-emerald-400">ON (+35°)</span>
+                </label>
+              </div>
+
+              <div class="flex items-center justify-between p-2 rounded bg-slate-950 border border-slate-800">
+                <div>
+                  <div class="text-xs font-bold text-amber-300 mono">C3: DEFENSE_GRID</div>
+                  <div class="text-[10px] text-slate-400 mono">Feeds Rotary Turret • Breaker_Switch_C3</div>
+                </div>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input id="p-breakerC3" type="checkbox" checked class="accent-emerald-400 w-4 h-4" />
+                  <span id="lbl-b-c3" class="text-xs font-bold mono text-emerald-400">ON (+35°)</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Quick Grid State Scenario Triggers -->
+            <div class="pt-2 border-t border-slate-800 space-y-1.5">
+              <div class="text-[10px] font-bold text-slate-400 mono uppercase">Quick Test Grid States &amp; Arc Burst</div>
+              <div class="grid grid-cols-2 gap-1.5">
+                <button id="btn-state-online" class="px-2 py-1.5 rounded bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/50 text-emerald-300 text-[10px] font-bold mono">
+                  1. Force ONLINE
+                </button>
+                <button id="btn-state-brownout" class="px-2 py-1.5 rounded bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/50 text-amber-300 text-[10px] font-bold mono">
+                  2. Force BROWNOUT
+                </button>
+                <button id="btn-state-emergency" class="px-2 py-1.5 rounded bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/50 text-rose-300 text-[10px] font-bold mono">
+                  3. EMERGENCY_RESERVE
+                </button>
+                <button id="btn-state-offline" class="px-2 py-1.5 rounded bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-300 text-[10px] font-bold mono">
+                  4. Force OFFLINE
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: CATENARY CABLE GRAPH & PATCHING -->
+        <div id="tab-cables" class="tab-pane hidden space-y-3">
+          <div class="bg-slate-900/80 border border-slate-800 rounded p-2.5 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-cyan-400 mono uppercase">3-Strand Bundled HV Catenary</span>
+              <span class="text-[10px] text-emerald-400 mono" id="lbl-wire-count">5 Active Wires</span>
+            </div>
+            <p class="text-[10px] text-slate-400 leading-relaxed">
+              Each conduit bundles a <span class="text-slate-200 font-semibold">matte corrugated rubber HV trunk</span>, a <span class="text-slate-200 font-semibold">braided steel armor line</span>, and a <span class="text-cyan-300 font-semibold">recessed tracer core</span> clamped by metallic collars and terminated with ribbed ceramic HV bushings.
+            </p>
+            <div>
+              <div class="flex justify-between text-[11px] mono mb-1">
+                <span class="text-slate-300">Catenary Cable Slack (`cableSag`)</span>
+                <span id="v-cableSag" class="text-cyan-300">0.55 m</span>
+              </div>
+              <input id="p-cableSag" type="range" min="0.10" max="1.60" step="0.05" value="0.55" />
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px] mono mb-1">
+                <span class="text-slate-300">Conduit Gauge (`cableRadiusMm`)</span>
+                <span id="v-cableRadiusMm" class="text-cyan-300">28 mm</span>
+              </div>
+              <input id="p-cableRadiusMm" type="range" min="10" max="60" step="2" value="28" />
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px] mono mb-1">
+                <span class="text-slate-300">Conduit Pulse Speed</span>
+                <span id="v-pulseSpeed" class="text-cyan-300">1.00x</span>
+              </div>
+              <input id="p-pulseSpeed" type="range" min="0.20" max="2.50" step="0.10" value="1.00" />
+            </div>
+          </div>
+
+          <!-- Pin-to-Pin Patch Matrix -->
+          <div class="bg-slate-900/80 border border-slate-800 rounded p-2.5 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-amber-400 mono uppercase">Pin-to-Pin Terminal Patching</span>
+              <span id="lbl-selected-lug" class="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 mono">Click any 3D Lug</span>
+            </div>
+            <p class="text-[10px] text-slate-400 leading-relaxed">
+              Click any <span class="text-amber-300 font-semibold">Ceramic HV Terminal Lug</span> in the 3D scene and then click a second lug to attach or remove a 3-strand bundled catenary cable:
+            </p>
+            <div id="patch-list" class="space-y-1.5 text-[10px] mono"></div>
+            <div class="grid grid-cols-2 gap-1.5 pt-1">
+              <button id="btn-wire-all" class="px-2 py-1.5 rounded bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-cyan-300 text-[10px] font-bold mono">
+                Restore All Cables
+              </button>
+              <button id="btn-wire-clear" class="px-2 py-1.5 rounded bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 text-[10px] font-bold mono">
+                Disconnect All Cables
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: TEST CONSUMER LOADS & VRM SCALE -->
+        <div id="tab-loads" class="tab-pane hidden space-y-3">
+          <div class="bg-slate-900/80 border border-slate-800 rounded p-2.5 space-y-2.5">
+            <div class="text-[11px] font-bold text-cyan-400 mono uppercase">3 Built-In Test Consumer Loads</div>
+            <div>
+              <div class="flex justify-between text-[11px] mono mb-1">
+                <span class="text-cyan-300">1. Gimbal Puck SpotLight (`SANCTUARY_MAIN`)</span>
+                <span id="v-load1Kw" class="text-white font-bold">20 kW</span>
+              </div>
+              <input id="p-load1Kw" type="range" min="5" max="80" step="1" value="20" />
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px] mono mb-1">
+                <span class="text-purple-300">2. Holo-Bridge Emitter (`ABYSS_TRANSIT`)</span>
+                <span id="v-load2Kw" class="text-white font-bold">30 kW</span>
+              </div>
+              <input id="p-load2Kw" type="range" min="5" max="90" step="1" value="30" />
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px] mono mb-1">
+                <span class="text-amber-300">3. Rotary Turret Motor (`DEFENSE_GRID`)</span>
+                <span id="v-load3Kw" class="text-white font-bold">35 kW</span>
+              </div>
+              <input id="p-load3Kw" type="range" min="5" max="100" step="1" value="35" />
+            </div>
+            <div class="pt-1 border-t border-slate-800 flex items-center justify-between text-xs mono">
+              <span class="text-slate-400">Connected Demand (`loadKw`):</span>
+              <span id="lbl-total-load" class="text-amber-400 font-bold">85 kW</span>
+            </div>
+          </div>
+
+          <div class="bg-slate-900/80 border border-slate-800 rounded p-2.5 space-y-2">
+            <div class="text-[11px] font-bold text-emerald-400 mono uppercase">Scene &amp; .VRM Scale Reference</div>
+            <label class="flex items-center justify-between text-xs mono text-slate-300 cursor-pointer">
+              <span>Show 1.70m .VRM Engineer Avatar</span>
+              <input id="p-showVrm" type="checkbox" checked class="accent-cyan-400" />
+            </label>
+            <label class="flex items-center justify-between text-xs mono text-slate-300 cursor-pointer">
+              <span>Show Battery Backup Wall Unit</span>
+              <input id="p-showBatteryWall" type="checkbox" checked class="accent-cyan-400" />
+            </label>
+          </div>
+        </div>
+
+        <!-- TAB 5: v5.0 PBR BUMP, CRACK & NORMAL SYNTHESIZER + PMREM -->
+        <div id="tab-pbr" class="tab-pane hidden space-y-3">
+          <div class="bg-slate-900/80 border border-slate-800 rounded p-2.5 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-indigo-400 mono uppercase">v6.0 4-Channel PBR + HDR Bloom</span>
+              <span class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-300 mono">RoomEnvironment HDRI</span>
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px] mono mb-1">
+                <span class="text-slate-300">PBR Crack &amp; Scar Density</span>
+                <span id="v-crackDensity" class="text-indigo-300">42%</span>
+              </div>
+              <input id="p-crackDensity" type="range" min="0" max="100" step="1" value="42" />
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px] mono mb-1">
+                <span class="text-slate-300">Normal / Bump Relief Depth</span>
+                <span id="v-bumpScale" class="text-indigo-300">0.12</span>
+              </div>
+              <input id="p-bumpScale" type="range" min="0.00" max="0.25" step="0.01" value="0.12" />
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px] mono mb-1">
+                <span class="text-slate-300">Surface Roughness</span>
+                <span id="v-roughness" class="text-indigo-300">0.34</span>
+              </div>
+              <input id="p-roughness" type="range" min="0.10" max="0.95" step="0.02" value="0.34" />
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px] mono mb-1">
+                <span class="text-slate-300">Alloy Metalness</span>
+                <span id="v-metalness" class="text-indigo-300">0.86</span>
+              </div>
+              <input id="p-metalness" type="range" min="0.10" max="1.00" step="0.02" value="0.86" />
+            </div>
+            <div class="grid grid-cols-2 gap-2 pt-1">
+              <div>
+                <div class="text-[9px] text-slate-400 mono mb-1">Harmony Height / Weld Map</div>
+                <canvas id="preview-bump" width="128" height="128" class="w-full rounded border border-slate-700 bg-black"></canvas>
+              </div>
+              <div>
+                <div class="text-[9px] text-slate-400 mono mb-1">Sobel Tangent Normal</div>
+                <canvas id="preview-norm" width="128" height="128" class="w-full rounded border border-slate-700 bg-black"></canvas>
+              </div>
+            </div>
+            <div class="pt-1">
+              <div class="text-[9px] text-amber-300 mono mb-1">JSlug Bezier Stamped Plaque (1024×256 + Normal Bevel)</div>
+              <canvas id="preview-plate" width="256" height="64" class="w-full rounded border border-slate-700 bg-slate-950"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- LIVE TELEMETRY MIRROR DISPLAY -->
+        <div class="bg-slate-900/90 border border-cyan-500/30 rounded p-2.5 space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold text-cyan-300 mono uppercase">Live Inverter &amp; Breaker Telemetry</span>
+            <span id="telemetry-state-label" class="text-[10px] font-bold mono text-emerald-400">ONLINE</span>
+          </div>
+          <canvas id="telemetry-mirror-canvas" width="320" height="140" class="w-full rounded border border-slate-800 bg-slate-950"></canvas>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- 3D VIEWPORT -->
+    <main class="flex-1 relative bg-slate-950 overflow-hidden">
+      <div id="canvas-container" class="w-full h-full"></div>
+
+      <!-- Top-Left Viewport Overlay HUD -->
+      <div class="absolute top-3 left-3 pointer-events-none space-y-1.5">
+        <div class="bg-slate-950/85 backdrop-blur border border-slate-800 rounded px-3 py-2 text-[11px] mono space-y-1 shadow-xl">
+          <div class="flex items-center gap-2">
+            <span class="text-slate-400">GRID STATE:</span>
+            <span id="hud-grid-state" class="font-bold text-emerald-400">ONLINE</span>
+            <span class="text-slate-600">|</span>
+            <span class="text-slate-400">SUPPLY:</span>
+            <span id="hud-supply-kw" class="text-cyan-300 font-bold">110 kW</span>
+            <span class="text-slate-600">|</span>
+            <span class="text-slate-400">LOAD:</span>
+            <span id="hud-load-kw" class="text-amber-300 font-bold">85 kW</span>
+          </div>
+          <div class="text-[10px] text-slate-400" id="hud-interaction-hint">
+            ⚡ Click 3D DIN-Rail Breaker Levers to throw switches (spawns 3D Arc Flash!), or click Ceramic HV Terminal Lugs to wire 3-strand Bundled Conduits.
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Interactive Toolbar -->
+      <div class="absolute bottom-3 left-1/2 -translate-x-1/2 bg-slate-950/90 backdrop-blur border border-slate-800 rounded-full px-3 py-1.5 flex items-center gap-2 shadow-2xl z-10">
+        <button id="btn-flip-main" class="px-2.5 py-1 rounded-full bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-[11px] font-bold mono transition">
+          Flip MAIN Breaker
+        </button>
+        <button id="btn-sim-brownout" class="px-2.5 py-1 rounded-full bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 text-[11px] font-bold mono transition">
+          Test Brownout Sag
+        </button>
+        <button id="btn-sim-emergency" class="px-2.5 py-1 rounded-full bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 text-[11px] font-bold mono transition">
+          Test Emergency Reserve
+        </button>
+        <button id="btn-focus-breaker" class="px-2.5 py-1 rounded-full bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-cyan-300 text-[11px] font-bold mono transition">
+          Inspect Busbars
+        </button>
+        <button id="btn-reset-cam" class="px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] mono transition">
+          Reset Camera
+        </button>
+      </div>
+    </main>
+
+  </div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+import { OBJExporter } from 'three/addons/exporters/OBJExporter.js';
+
+// ============================================================================
+// 1. STUDIO PARAMETERS & PRESETS
+// ============================================================================
+const PARAMS = {
+  preset: 'abyssal-void',
+  kind: 'reactor',
+  producerActive: true,
+  supplyKw: 110,
+  batteryReserveKw: 40,
+  batteryKwh: 260,
+  producerScale: 1.00,
+  coreHeight: 2.70,
+  ringCount: 6,
+  panelTiltDeg: 28,
+  panelColumns: 4,
+  panelRows: 3,
+  breakerMain: true,
+  breakerC1: true,
+  breakerC2: true,
+  breakerC3: true,
+  cableSag: 0.55,
+  cableRadiusMm: 28,
+  pulseSpeed: 1.00,
+  load1Kw: 20,
+  load2Kw: 30,
+  load3Kw: 35,
+  showVrm: true,
+  showBatteryWall: true,
+  crackDensity: 42,
+  bumpScale: 0.12,
+  roughness: 0.34,
+  metalness: 0.86
+};
+
+const PRESETS = {
+  'abyssal-void': {
+    preset: 'abyssal-void',
+    kind: 'reactor',
+    producerActive: true,
+    supplyKw: 110,
+    batteryReserveKw: 40,
+    batteryKwh: 260,
+    producerScale: 1.00,
+    coreHeight: 2.70,
+    ringCount: 6,
+    panelTiltDeg: 25,
+    panelColumns: 4,
+    panelRows: 3,
+    crackDensity: 44,
+    bumpScale: 0.13,
+    roughness: 0.34,
+    metalness: 0.86
+  },
+  'scifi-fusion': {
+    preset: 'scifi-fusion',
+    kind: 'reactor',
+    producerActive: true,
+    supplyKw: 145,
+    batteryReserveKw: 45,
+    batteryKwh: 320,
+    producerScale: 1.05,
+    coreHeight: 2.50,
+    ringCount: 8,
+    panelTiltDeg: 22,
+    panelColumns: 4,
+    panelRows: 3,
+    crackDensity: 22,
+    bumpScale: 0.09,
+    roughness: 0.24,
+    metalness: 0.92
+  },
+  'industrial-diesel': {
+    preset: 'industrial-diesel',
+    kind: 'generator',
+    producerActive: true,
+    supplyKw: 95,
+    batteryReserveKw: 30,
+    batteryKwh: 180,
+    producerScale: 1.00,
+    coreHeight: 2.25,
+    ringCount: 6,
+    panelTiltDeg: 28,
+    panelColumns: 4,
+    panelRows: 3,
+    crackDensity: 52,
+    bumpScale: 0.15,
+    roughness: 0.42,
+    metalness: 0.82
+  },
+  'solar-battery': {
+    preset: 'solar-battery',
+    kind: 'solar-array',
+    producerActive: true,
+    supplyKw: 90,
+    batteryReserveKw: 50,
+    batteryKwh: 400,
+    producerScale: 1.00,
+    coreHeight: 2.30,
+    ringCount: 5,
+    panelTiltDeg: 32,
+    panelColumns: 5,
+    panelRows: 3,
+    crackDensity: 18,
+    bumpScale: 0.08,
+    roughness: 0.28,
+    metalness: 0.88
+  }
+};
+
+// ============================================================================
+// 2. PIN-TO-PIN CATENARY CABLE GRAPH DEFINITIONS
+// ============================================================================
+const DEFAULT_LINKS = [
+  { id: 'W_PROD_BRK', from: 'Terminal_Lug_Producer_Out', to: 'Terminal_Lug_Breaker_In', label: 'Producer HV Out → Breaker Main In', active: true, color: 0x38bdf8 },
+  { id: 'W_BATT_BRK', from: 'Terminal_Lug_Battery_Out', to: 'Terminal_Lug_Breaker_AuxIn', label: 'LFP Battery Reserve → Breaker Aux In', active: true, color: 0xf43f5e },
+  { id: 'W_C1_LOAD1', from: 'Terminal_Lug_Breaker_C1', to: 'Terminal_Lug_Load_SpotLight', label: 'C1 (SANCTUARY_MAIN) → Puck SpotLight', active: true, color: 0x22d3ee },
+  { id: 'W_C2_LOAD2', from: 'Terminal_Lug_Breaker_C2', to: 'Terminal_Lug_Load_HoloBridge', label: 'C2 (ABYSS_TRANSIT) → Holo-Bridge', active: true, color: 0xa855f7 },
+  { id: 'W_C3_LOAD3', from: 'Terminal_Lug_Breaker_C3', to: 'Terminal_Lug_Load_Turret', label: 'C3 (DEFENSE_GRID) → Rotary Turret', active: true, color: 0xf59e0b }
+];
+
+let cableLinks = JSON.parse(JSON.stringify(DEFAULT_LINKS));
+let selectedLugName = null;
+
+const GRID_STATE = {
+  state: 'ONLINE',
+  effectiveSupplyKw: 110,
+  connectedLoadKw: 85,
+  usingBatteryReserve: false,
+  c1Powered: true,
+  c2Powered: true,
+  c3Powered: true
+};
+
+// ============================================================================
+// 3. PROCEDURAL v5.0 PBR MAPS + AUXILIARY INDUSTRIAL TEXTURES
+// ============================================================================
+let cachedBumpTex = null;
+let cachedNormTex = null;
+let cachedRoughTex = null;
+let lastPbrKey = '';
+
+function hash2D(x, y) {
+  const n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453123;
+  return n - Math.floor(n);
+}
+
+function valueNoise(x, y) {
+  const xi = Math.floor(x), yi = Math.floor(y);
+  const xf = x - xi, yf = y - yi;
+  const u = xf * xf * (3 - 2 * xf);
+  const v = yf * yf * (3 - 2 * yf);
+  const a = hash2D(xi, yi);
+  const b = hash2D(xi + 1, yi);
+  const c = hash2D(xi, yi + 1);
+  const d = hash2D(xi + 1, yi + 1);
+  return (a * (1 - u) + b * u) * (1 - v) + (c * (1 - u) + d * u) * v;
+}
+
+// mrdoob/harmony Proximity-History Stress-Fracture, Cross-Hatch & Weld-Bead Pass
+function applyHarmonyProximityAndWeldPass(bCtx, size, crackPct, seedBase) {
+  let seed = seedBase;
+  const rand = () => {
+    seed = (seed * 16807) % 2147483647;
+    return (seed - 1) / 2147483646;
+  };
+  const crackFactor = Math.max(0.05, crackPct / 100);
+
+  // PASS A: Raised Stacked-Dime TIG Weld Beads along structural 64px plate seams
+  bCtx.save();
+  for (let seam = 64; seam < size; seam += 64) {
+    for (let pos = 4; pos < size - 4; pos += 5) {
+      // Horizontal weld bead ripple (Bezier crescent dome)
+      bCtx.fillStyle = 'rgba(238, 238, 238, 0.55)';
+      bCtx.beginPath();
+      bCtx.arc(pos, seam, 2.6, 0, Math.PI * 2);
+      bCtx.fill();
+      bCtx.strokeStyle = 'rgba(30, 30, 30, 0.45)';
+      bCtx.lineWidth = 0.9;
+      bCtx.beginPath();
+      bCtx.arc(pos - 0.8, seam, 2.8, -1.1, 1.1);
+      bCtx.stroke();
+
+      // Vertical weld bead ripple
+      bCtx.fillStyle = 'rgba(238, 238, 238, 0.55)';
+      bCtx.beginPath();
+      bCtx.arc(seam, pos, 2.6, 0, Math.PI * 2);
+      bCtx.fill();
+    }
+  }
+
+  // PASS B: Cross-Hatched Machining Micro-Scratches (+32 deg / -58 deg)
+  bCtx.lineCap = 'round';
+  const scratchCount = Math.floor(18 + crackFactor * 42);
+  for (let i = 0; i < scratchCount; i++) {
+    const sx = rand() * size;
+    const sy = rand() * size;
+    const ang = (i % 2 === 0 ? 0.56 : -1.01) + (rand() - 0.5) * 0.18;
+    const len = 10 + rand() * 26;
+    const ex = sx + Math.cos(ang) * len;
+    const ey = sy + Math.sin(ang) * len;
+    const mx = (sx + ex) * 0.5 + (rand() - 0.5) * 4;
+    const my = (sy + ey) * 0.5 + (rand() - 0.5) * 4;
+
+    bCtx.strokeStyle = `rgba(22, 22, 22, ${0.18 + crackFactor * 0.25})`;
+    bCtx.lineWidth = 0.75;
+    bCtx.beginPath();
+    bCtx.moveTo(sx, sy);
+    bCtx.quadraticCurveTo(mx, my, ex, ey);
+    bCtx.stroke();
+
+    // Raised burr highlight alongside scratch
+    bCtx.strokeStyle = `rgba(235, 235, 235, ${0.12 + crackFactor * 0.16})`;
+    bCtx.lineWidth = 0.55;
+    bCtx.beginPath();
+    bCtx.moveTo(sx + 0.8, sy - 0.8);
+    bCtx.quadraticCurveTo(mx + 0.8, my - 0.8, ex + 0.8, ey - 0.8);
+    bCtx.stroke();
+  }
+
+  // PASS C: mrdoob/harmony Proximity-History Branching Stress-Fracture Web
+  const harmonyHistory = [];
+  const maxDist = 24;
+  const maxDistSq = maxDist * maxDist;
+  const walkerCount = Math.floor(3 + crackFactor * 9);
+  const stepsPerWalker = Math.floor(16 + crackFactor * 26);
+
+  bCtx.lineJoin = 'round';
+  for (let w = 0; w < walkerCount; w++) {
+    let cx = rand() * size;
+    let cy = rand() * size;
+    let dir = rand() * Math.PI * 2;
+
+    for (let s = 0; s < stepsPerWalker; s++) {
+      dir += (rand() - 0.5) * 1.15;
+      const stepLen = 4.5 + rand() * 7.5;
+      const nx = Math.max(2, Math.min(size - 2, cx + Math.cos(dir) * stepLen));
+      const ny = Math.max(2, Math.min(size - 2, cy + Math.sin(dir) * stepLen));
+      const ctrlX = (cx + nx) * 0.5 + (rand() - 0.5) * 5.0;
+      const ctrlY = (cy + ny) * 0.5 + (rand() - 0.5) * 5.0;
+
+      // Primary fracture spine
+      bCtx.strokeStyle = `rgba(10, 10, 10, ${0.42 + crackFactor * 0.45})`;
+      bCtx.lineWidth = 1.15 + (1 - s / stepsPerWalker) * 0.9;
+      bCtx.beginPath();
+      bCtx.moveTo(cx, cy);
+      bCtx.quadraticCurveTo(ctrlX, ctrlY, nx, ny);
+      bCtx.stroke();
+
+      // mrdoob/harmony proximity web bridging against historical stroke coordinates
+      for (let h = 0; h < harmonyHistory.length; h++) {
+        const hp = harmonyHistory[h];
+        const dx = nx - hp.x;
+        const dy = ny - hp.y;
+        const dSq = dx * dx + dy * dy;
+        if (dSq > 5 && dSq < maxDistSq) {
+          const proxAlpha = (1.0 - dSq / maxDistSq) * 0.38 * crackFactor;
+          bCtx.strokeStyle = `rgba(18, 18, 18, ${proxAlpha.toFixed(3)})`;
+          bCtx.lineWidth = 0.65;
+          bCtx.beginPath();
+          bCtx.moveTo(nx, ny);
+          bCtx.lineTo(hp.x, hp.y);
+          bCtx.stroke();
+        }
+      }
+
+      harmonyHistory.push({ x: nx, y: ny });
+      cx = nx;
+      cy = ny;
+    }
+  }
+  bCtx.restore();
+}
+
+function generatePBRMaps(kind, crackPct) {
+  const key = `${kind}_${crackPct}`;
+  if (key === lastPbrKey && cachedBumpTex && cachedNormTex && cachedRoughTex) {
+    return { bumpMap: cachedBumpTex, normalMap: cachedNormTex, roughnessMap: cachedRoughTex };
+  }
+  lastPbrKey = key;
+
+  const size = 256;
+  const bumpCanvas = document.createElement('canvas');
+  bumpCanvas.width = size;
+  bumpCanvas.height = size;
+  const bCtx = bumpCanvas.getContext('2d');
+  const bImg = bCtx.createImageData(size, size);
+  const bData = bImg.data;
+
+  const crackFactor = crackPct / 100;
+
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const nx = x / size;
+      const ny = y / size;
+
+      // Brushed directional metal micro-striations + multi-octave FBM
+      let h = 0.46 * valueNoise(nx * 14, ny * 65)
+            + 0.34 * valueNoise(nx * 24, ny * 24)
+            + 0.20 * valueNoise(nx * 56, ny * 56);
+
+      // Machined plate seam & dual row rivet heads
+      const gx = (x % 64), gy = (y % 64);
+      if (gx < 2 || gy < 2) {
+        h -= 0.24;
+      } else if (
+        (gx > 6 && gx < 11 && gy > 6 && gy < 11) ||
+        (gx > 53 && gx < 58 && gy > 6 && gy < 11) ||
+        (gx > 6 && gx < 11 && gy > 53 && gy < 58) ||
+        (gx > 53 && gx < 58 && gy > 53 && gy < 58)
+      ) {
+        h += 0.24;
+      }
+
+      // Ridged FBM fracture base
+      if (crackFactor > 0.01) {
+        const warpX = nx * 14 + 0.35 * valueNoise(nx * 20, ny * 20);
+        const warpY = ny * 14 + 0.35 * valueNoise(nx * 20 + 7.1, ny * 20 + 3.4);
+        const ridge = Math.abs(valueNoise(warpX, warpY) - 0.5) * 2.0;
+        const threshold = 0.14 * crackFactor;
+        if (ridge < threshold) {
+          const depth = 1.0 - (ridge / threshold);
+          h -= depth * depth * 0.55 * crackFactor;
+        }
+      }
+
+      h = Math.max(0, Math.min(1, h));
+      const c = Math.floor(h * 255);
+      const idx = (y * size + x) * 4;
+      bData[idx] = c;
+      bData[idx + 1] = c;
+      bData[idx + 2] = c;
+      bData[idx + 3] = 255;
+    }
+  }
+  bCtx.putImageData(bImg, 0, 0);
+
+  // Execute mrdoob/harmony Proximity-History Stress-Fracture, Cross-Hatch & Weld-Bead Pass
+  applyHarmonyProximityAndWeldPass(bCtx, size, crackPct, 1337 + (kind ? kind.charCodeAt(0) * 41 : 0));
+
+  // Read back composite height buffer for Sobel 3x3 Tangent-Space RGB Normal Map
+  const finalBumpData = bCtx.getImageData(0, 0, size, size).data;
+  const heightBuf = new Float32Array(size * size);
+  for (let i = 0; i < size * size; i++) {
+    heightBuf[i] = finalBumpData[i * 4] / 255.0;
+  }
+
+  const normCanvas = document.createElement('canvas');
+  normCanvas.width = size;
+  normCanvas.height = size;
+  const nCtx = normCanvas.getContext('2d');
+  const nImg = nCtx.createImageData(size, size);
+  const nData = nImg.data;
+  const strength = 3.8;
+
+  const sampleH = (sx, sy) => {
+    const xx = (sx + size) % size;
+    const yy = (sy + size) % size;
+    return heightBuf[yy * size + xx];
+  };
+
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const tl = sampleH(x - 1, y - 1);
+      const t  = sampleH(x,     y - 1);
+      const tr = sampleH(x + 1, y - 1);
+      const l  = sampleH(x - 1, y);
+      const r  = sampleH(x + 1, y);
+      const bl = sampleH(x - 1, y + 1);
+      const b  = sampleH(x,     y + 1);
+      const br = sampleH(x + 1, y + 1);
+
+      const dX = (tr + 2 * r + br) - (tl + 2 * l + bl);
+      const dY = (bl + 2 * b + br) - (tl + 2 * t + tr);
+
+      let vx = -dX * strength;
+      let vy = -dY * strength;
+      let vz = 1.0;
+      const len = Math.sqrt(vx * vx + vy * vy + vz * vz) || 1.0;
+      vx /= len; vy /= len; vz /= len;
+
+      const idx = (y * size + x) * 4;
+      nData[idx]     = Math.floor((vx * 0.5 + 0.5) * 255);
+      nData[idx + 1] = Math.floor((vy * 0.5 + 0.5) * 255);
+      nData[idx + 2] = Math.floor((vz * 0.5 + 0.5) * 255);
+      nData[idx + 3] = 255;
+    }
+  }
+  nCtx.putImageData(nImg, 0, 0);
+
+  const prevBump = document.getElementById('preview-bump');
+  const prevNorm = document.getElementById('preview-norm');
+  if (prevBump) prevBump.getContext('2d').drawImage(bumpCanvas, 0, 0, prevBump.width, prevBump.height);
+  if (prevNorm) prevNorm.getContext('2d').drawImage(normCanvas, 0, 0, prevNorm.width, prevNorm.height);
+
+  const roughCanvas = document.createElement('canvas');
+  roughCanvas.width = size; roughCanvas.height = size;
+  const rCtx = roughCanvas.getContext('2d');
+  const rImg = rCtx.createImageData(size, size);
+  const rData = rImg.data;
+  for (let i = 0; i < size * size; i++) {
+    const hVal = heightBuf[i];
+    const rough = Math.max(36, Math.min(246, Math.round((1.08 - hVal * 0.86) * 235)));
+    rData[i * 4] = rough; rData[i * 4 + 1] = rough; rData[i * 4 + 2] = rough; rData[i * 4 + 3] = 255;
+  }
+  rCtx.putImageData(rImg, 0, 0);
+
+  if (cachedBumpTex) cachedBumpTex.dispose();
+  if (cachedNormTex) cachedNormTex.dispose();
+  if (cachedRoughTex) cachedRoughTex.dispose();
+
+  cachedBumpTex = new THREE.CanvasTexture(bumpCanvas);
+  cachedBumpTex.wrapS = cachedBumpTex.wrapT = THREE.RepeatWrapping;
+  cachedBumpTex.repeat.set(3, 3);
+
+  cachedNormTex = new THREE.CanvasTexture(normCanvas);
+  cachedNormTex.wrapS = cachedNormTex.wrapT = THREE.RepeatWrapping;
+  cachedNormTex.repeat.set(3, 3);
+
+  cachedRoughTex = new THREE.CanvasTexture(roughCanvas);
+  cachedRoughTex.wrapS = cachedRoughTex.wrapT = THREE.RepeatWrapping;
+  cachedRoughTex.repeat.set(3, 3);
+
+  return { bumpMap: cachedBumpTex, normalMap: cachedNormTex, roughnessMap: cachedRoughTex, bumpCanvas, normCanvas, roughCanvas };
+}
+
+// Procedural Hazard Chevron Texture (Yellow/Black Diagonal Industrial Safety Stripes)
+const hazardChevronTex = (() => {
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 64;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#eab308';
+  ctx.fillRect(0, 0, 256, 64);
+  ctx.fillStyle = '#0f172a';
+  for (let x = -64; x < 320; x += 32) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x + 16, 0);
+    ctx.lineTo(x - 16, 64);
+    ctx.lineTo(x - 32, 64);
+    ctx.closePath();
+    ctx.fill();
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(4, 1);
+  return tex;
+})();
+
+// Procedural Corrugated Rubber Conduit Rib Bump Texture
+const corrugatedRubberBumpTex = (() => {
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 64;
+  const ctx = c.getContext('2d');
+  for (let x = 0; x < 256; x++) {
+    const rib = Math.floor((Math.sin((x / 256) * Math.PI * 48) * 0.5 + 0.5) * 255);
+    ctx.fillStyle = `rgb(${rib},${rib},${rib})`;
+    ctx.fillRect(x, 0, 1, 64);
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(14, 1);
+  return tex;
+})();
+
+// Procedural Soft Radial Ambient Occlusion (AO) Contact Shadow Texture
+const contactAoTex = (() => {
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 256;
+  const ctx = c.getContext('2d');
+  const grad = ctx.createRadialGradient(128, 128, 12, 128, 128, 124);
+  grad.addColorStop(0.0, 'rgba(0, 0, 0, 0.82)');
+  grad.addColorStop(0.55, 'rgba(0, 0, 0, 0.45)');
+  grad.addColorStop(1.0, 'rgba(0, 0, 0, 0.0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 256, 256);
+  return new THREE.CanvasTexture(c);
+})();
+
+function createContactAoMesh(width, depth, y = 0.004) {
+  const mat = new THREE.MeshBasicMaterial({
+    map: contactAoTex,
+    transparent: true,
+    depthWrite: false,
+    opacity: 0.88
+  });
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(width, depth), mat);
+  mesh.rotation.x = -Math.PI / 2;
+  mesh.position.y = y;
+  return mesh;
+}
+
+// Helper: Compute Sobel Tangent-Space Normal Map Texture from a Height Canvas
+function computeSobelNormalTexture(heightCanvas, bevelStrength = 3.2) {
+  const w = heightCanvas.width;
+  const h = heightCanvas.height;
+  const hCtx = heightCanvas.getContext('2d');
+  const src = hCtx.getImageData(0, 0, w, h).data;
+
+  const normCanvas = document.createElement('canvas');
+  normCanvas.width = w;
+  normCanvas.height = h;
+  const nCtx = normCanvas.getContext('2d');
+  const dstImg = nCtx.createImageData(w, h);
+  const dst = dstImg.data;
+
+  const sample = (x, y) => {
+    const cx = Math.max(0, Math.min(w - 1, x));
+    const cy = Math.max(0, Math.min(h - 1, y));
+    return src[(cy * w + cx) * 4] / 255.0;
+  };
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const tl = sample(x - 1, y - 1), t = sample(x, y - 1), tr = sample(x + 1, y - 1);
+      const l  = sample(x - 1, y),                           r  = sample(x + 1, y);
+      const bl = sample(x - 1, y + 1), b = sample(x, y + 1), br = sample(x + 1, y + 1);
+
+      const dX = (tr + 2 * r + br) - (tl + 2 * l + bl);
+      const dY = (bl + 2 * b + br) - (tl + 2 * t + tr);
+      let vx = -dX * bevelStrength;
+      let vy = -dY * bevelStrength;
+      let vz = 1.0;
+      const inv = 1.0 / (Math.sqrt(vx * vx + vy * vy + vz * vz) || 1.0);
+      const idx = (y * w + x) * 4;
+      dst[idx]     = Math.floor((vx * inv * 0.5 + 0.5) * 255);
+      dst[idx + 1] = Math.floor((vy * inv * 0.5 + 0.5) * 255);
+      dst[idx + 2] = Math.floor((vz * inv * 0.5 + 0.5) * 255);
+      dst[idx + 3] = 255;
+    }
+  }
+  nCtx.putImageData(dstImg, 0, 0);
+  const normTex = new THREE.CanvasTexture(normCanvas);
+  normTex.anisotropy = 8;
+  return normTex;
+}
+
+// High-DPI Bezier Vector Analog Dial Face Generator ('manthrax/JSlug' pattern, 512x512 + Normal Bevel)
+function createAnalogDialTexture(title, unit, maxVal, dangerStartRatio) {
+  const W = 512, H = 512;
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+
+  const hc = document.createElement('canvas');
+  hc.width = W; hc.height = H;
+  const hCtx = hc.getContext('2d');
+  hCtx.fillStyle = 'rgb(128,128,128)';
+  hCtx.fillRect(0, 0, W, H);
+
+  // Anodized radial metallic dial face
+  const radGrad = ctx.createRadialGradient(256, 256, 20, 256, 256, 248);
+  radGrad.addColorStop(0.0, '#111827');
+  radGrad.addColorStop(0.75, '#090d16');
+  radGrad.addColorStop(1.0, '#04070d');
+  ctx.fillStyle = radGrad;
+  ctx.beginPath();
+  ctx.arc(256, 256, 246, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Stamped outer Bezier bezel ring & height bevel
+  ctx.strokeStyle = '#64748b';
+  ctx.lineWidth = 10;
+  ctx.stroke();
+
+  hCtx.strokeStyle = 'rgb(235,235,235)';
+  hCtx.lineWidth = 14;
+  hCtx.beginPath();
+  hCtx.arc(256, 256, 236, 0, Math.PI * 2);
+  hCtx.stroke();
+
+  // Scale arc
+  const startAng = Math.PI * 0.78;
+  const endAng = Math.PI * 2.22;
+  const totalSpan = endAng - startAng;
+
+  const dangerAng = startAng + totalSpan * dangerStartRatio;
+  ctx.strokeStyle = '#ef4444';
+  ctx.lineWidth = 18;
+  ctx.beginPath();
+  ctx.arc(256, 256, 190, dangerAng, endAng);
+  ctx.stroke();
+
+  // Bezier Vector Tick Marks & High-DPI Stamped Numerals
+  const ticks = 25;
+  ctx.lineCap = 'round';
+  hCtx.lineCap = 'round';
+  for (let i = 0; i <= ticks; i++) {
+    const u = i / ticks;
+    const a = startAng + u * totalSpan;
+    const isMajor = i % 5 === 0;
+    const rIn = isMajor ? 148 : 168;
+    const rOut = 198;
+
+    ctx.strokeStyle = u >= dangerStartRatio ? '#f87171' : '#f8fafc';
+    ctx.lineWidth = isMajor ? 6 : 3;
+    ctx.beginPath();
+    ctx.moveTo(256 + Math.cos(a) * rIn, 256 + Math.sin(a) * rIn);
+    ctx.lineTo(256 + Math.cos(a) * rOut, 256 + Math.sin(a) * rOut);
+    ctx.stroke();
+
+    hCtx.strokeStyle = 'rgb(240,240,240)';
+    hCtx.lineWidth = isMajor ? 7 : 3.5;
+    hCtx.beginPath();
+    hCtx.moveTo(256 + Math.cos(a) * rIn, 256 + Math.sin(a) * rIn);
+    hCtx.lineTo(256 + Math.cos(a) * rOut, 256 + Math.sin(a) * rOut);
+    hCtx.stroke();
+
+    if (isMajor) {
+      const val = String(Math.round(u * maxVal));
+      const tx = 256 + Math.cos(a) * 114;
+      const ty = 256 + Math.sin(a) * 114;
+      ctx.font = 'bold 30px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.strokeStyle = '#020617';
+      ctx.lineWidth = 5;
+      ctx.strokeText(val, tx, ty);
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillText(val, tx, ty);
+
+      hCtx.font = 'bold 30px "JetBrains Mono", monospace';
+      hCtx.textAlign = 'center';
+      hCtx.textBaseline = 'middle';
+      hCtx.fillStyle = 'rgb(245,245,245)';
+      hCtx.fillText(val, tx, ty);
+    }
+  }
+
+  // Vector Bezier Technical Emblem & Labels
+  ctx.font = 'bold 42px "JetBrains Mono", monospace';
+  ctx.textAlign = 'center';
+  ctx.strokeStyle = '#020617';
+  ctx.lineWidth = 6;
+  ctx.strokeText(unit, 256, 344);
+  ctx.fillStyle = '#38bdf8';
+  ctx.fillText(unit, 256, 344);
+
+  ctx.font = 'bold 26px "JetBrains Mono", monospace';
+  ctx.fillStyle = '#cbd5e1';
+  ctx.fillText(title, 256, 396);
+
+  hCtx.font = 'bold 42px "JetBrains Mono", monospace';
+  hCtx.textAlign = 'center';
+  hCtx.fillStyle = 'rgb(250,250,250)';
+  hCtx.fillText(unit, 256, 344);
+  hCtx.font = 'bold 26px "JetBrains Mono", monospace';
+  hCtx.fillText(title, 256, 396);
+
+  const colorTex = new THREE.CanvasTexture(c);
+  colorTex.anisotropy = 8;
+  colorTex.normalMap = computeSobelNormalTexture(hc, 3.0);
+  colorTex.bumpMap = new THREE.CanvasTexture(hc);
+  return colorTex;
+}
+
+const voltDialTex = createAnalogDialTexture('BUS VOLTAGE', 'VOLTS', 600, 0.80);
+const ampDialTex  = createAnalogDialTexture('LOAD CURRENT', 'AMPS', 250, 0.75);
+
+// ULTRA-CRISP BEZIER VECTOR INDUSTRIAL NAMEPLATE GENERATOR ('manthrax/JSlug' pattern, 1024x256 + Normal Bevel)
+const stampedPlateCache = {};
+function createStampedPlateTexture(text, subtext, accentHex = '#38bdf8') {
+  const key = `${text}_${subtext}_${accentHex}`;
+  if (stampedPlateCache[key]) return stampedPlateCache[key];
+
+  const W = 1024, H = 256;
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+
+  // Companion Stamped Height/Bevel Canvas for Sobel Tangent-Space Normal Map
+  const hc = document.createElement('canvas');
+  hc.width = W; hc.height = H;
+  const hCtx = hc.getContext('2d');
+  hCtx.fillStyle = 'rgb(128,128,128)';
+  hCtx.fillRect(0, 0, W, H);
+
+  // 1. Brushed Anodized Metallic Plate Background with Directional Striations
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+  bgGrad.addColorStop(0.0, '#1e293b');
+  bgGrad.addColorStop(0.5, '#0f172a');
+  bgGrad.addColorStop(1.0, '#090d16');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  for (let y = 0; y < H; y += 3) {
+    ctx.fillStyle = y % 6 === 0 ? 'rgba(255,255,255,0.025)' : 'rgba(0,0,0,0.04)';
+    ctx.fillRect(0, y, W, 1.5);
+  }
+
+  // 2. Cubic Bezier Chamfered Industrial Frame Border (drawn on both Albedo & Height Bevel Map)
+  const drawBezierFrame = (targetCtx, strokeCol, lineW, inset = 14, ch = 28) => {
+    targetCtx.strokeStyle = strokeCol;
+    targetCtx.lineWidth = lineW;
+    targetCtx.lineJoin = 'round';
+    targetCtx.beginPath();
+    targetCtx.moveTo(inset + ch, inset);
+    targetCtx.lineTo(W - inset - ch, inset);
+    targetCtx.bezierCurveTo(W - inset, inset, W - inset, inset, W - inset, inset + ch);
+    targetCtx.lineTo(W - inset, H - inset - ch);
+    targetCtx.bezierCurveTo(W - inset, H - inset, W - inset, H - inset, W - inset - ch, H - inset);
+    targetCtx.lineTo(inset + ch, H - inset);
+    targetCtx.bezierCurveTo(inset, H - inset, inset, H - inset, inset, H - inset - ch);
+    targetCtx.lineTo(inset, inset + ch);
+    targetCtx.bezierCurveTo(inset, inset, inset, inset, inset + ch, inset);
+    targetCtx.closePath();
+    targetCtx.stroke();
+  };
+
+  // Recessed coining moat + raised stamped border on height map
+  drawBezierFrame(hCtx, 'rgb(45,45,45)', 22, 16, 28);
+  drawBezierFrame(hCtx, 'rgb(240,240,240)', 10, 16, 28);
+
+  // Specular metallic outer bevel + accent inner border on albedo
+  drawBezierFrame(ctx, '#475569', 12, 16, 28);
+  drawBezierFrame(ctx, accentHex, 5, 22, 24);
+
+  // 3. 4 Stamped Hex Socket Corner Rivets with Bezier Washers
+  for (const [rx, ry] of [[52, 52], [W - 52, 52], [52, H - 52], [W - 52, H - 52]]) {
+    // Height map rivet dome + recessed hex socket
+    hCtx.fillStyle = 'rgb(40,40,40)';
+    hCtx.beginPath(); hCtx.arc(rx, ry, 20, 0, Math.PI * 2); hCtx.fill();
+    hCtx.fillStyle = 'rgb(245,245,245)';
+    hCtx.beginPath(); hCtx.arc(rx, ry, 15, 0, Math.PI * 2); hCtx.fill();
+    hCtx.fillStyle = 'rgb(70,70,70)';
+    hCtx.beginPath(); hCtx.arc(rx, ry, 6, 0, Math.PI * 2); hCtx.fill();
+
+    // Albedo metallic rivet
+    const rGrad = ctx.createRadialGradient(rx - 4, ry - 4, 2, rx, ry, 16);
+    rGrad.addColorStop(0.0, '#f8fafc');
+    rGrad.addColorStop(0.6, '#94a3b8');
+    rGrad.addColorStop(1.0, '#1e293b');
+    ctx.fillStyle = rGrad;
+    ctx.beginPath(); ctx.arc(rx, ry, 15, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // 4. Bezier Vector High-Voltage Lightning Emblem on Left & Right Flanks
+  const drawBezierBolt = (targetCtx, cx, cy, scale, fillCol) => {
+    targetCtx.save();
+    targetCtx.translate(cx, cy);
+    targetCtx.scale(scale, scale);
+    targetCtx.fillStyle = fillCol;
+    targetCtx.beginPath();
+    targetCtx.moveTo(6, -34);
+    targetCtx.bezierCurveTo(2, -18, -14, -4, -18, 4);
+    targetCtx.lineTo(-2, 4);
+    targetCtx.bezierCurveTo(-4, 16, -8, 26, -10, 34);
+    targetCtx.bezierCurveTo(-2, 18, 14, 2, 18, -6);
+    targetCtx.lineTo(2, -6);
+    targetCtx.closePath();
+    targetCtx.fill();
+    targetCtx.restore();
+  };
+  drawBezierBolt(ctx, 108, H * 0.5, 1.15, accentHex);
+  drawBezierBolt(ctx, W - 108, H * 0.5, 1.15, accentHex);
+  drawBezierBolt(hCtx, 108, H * 0.5, 1.15, 'rgb(245,245,245)');
+  drawBezierBolt(hCtx, W - 108, H * 0.5, 1.15, 'rgb(245,245,245)');
+
+  // 5. manthrax/JSlug Stamped Bezier Vector Typography Pass (Primary Title & Subtext)
+  const renderStampedVectorText = (str, yPos, fontSize, fillHex, isMain) => {
+    const fontSpec = `900 ${fontSize}px "JetBrains Mono", "Inter", monospace`;
+    ctx.font = fontSpec;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+
+    hCtx.font = fontSpec;
+    hCtx.textAlign = 'center';
+    hCtx.textBaseline = 'middle';
+    hCtx.lineJoin = 'round';
+    hCtx.lineCap = 'round';
+
+    // Height Bevel Map: Outer coined moat -> sloped shoulder -> flat raised top
+    hCtx.strokeStyle = 'rgb(38,38,38)';
+    hCtx.lineWidth = isMain ? 18 : 12;
+    hCtx.strokeText(str, W / 2, yPos);
+
+    hCtx.strokeStyle = 'rgb(205,205,205)';
+    hCtx.lineWidth = isMain ? 9 : 6;
+    hCtx.strokeText(str, W / 2, yPos);
+
+    hCtx.fillStyle = 'rgb(255,255,255)';
+    hCtx.fillText(str, W / 2, yPos);
+
+    // Albedo Specular Bevel Catchlights: Deep bottom-right recess + bright top-left chrome edge + crisp vector fill
+    ctx.strokeStyle = '#020617';
+    ctx.lineWidth = isMain ? 12 : 8;
+    ctx.strokeText(str, W / 2 + 2.5, yPos + 2.5);
+
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+    ctx.lineWidth = isMain ? 4 : 2.5;
+    ctx.strokeText(str, W / 2 - 1.5, yPos - 1.5);
+
+    ctx.fillStyle = fillHex;
+    ctx.fillText(str, W / 2, yPos);
+  };
+
+  renderStampedVectorText(text, 102, 74, '#f8fafc', true);
+  renderStampedVectorText(subtext, 188, 44, accentHex, false);
+
+  const colorTex = new THREE.CanvasTexture(c);
+  colorTex.anisotropy = 8;
+  const normalTex = computeSobelNormalTexture(hc, 3.6);
+  const bumpTex = new THREE.CanvasTexture(hc);
+  bumpTex.anisotropy = 8;
+
+  colorTex.normalMap = normalTex;
+  colorTex.bumpMap = bumpTex;
+  colorTex.createMaterial = () => new THREE.MeshStandardMaterial({
+    map: colorTex,
+    normalMap: normalTex,
+    normalScale: new THREE.Vector2(1.85, 1.85),
+    bumpMap: bumpTex,
+    bumpScale: 0.035,
+    metalness: 0.86,
+    roughness: 0.24,
+    envMapIntensity: 1.65
+  });
+
+  const prevPlate = document.getElementById('preview-plate');
+  if (prevPlate) prevPlate.getContext('2d').drawImage(c, 0, 0, prevPlate.width, prevPlate.height);
+  stampedPlateCache[key] = colorTex;
+  return colorTex;
+}
+
+// ============================================================================
+// 4. LIVE DIGITAL TELEMETRY CANVAS TEXTURE (3D SCREEN + SIDEBAR MIRROR)
+// ============================================================================
+const telemetryCanvas = document.createElement('canvas');
+telemetryCanvas.width = 512;
+telemetryCanvas.height = 256;
+const telemetryCtx = telemetryCanvas.getContext('2d');
+const telemetryTexture = new THREE.CanvasTexture(telemetryCanvas);
+
+function updateTelemetryScreen(timeSec) {
+  const ctx = telemetryCtx;
+  const W = telemetryCanvas.width;
+  const H = telemetryCanvas.height;
+
+  ctx.fillStyle = '#040812';
+  ctx.fillRect(0, 0, W, H);
+
+  // Oscilloscope Graticule Grid
+  ctx.strokeStyle = 'rgba(56, 189, 248, 0.12)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < W; x += 32) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+  }
+  for (let y = 0; y < H; y += 32) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+
+  const stateColor = GRID_STATE.state === 'ONLINE' ? '#10b981'
+    : GRID_STATE.state === 'BROWNOUT' ? '#f59e0b'
+    : GRID_STATE.state === 'EMERGENCY_RESERVE' ? '#ff1e27'
+    : '#64748b';
+
+  ctx.strokeStyle = stateColor;
+  ctx.lineWidth = 4;
+  ctx.strokeRect(4, 4, W - 8, H - 8);
+
+  if (GRID_STATE.state === 'OFFLINE') {
+    ctx.fillStyle = '#ef4444';
+    ctx.font = 'bold 46px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('NO POWER', W / 2, H / 2 - 8);
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '18px monospace';
+    ctx.fillText('BUS: 0V • 0A • BREAKER OPEN / OFFLINE', W / 2, H / 2 + 32);
+  } else {
+    ctx.textAlign = 'left';
+    ctx.fillStyle = stateColor;
+    ctx.font = 'bold 22px monospace';
+    ctx.fillText(`STATE: ${GRID_STATE.state}`, 20, 34);
+
+    const busVolts = GRID_STATE.state === 'ONLINE' ? 480
+      : GRID_STATE.state === 'BROWNOUT' ? Math.round(310 + 75 * Math.sin(19 * timeSec) * Math.cos(7 * timeSec))
+      : 240;
+    const busAmps = Math.round((GRID_STATE.connectedLoadKw * 1000) / Math.max(120, busVolts));
+
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = '17px monospace';
+    ctx.fillText(`SUPPLY: ${GRID_STATE.effectiveSupplyKw.toFixed(0)} kW  |  LOAD: ${GRID_STATE.connectedLoadKw.toFixed(0)} kW`, 20, 64);
+    ctx.fillText(`3-PHASE BUS: ${busVolts} VAC  |  CURRENT: ${busAmps} A`, 20, 90);
+    ctx.fillText(`LFP BANK: ${PARAMS.batteryKwh} kWh (${PARAMS.batteryReserveKw} kW RSV)`, 20, 116);
+
+    const drawBadge = (label, active, x, y) => {
+      ctx.fillStyle = active ? 'rgba(16,185,129,0.22)' : 'rgba(100,116,139,0.2)';
+      ctx.fillRect(x, y, 145, 28);
+      ctx.strokeStyle = active ? '#10b981' : '#475569';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(x, y, 145, 28);
+      ctx.fillStyle = active ? '#34d399' : '#64748b';
+      ctx.font = 'bold 13px monospace';
+      ctx.fillText(`${label}:${active ? 'ON' : 'OFF'}`, x + 8, y + 19);
+    };
+    drawBadge('SANCTUARY', GRID_STATE.c1Powered, 345, 20);
+    drawBadge('ABYSS_TRN', GRID_STATE.c2Powered, 345, 54);
+    drawBadge('DEFENSE',   GRID_STATE.c3Powered, 345, 88);
+
+    // 3-Phase Oscilloscope Traces
+    const waveY = 192;
+    const phases = [
+      { offset: 0, col: stateColor, width: 2.8 },
+      { offset: (Math.PI * 2) / 3, col: 'rgba(56, 189, 248, 0.55)', width: 1.5 },
+      { offset: (Math.PI * 4) / 3, col: 'rgba(168, 85, 247, 0.55)', width: 1.5 }
+    ];
+    for (const ph of phases) {
+      ctx.beginPath();
+      ctx.strokeStyle = ph.col;
+      ctx.lineWidth = ph.width;
+      for (let x = 20; x < W - 20; x += 4) {
+        const t = timeSec * 7 + x * 0.055 + ph.offset;
+        let amp = 30;
+        if (GRID_STATE.state === 'BROWNOUT') {
+          amp = 26 * (0.45 + 0.35 * Math.sin(19 * (timeSec + x * 0.01)) * Math.cos(7 * (timeSec + x * 0.01)));
+        } else if (GRID_STATE.state === 'EMERGENCY_RESERVE') {
+          amp = 13;
+        }
+        const py = waveY + Math.sin(t) * amp;
+        if (x === 20) ctx.moveTo(x, py);
+        else ctx.lineTo(x, py);
+      }
+      ctx.stroke();
+    }
+  }
+
+  telemetryTexture.needsUpdate = true;
+
+  const mirror = document.getElementById('telemetry-mirror-canvas');
+  if (mirror) {
+    const mCtx = mirror.getContext('2d');
+    mCtx.drawImage(telemetryCanvas, 0, 0, mirror.width, mirror.height);
+  }
+}
+
+// ============================================================================
+// 5. THREE.JS SCENE, PMREM HDRI ENVIRONMENT, CAMERA & SOFT SHADOWS
+// ============================================================================
+const container = document.getElementById('canvas-container');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x060913);
+scene.fog = new THREE.FogExp2(0x060913, 0.024);
+
+const camera = new THREE.PerspectiveCamera(44, 1, 0.1, 200);
+camera.position.set(0.6, 4.1, 8.6);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.25;
+container.appendChild(renderer.domElement);
+
+// Bind Real HDRI Metallic Reflections via Three.js PMREMGenerator + RoomEnvironment
+const pmremGenerator = new THREE.PMREMGenerator(renderer);
+pmremGenerator.compileEquirectangularShader();
+const roomEnvTexture = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environment = roomEnvTexture;
+
+// v6.0 Selective High-Threshold HDR Post-Processing (EffectComposer + UnrealBloomPass + OutputPass)
+let bloomEnabled = true;
+const initW = Math.max(1, container.clientWidth || window.innerWidth);
+const initH = Math.max(1, container.clientHeight || window.innerHeight);
+const composer = new EffectComposer(renderer);
+composer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+composer.setSize(initW, initH);
+composer.addPass(new RenderPass(scene, camera));
+const unrealBloomPass = new UnrealBloomPass(new THREE.Vector2(initW, initH), 0.40, 0.55, 0.86);
+composer.addPass(unrealBloomPass);
+composer.addPass(new OutputPass());
+
+// v6.0 Subtle Atmospheric Floating Mana/Ion Motes (in scene, outside assetRoot)
+const MOTE_COUNT = 56;
+const motePositions = new Float32Array(MOTE_COUNT * 3);
+for (let mi = 0; mi < MOTE_COUNT; mi++) {
+  motePositions[mi * 3]     = (Math.sin(mi * 73.1) * 0.5) * 9.5;
+  motePositions[mi * 3 + 1] = 0.25 + ((mi * 0.618034) % 1.0) * 4.5;
+  motePositions[mi * 3 + 2] = (Math.cos(mi * 41.7) * 0.5) * 9.5;
+}
+const moteGeo = new THREE.BufferGeometry();
+moteGeo.setAttribute('position', new THREE.BufferAttribute(motePositions, 3));
+const atmosphericMotes = new THREE.Points(
+  moteGeo,
+  new THREE.PointsMaterial({ color: 0x38bdf8, size: 0.05, transparent: true, opacity: 0.52, blending: THREE.AdditiveBlending, depthWrite: false })
+);
+scene.add(atmosphericMotes);
+
+const btnToggleBloomEl = document.getElementById('btnToggleBloom');
+if (btnToggleBloomEl) {
+  btnToggleBloomEl.addEventListener('click', () => {
+    bloomEnabled = !bloomEnabled;
+    unrealBloomPass.enabled = bloomEnabled;
+    btnToggleBloomEl.textContent = bloomEnabled ? '✨ Bloom: ON' : '✨ Bloom: OFF';
+    btnToggleBloomEl.className = bloomEnabled
+      ? 'px-2 py-1.5 rounded bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 font-semibold text-[11px] mono border border-cyan-400/40 transition'
+      : 'px-2 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 font-semibold text-[11px] mono border border-slate-700 transition';
+  });
+}
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.target.set(0.25, 1.35, 0.0);
+
+// Studio Lighting with High-Res Soft Shadow Map
+const ambientLight = new THREE.AmbientLight(0x1e293b, 0.95);
+scene.add(ambientLight);
+
+const keyLight = new THREE.DirectionalLight(0xfff4e6, 2.5);
+keyLight.position.set(6.5, 11.5, 7.5);
+keyLight.castShadow = true;
+keyLight.shadow.mapSize.set(2048, 2048);
+keyLight.shadow.camera.near = 1.0;
+keyLight.shadow.camera.far = 28.0;
+const d = 6.5;
+keyLight.shadow.camera.left = -d;
+keyLight.shadow.camera.right = d;
+keyLight.shadow.camera.top = d;
+keyLight.shadow.camera.bottom = -d;
+keyLight.shadow.bias = -0.0005;
+scene.add(keyLight);
+
+const rimLight = new THREE.DirectionalLight(0x38bdf8, 1.25);
+rimLight.position.set(-7.5, 5.5, -5.5);
+scene.add(rimLight);
+
+// Industrial Sub-Floor Deck & Grid
+const floorPlane = new THREE.Mesh(
+  new THREE.PlaneGeometry(32, 32),
+  new THREE.MeshStandardMaterial({
+    color: 0x070a12,
+    roughness: 0.72,
+    metalness: 0.35
+  })
+);
+floorPlane.rotation.x = -Math.PI / 2;
+floorPlane.position.y = -0.015;
+floorPlane.receiveShadow = true;
+scene.add(floorPlane);
+
+const gridHelper = new THREE.GridHelper(24, 24, 0x1e3a8a, 0x0f172a);
+gridHelper.position.y = -0.005;
+scene.add(gridHelper);
+
+// Root Asset Group
+const assetRoot = new THREE.Group();
+assetRoot.name = 'POWERCAD_v5_System';
+scene.add(assetRoot);
+
+// Dynamic Animation & Interaction References
+const animRefs = {
+  rotors: [],
+  gimbalRings: [],
+  voidCrystal: null,
+  conduitBundles: [],
+  testSpotLight: null,
+  testSpotBulbMat: null,
+  testTurretBarrel: null,
+  testTurretStrobeMat: null,
+  testHoloBridgeMesh: null,
+  testHoloBridgeMat: null,
+  producerGlowMats: [],
+  breakerSwitchMeshes: {},
+  terminalLugMap: {},
+  voltNeedle: null,
+  ampNeedle: null,
+  busbarGlowMat: null
+};
+
+// ============================================================================
+// 6. 3D ELECTRICAL ARC-FLASH SPARK PARTICLE BURST SYSTEM
+// ============================================================================
+const ARC_PARTICLE_COUNT = 70;
+const arcPositions = new Float32Array(ARC_PARTICLE_COUNT * 3);
+const arcVelocities = [];
+for (let i = 0; i < ARC_PARTICLE_COUNT; i++) {
+  arcVelocities.push(new THREE.Vector3());
+}
+const arcGeo = new THREE.BufferGeometry();
+arcGeo.setAttribute('position', new THREE.BufferAttribute(arcPositions, 3));
+const arcMat = new THREE.PointsMaterial({
+  color: 0x7dd3fc,
+  size: 0.085,
+  transparent: true,
+  opacity: 0,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false
+});
+const arcPoints = new THREE.Points(arcGeo, arcMat);
+arcPoints.visible = false;
+scene.add(arcPoints);
+
+const arcFlashLight = new THREE.PointLight(0x38bdf8, 0, 3.5);
+scene.add(arcFlashLight);
+
+let arcBurstTimer = 0;
+let arcBurstOrigin = new THREE.Vector3(1.35, 1.85, -0.2);
+
+function triggerArcSparkBurst(worldPos, colorHex = 0x7dd3fc) {
+  arcBurstOrigin.copy(worldPos);
+  arcBurstTimer = 0.42;
+  arcMat.color.setHex(colorHex);
+  arcMat.opacity = 1.0;
+  arcPoints.visible = true;
+  arcFlashLight.position.copy(worldPos);
+  arcFlashLight.color.setHex(colorHex);
+  arcFlashLight.intensity = 10.0;
+
+  const posAttr = arcGeo.getAttribute('position');
+  for (let i = 0; i < ARC_PARTICLE_COUNT; i++) {
+    posAttr.setXYZ(i, worldPos.x, worldPos.y, worldPos.z);
+    arcVelocities[i].set(
+      (Math.random() - 0.5) * 3.2,
+      (Math.random() - 0.2) * 3.0,
+      (Math.random() - 0.2) * 3.2
+    );
+  }
+  posAttr.needsUpdate = true;
+}
+
+function updateArcSparkBurst(dt) {
+  if (arcBurstTimer <= 0) {
+    arcPoints.visible = false;
+    arcFlashLight.intensity = 0;
+    return;
+  }
+  arcBurstTimer -= dt;
+  const posAttr = arcGeo.getAttribute('position');
+  for (let i = 0; i < ARC_PARTICLE_COUNT; i++) {
+    let x = posAttr.getX(i) + arcVelocities[i].x * dt;
+    let y = posAttr.getY(i) + arcVelocities[i].y * dt;
+    let z = posAttr.getZ(i) + arcVelocities[i].z * dt;
+    arcVelocities[i].y -= 6.5 * dt; // Gravity on sparks
+    posAttr.setXYZ(i, x, y, z);
+  }
+  posAttr.needsUpdate = true;
+  const norm = Math.max(0, arcBurstTimer / 0.42);
+  arcMat.opacity = norm;
+  arcFlashLight.intensity = norm * 10.0;
+}
+
+// ============================================================================
+// 7. REAL-TIME GRAPH WALKER & ELYSIUM POWER ENDPOINT EVALUATION
+// ============================================================================
+function hasLink(fromLug, toLug) {
+  return cableLinks.some(l => l.active && (
+    (l.from === fromLug && l.to === toLug) ||
+    (l.from === toLug && l.to === fromLug)
+  ));
+}
+
+function evaluatePowerGraph() {
+  const prodWired = hasLink('Terminal_Lug_Producer_Out', 'Terminal_Lug_Breaker_In');
+  const battWired = hasLink('Terminal_Lug_Battery_Out', 'Terminal_Lug_Breaker_AuxIn');
+
+  const c1Wired = hasLink('Terminal_Lug_Breaker_C1', 'Terminal_Lug_Load_SpotLight');
+  const c2Wired = hasLink('Terminal_Lug_Breaker_C2', 'Terminal_Lug_Load_HoloBridge');
+  const c3Wired = hasLink('Terminal_Lug_Breaker_C3', 'Terminal_Lug_Load_Turret');
+
+  const mainClosed = !!PARAMS.breakerMain;
+
+  const c1Closed = mainClosed && !!PARAMS.breakerC1 && c1Wired;
+  const c2Closed = mainClosed && !!PARAMS.breakerC2 && c2Wired;
+  const c3Closed = mainClosed && !!PARAMS.breakerC3 && c3Wired;
+
+  const connectedLoadKw =
+    (c1Closed ? PARAMS.load1Kw : 0) +
+    (c2Closed ? PARAMS.load2Kw : 0) +
+    (c3Closed ? PARAMS.load3Kw : 0);
+
+  const primarySupplyKw = (PARAMS.producerActive && prodWired && PARAMS.kind !== 'battery-bank')
+    ? PARAMS.supplyKw
+    : 0;
+
+  const reserveAvailableKw = (PARAMS.showBatteryWall && battWired)
+    ? PARAMS.batteryReserveKw
+    : 0;
+
+  const prevState = GRID_STATE.state;
+  let state = 'OFFLINE';
+  let effectiveSupplyKw = 0;
+  let usingBatteryReserve = false;
+
+  if (!mainClosed) {
+    state = 'OFFLINE';
+    effectiveSupplyKw = 0;
+  } else if (primarySupplyKw > 0) {
+    effectiveSupplyKw = primarySupplyKw;
+    if (primarySupplyKw >= connectedLoadKw) {
+      state = 'ONLINE';
+    } else {
+      state = 'BROWNOUT';
+    }
+  } else if (reserveAvailableKw > 0) {
+    usingBatteryReserve = true;
+    effectiveSupplyKw = reserveAvailableKw;
+    state = 'EMERGENCY_RESERVE';
+  } else {
+    state = 'OFFLINE';
+    effectiveSupplyKw = 0;
+  }
+
+  // Trigger arc spark burst if circuit just tripped into BROWNOUT
+  if (state === 'BROWNOUT' && prevState !== 'BROWNOUT') {
+    triggerArcSparkBurst(new THREE.Vector3(1.35, 2.15, -0.22), 0xfbbf24);
+  }
+
+  const anyPower = state !== 'OFFLINE';
+  GRID_STATE.state = state;
+  GRID_STATE.effectiveSupplyKw = effectiveSupplyKw;
+  GRID_STATE.connectedLoadKw = connectedLoadKw;
+  GRID_STATE.usingBatteryReserve = usingBatteryReserve;
+  GRID_STATE.c1Powered = anyPower && c1Closed;
+  GRID_STATE.c2Powered = anyPower && c2Closed;
+  GRID_STATE.c3Powered = anyPower && c3Closed;
+
+  window.ELYSIUM_POWER_ENDPOINT = {
+    version: '6.0',
+    producer: {
+      nodeName: 'Power_Producer_Core',
+      preset: PARAMS.preset,
+      kind: PARAMS.kind,
+      active: PARAMS.producerActive,
+      supplyKw: PARAMS.supplyKw,
+      batteryReserveKw: PARAMS.batteryReserveKw,
+      batteryKwh: PARAMS.batteryKwh
+    },
+    gridState: GRID_STATE.state,
+    effectiveSupplyKw: GRID_STATE.effectiveSupplyKw,
+    connectedLoadKw: GRID_STATE.connectedLoadKw,
+    breakers: {
+      MAIN_BREAKER: PARAMS.breakerMain,
+      SANCTUARY_MAIN: PARAMS.breakerC1,
+      ABYSS_TRANSIT: PARAMS.breakerC2,
+      DEFENSE_GRID: PARAMS.breakerC3
+    },
+    circuits: {
+      SANCTUARY_MAIN: { powered: GRID_STATE.c1Powered, loadKw: PARAMS.load1Kw, consumer: 'Flush Gimbal Puck SpotLight' },
+      ABYSS_TRANSIT:  { powered: GRID_STATE.c2Powered, loadKw: PARAMS.load2Kw, consumer: 'Mini Holographic Bridge Emitter' },
+      DEFENSE_GRID:   { powered: GRID_STATE.c3Powered, loadKw: PARAMS.load3Kw, consumer: 'Mini Turret / Motor Load' }
+    },
+    conduitNetlist: cableLinks.filter(l => l.active).map(l => ({ id: l.id, from: l.from, to: l.to })),
+    evaluate: evaluatePowerGraph
+  };
+
+  updateHudAndBreakerUI();
+}
+
+function updateHudAndBreakerUI() {
+  const hdrPill = document.getElementById('hdr-grid-state');
+  const hudState = document.getElementById('hud-grid-state');
+  const telState = document.getElementById('telemetry-state-label');
+  const hudSupply = document.getElementById('hud-supply-kw');
+  const hudLoad = document.getElementById('hud-load-kw');
+  const lblTotalLoad = document.getElementById('lbl-total-load');
+  const lblKind = document.getElementById('lbl-kind-badge');
+
+  if (hdrPill) {
+    hdrPill.textContent = GRID_STATE.state;
+    hdrPill.className = `text-[10px] px-2 py-0.5 rounded font-bold mono state-pill-${GRID_STATE.state}`;
+  }
+  const colorClass = GRID_STATE.state === 'ONLINE' ? 'text-emerald-400'
+    : GRID_STATE.state === 'BROWNOUT' ? 'text-amber-400'
+    : GRID_STATE.state === 'EMERGENCY_RESERVE' ? 'text-rose-400'
+    : 'text-slate-400';
+
+  if (hudState) {
+    hudState.textContent = GRID_STATE.state;
+    hudState.className = `font-bold ${colorClass}`;
+  }
+  if (telState) {
+    telState.textContent = GRID_STATE.state;
+    telState.className = `text-[10px] font-bold mono ${colorClass}`;
+  }
+  if (hudSupply) hudSupply.textContent = `${GRID_STATE.effectiveSupplyKw} kW`;
+  if (hudLoad) hudLoad.textContent = `${GRID_STATE.connectedLoadKw} kW`;
+  if (lblTotalLoad) lblTotalLoad.textContent = `${GRID_STATE.connectedLoadKw} kW`;
+  if (lblKind) lblKind.textContent = `kind: "${PARAMS.kind}"`;
+
+  const setBreakerLbl = (id, isOn) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = isOn ? 'ON (+35°)' : 'OFF (-35°)';
+    el.className = `text-xs font-bold mono ${isOn ? 'text-emerald-400' : 'text-rose-400'}`;
+  };
+  setBreakerLbl('lbl-b-main', PARAMS.breakerMain);
+  setBreakerLbl('lbl-b-c1', PARAMS.breakerC1);
+  setBreakerLbl('lbl-b-c2', PARAMS.breakerC2);
+  setBreakerLbl('lbl-b-c3', PARAMS.breakerC3);
+
+  const wireCountEl = document.getElementById('lbl-wire-count');
+  if (wireCountEl) {
+    const activeCount = cableLinks.filter(l => l.active).length;
+    wireCountEl.textContent = `${activeCount} Active Wire${activeCount === 1 ? '' : 's'}`;
+  }
+}
+
+// ============================================================================
+// 8. AAA INDUSTRIAL MICRO-DETAIL SUB-ASSEMBLY BUILDERS
+// ============================================================================
+// Ribbed Ceramic HV Insulator Bushing + Rubber Strain-Relief Boot Terminal Lug
+function createCeramicTerminalLug(name, position, colorHex, role) {
+  const group = new THREE.Group();
+  group.name = name;
+  group.position.copy(position);
+  group.userData = { isTerminalLug: true, lugName: name, role };
+
+  const hexBrassMat = new THREE.MeshStandardMaterial({
+    color: 0xd97736,
+    roughness: 0.22,
+    metalness: 0.94,
+    envMapIntensity: 1.5
+  });
+  const porcelainMat = new THREE.MeshPhysicalMaterial({
+    color: 0x7c2d12,
+    roughness: 0.14,
+    metalness: 0.08,
+    clearcoat: 0.85,
+    clearcoatRoughness: 0.12
+  });
+  const rubberBootMat = new THREE.MeshStandardMaterial({
+    color: 0x11151f,
+    roughness: 0.78,
+    metalness: 0.10
+  });
+  const sightRingMat = new THREE.MeshStandardMaterial({
+    color: colorHex,
+    emissive: colorHex,
+    emissiveIntensity: selectedLugName === name ? 2.4 : 0.75,
+    roughness: 0.2,
+    metalness: 0.5
+  });
+
+  // 1. Hex Compression Gland Base
+  const hexBase = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.085, 0.06, 6), hexBrassMat);
+  hexBase.rotation.x = Math.PI / 2;
+  hexBase.userData = group.userData;
+  group.add(hexBase);
+
+  // 2. 3 Ribbed Ceramic Insulator Sheds
+  for (let s = 0; s < 3; s++) {
+    const shed = new THREE.Mesh(new THREE.CylinderGeometry(0.072 - s * 0.006, 0.082 - s * 0.006, 0.028, 18), porcelainMat);
+    shed.rotation.x = Math.PI / 2;
+    shed.position.z = 0.04 + s * 0.032;
+    shed.userData = group.userData;
+    group.add(shed);
+  }
+
+  // 3. Tapered Corrugated Rubber Strain-Relief Boot
+  const boot = new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.062, 0.08, 16), rubberBootMat);
+  boot.rotation.x = Math.PI / 2;
+  boot.position.z = 0.155;
+  boot.userData = group.userData;
+  group.add(boot);
+
+  // 4. Thin Illuminated Terminal Sight-Ring & Copper Crimp Tip
+  const sightCollar = new THREE.Mesh(new THREE.TorusGeometry(0.056, 0.012, 10, 24), sightRingMat);
+  sightCollar.position.z = 0.125;
+  sightCollar.userData = group.userData;
+  group.add(sightCollar);
+
+  const crimpTip = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 0.05, 12), hexBrassMat);
+  crimpTip.rotation.x = Math.PI / 2;
+  crimpTip.position.z = 0.20;
+  crimpTip.userData = group.userData;
+  group.add(crimpTip);
+
+  animRefs.terminalLugMap[name] = { group, sightRingMat };
+  return group;
+}
+
+// Heavy Welded I-Beam Industrial Skid with Forklift Pockets, Lifting Lugs, Hazard Chevron & Vibration Dampers
+function createIndustrialSkidBase(width, depth, darkIronMat, brushedSteelMat, copperMat) {
+  const skidGroup = new THREE.Group();
+  skidGroup.name = 'Heavy_Welded_IBeam_Skid';
+
+  // Soft AO Contact Shadow on floor
+  skidGroup.add(createContactAoMesh(width * 1.38, depth * 1.38, 0.003));
+
+  // 6 Bolted Spring/Neoprene Vibration Dampers at perimeter
+  for (const sx of [-width * 0.44, 0, width * 0.44]) {
+    for (const sz of [-depth * 0.44, depth * 0.44]) {
+      const footPad = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.03, 0.22), darkIronMat);
+      footPad.position.set(sx, 0.015, sz);
+      skidGroup.add(footPad);
+
+      const spring = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.065, 0.08, 12), copperMat);
+      spring.position.set(sx, 0.06, sz);
+      skidGroup.add(spring);
+    }
+  }
+
+  // Main Welded Steel Deck Chassis
+  const deck = new THREE.Mesh(new THREE.BoxGeometry(width, 0.22, depth), darkIronMat);
+  deck.position.y = 0.19;
+  deck.castShadow = true;
+  deck.receiveShadow = true;
+  skidGroup.add(deck);
+
+  // Top Diamond/Tread Deck Plate
+  const topPlate = new THREE.Mesh(new THREE.BoxGeometry(width * 0.96, 0.03, depth * 0.96), brushedSteelMat);
+  topPlate.position.y = 0.315;
+  topPlate.receiveShadow = true;
+  skidGroup.add(topPlate);
+
+  // Rectangular Forklift Pockets on Front & Back
+  const holeMat = new THREE.MeshBasicMaterial({ color: 0x03050a });
+  for (const fx of [-width * 0.24, width * 0.24]) {
+    const pocketSurround = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.13, depth + 0.03), brushedSteelMat);
+    pocketSurround.position.set(fx, 0.17, 0);
+    skidGroup.add(pocketSurround);
+
+    const pocketVoid = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.085, depth + 0.045), holeMat);
+    pocketVoid.position.set(fx, 0.17, 0);
+    skidGroup.add(pocketVoid);
+  }
+
+  // Yellow/Black Hazard Chevron Bumper Strips along Front & Back
+  const chevronMat = new THREE.MeshStandardMaterial({
+    map: hazardChevronTex,
+    roughness: 0.4,
+    metalness: 0.2
+  });
+  for (const sz of [-depth / 2 - 0.012, depth / 2 + 0.012]) {
+    const strip = new THREE.Mesh(new THREE.BoxGeometry(width * 0.98, 0.065, 0.015), chevronMat);
+    strip.position.set(0, 0.275, sz);
+    skidGroup.add(strip);
+  }
+
+  // 4 Corner Crane Lifting Eye-Lugs with Shackle Rings
+  for (const cx of [-width / 2 + 0.08, width / 2 - 0.08]) {
+    for (const cz of [-depth / 2 + 0.08, depth / 2 - 0.08]) {
+      const ear = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.16, 0.04), brushedSteelMat);
+      ear.position.set(cx, 0.36, cz);
+      skidGroup.add(ear);
+
+      const eye = new THREE.Mesh(new THREE.TorusGeometry(0.055, 0.016, 10, 20), copperMat);
+      eye.position.set(cx, 0.43, cz);
+      skidGroup.add(eye);
+    }
+  }
+
+  return skidGroup;
+}
+
+// Recessed Cooling Louver Vent Panel
+function createLouverVentAssembly(width, height, slatCount, frameMat, slatMat) {
+  const group = new THREE.Group();
+  const bezel = new THREE.Mesh(new THREE.BoxGeometry(width, height, 0.05), frameMat);
+  group.add(bezel);
+
+  const cavity = new THREE.Mesh(
+    new THREE.BoxGeometry(width * 0.9, height * 0.9, 0.04),
+    new THREE.MeshBasicMaterial({ color: 0x04070f })
+  );
+  cavity.position.z = 0.012;
+  group.add(cavity);
+
+  for (let i = 0; i < slatCount; i++) {
+    const sy = -height * 0.4 + (i / Math.max(1, slatCount - 1)) * (height * 0.8);
+    const slat = new THREE.Mesh(new THREE.BoxGeometry(width * 0.88, 0.025, 0.06), slatMat);
+    slat.position.set(0, sy, 0.025);
+    slat.rotation.x = 0.45;
+    group.add(slat);
+  }
+  return group;
+}
+
+// Spinning Radiator / Exhaust Fan behind Perforated Safety Cage
+function createCagedCoolingFan(radius, cageMat, bladeMat) {
+  const group = new THREE.Group();
+
+  const shroud = new THREE.Mesh(new THREE.CylinderGeometry(radius * 1.08, radius * 1.08, 0.14, 24, 1, true), cageMat);
+  shroud.rotation.z = Math.PI / 2;
+  group.add(shroud);
+
+  const rotorHub = new THREE.Group();
+  group.add(rotorHub);
+
+  const cap = new THREE.Mesh(new THREE.CylinderGeometry(radius * 0.25, radius * 0.25, 0.12, 16), bladeMat);
+  cap.rotation.z = Math.PI / 2;
+  rotorHub.add(cap);
+
+  for (let b = 0; b < 7; b++) {
+    const ang = (b / 7) * Math.PI * 2;
+    const blade = new THREE.Mesh(new THREE.BoxGeometry(0.03, radius * 0.82, 0.11), bladeMat);
+    blade.position.set(0, Math.cos(ang) * radius * 0.45, Math.sin(ang) * radius * 0.45);
+    blade.rotation.x = ang;
+    blade.rotation.y = 0.38;
+    rotorHub.add(blade);
+  }
+  animRefs.rotors.push({ mesh: rotorHub, axis: 'x', speed: 6.8 });
+
+  // Concentric Wire Safety Grill Guard
+  for (let r = 1; r <= 3; r++) {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry((radius * r) / 3.1, 0.012, 8, 24), cageMat);
+    ring.rotation.y = Math.PI / 2;
+    ring.position.x = 0.075;
+    group.add(ring);
+  }
+  for (let s = 0; s < 4; s++) {
+    const spoke = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, radius * 2.05, 8), cageMat);
+    spoke.position.x = 0.075;
+    spoke.rotation.x = (s * Math.PI) / 4;
+    group.add(spoke);
+  }
+
+  return group;
+}
+
+// Braided Steel Hydraulic / Coolant Pipe with Hex Compression Fittings
+function createBraidedPipe(pointsArray, radius, braidMat, hexMat) {
+  const group = new THREE.Group();
+  const curve = new THREE.CatmullRomCurve3(pointsArray);
+  const tubeGeo = new THREE.TubeGeometry(curve, 24, radius, 10, false);
+  const tube = new THREE.Mesh(tubeGeo, braidMat);
+  tube.castShadow = true;
+  group.add(tube);
+
+  for (const u of [0.0, 1.0]) {
+    const pt = curve.getPointAt(u);
+    const tan = curve.getTangentAt(u);
+    const nut = new THREE.Mesh(new THREE.CylinderGeometry(radius * 1.65, radius * 1.65, 0.07, 6), hexMat);
+    nut.position.copy(pt);
+    nut.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), tan);
+    group.add(nut);
+  }
+  return group;
+}
+
+// ============================================================================
+// 9. BUILD 3D PARAMETRIC SCENE (AAA PRODUCERS, BUSBAR BREAKER BOX, LOADS & BUNDLED WIRES)
+// ============================================================================
+function buildSceneGeometry() {
+  while (assetRoot.children.length > 0) {
+    assetRoot.remove(assetRoot.children[0]);
+  }
+  animRefs.rotors = [];
+  animRefs.gimbalRings = [];
+  animRefs.voidCrystal = null;
+  animRefs.conduitBundles = [];
+  animRefs.testSpotLight = null;
+  animRefs.testSpotBulbMat = null;
+  animRefs.testTurretBarrel = null;
+  animRefs.testTurretStrobeMat = null;
+  animRefs.testHoloBridgeMesh = null;
+  animRefs.testHoloBridgeMat = null;
+  animRefs.producerGlowMats = [];
+  animRefs.breakerSwitchMeshes = {};
+  animRefs.terminalLugMap = {};
+  animRefs.voltNeedle = null;
+  animRefs.ampNeedle = null;
+  animRefs.busbarGlowMat = null;
+
+  const { bumpMap, normalMap, roughnessMap } = generatePBRMaps(PARAMS.kind, PARAMS.crackDensity);
+  const normalScaleVec = new THREE.Vector2(PARAMS.bumpScale * 2.5, PARAMS.bumpScale * 2.5);
+
+  // AAA PMREM Metallic Materials
+  const darkIronMat = new THREE.MeshStandardMaterial({
+    color: 0x1e2636,
+    roughness: PARAMS.roughness,
+    metalness: PARAMS.metalness,
+    bumpMap,
+    bumpScale: PARAMS.bumpScale,
+    normalMap,
+    normalScale: normalScaleVec,
+    roughnessMap,
+    envMapIntensity: 1.45
+  });
+
+  const brushedTitaniumMat = new THREE.MeshStandardMaterial({
+    color: 0x7a8ba3,
+    roughness: Math.max(0.14, PARAMS.roughness - 0.10),
+    metalness: Math.min(0.98, PARAMS.metalness + 0.08),
+    bumpMap,
+    bumpScale: PARAMS.bumpScale * 0.55,
+    normalMap,
+    normalScale: normalScaleVec,
+    roughnessMap,
+    envMapIntensity: 1.65
+  });
+
+  const solidCopperBusMat = new THREE.MeshStandardMaterial({
+    color: 0xd97736,
+    roughness: 0.18,
+    metalness: 0.95,
+    bumpMap,
+    bumpScale: PARAMS.bumpScale * 0.3,
+    envMapIntensity: 1.75
+  });
+
+  const redCeramicInsulatorMat = new THREE.MeshPhysicalMaterial({
+    color: 0x881b1b,
+    roughness: 0.15,
+    metalness: 0.05,
+    clearcoat: 0.9,
+    clearcoatRoughness: 0.1
+  });
+
+  const clearPolycarbonateMat = new THREE.MeshPhysicalMaterial({
+    color: 0xdbeafe,
+    transparent: true,
+    opacity: 0.28,
+    roughness: 0.06,
+    metalness: 0.05,
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.05,
+    envMapIntensity: 1.8
+  });
+
+  const coreGlowColor = PARAMS.preset === 'abyssal-void' ? 0x38bdf8
+    : PARAMS.preset === 'scifi-fusion' ? 0x818cf8
+    : PARAMS.preset === 'industrial-diesel' ? 0xf59e0b
+    : 0x10b981;
+
+  const coreGlowMat = new THREE.MeshStandardMaterial({
+    color: coreGlowColor,
+    emissive: coreGlowColor,
+    emissiveIntensity: 1.5,
+    roughness: 0.15,
+    metalness: 0.25
+  });
+  animRefs.producerGlowMats.push(coreGlowMat);
+
+  // --------------------------------------------------------------------------
+  // A. MAIN POWER PRODUCER NODE ('Power_Producer_Core') at x = -2.6, z = -0.3
+  // --------------------------------------------------------------------------
+  const producerGroup = new THREE.Group();
+  producerGroup.name = 'Power_Producer_Core';
+  producerGroup.position.set(-2.6, 0, -0.3);
+  const pScale = PARAMS.producerScale;
+  producerGroup.scale.set(pScale, pScale, pScale);
+  assetRoot.add(producerGroup);
+
+  // Heavy Welded I-Beam Skid Base with Forklift Pockets, Hazard Chevron & Dampers
+  const skidBase = createIndustrialSkidBase(2.95, 2.35, darkIronMat, brushedTitaniumMat, solidCopperBusMat);
+  producerGroup.add(skidBase);
+
+  // JSlug Stamped Bezier Equipment Plaque on Producer Skid Front Apron
+  const prodTitleMap = {
+    'abyssal-void': 'VOID_CORE_MK5',
+    'scifi-fusion': 'TOKAMAK_200MW',
+    'industrial-diesel': 'V12_TURBO_GEN',
+    'solar-battery': 'BIFACIAL_LFP'
+  };
+  const prodPlateTex = createStampedPlateTexture(
+    prodTitleMap[PARAMS.preset] || 'POWER_PRODUCER',
+    `${PARAMS.kind.toUpperCase()} • ${PARAMS.supplyKw}KW`,
+    '#38bdf8'
+  );
+  const prodPlateMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.68, 0.17), prodPlateTex.createMaterial());
+  prodPlateMesh.position.set(0, 0.19, 1.19);
+  producerGroup.add(prodPlateMesh);
+
+  const coreH = PARAMS.coreHeight;
+  const ringN = PARAMS.ringCount;
+
+  if (PARAMS.preset === 'abyssal-void') {
+    // PRESET 1: Abyssal Crystal / Void Core Reactor (AAA Upgrade)
+    for (let i = 0; i < 4; i++) {
+      const ang = (i * Math.PI) / 2 + Math.PI / 4;
+      const px = Math.cos(ang) * 1.18;
+      const pz = Math.sin(ang) * 0.98;
+
+      const pylon = new THREE.Mesh(new THREE.BoxGeometry(0.30, coreH, 0.30), darkIronMat);
+      pylon.position.set(px, 0.32 + coreH / 2, pz);
+      pylon.castShadow = true;
+      producerGroup.add(pylon);
+
+      // Recessed Cooling Louvers on outer pylon faces
+      const louver = createLouverVentAssembly(0.22, coreH * 0.45, 7, brushedTitaniumMat, darkIronMat);
+      louver.position.set(px * 1.11, 0.32 + coreH * 0.35, pz * 1.11);
+      louver.lookAt(px * 2, 0.32 + coreH * 0.35, pz * 2);
+      producerGroup.add(louver);
+
+      // Solid Copper Busbar Strips + Glowing Runic Conduit Channels
+      const copperRail = new THREE.Mesh(new THREE.BoxGeometry(0.09, coreH * 0.88, 0.09), solidCopperBusMat);
+      copperRail.position.set(px * 0.88, 0.32 + coreH / 2, pz * 0.88);
+      producerGroup.add(copperRail);
+
+      const runeStrip = new THREE.Mesh(new THREE.BoxGeometry(0.04, coreH * 0.82, 0.04), coreGlowMat);
+      runeStrip.position.set(px * 0.82, 0.32 + coreH / 2, pz * 0.82);
+      producerGroup.add(runeStrip);
+
+      // Braided Hydraulic Coolant Pipe from Skid into Pylon
+      producerGroup.add(createBraidedPipe([
+        new THREE.Vector3(px * 0.55, 0.32, pz * 0.55),
+        new THREE.Vector3(px * 0.78, 0.68, pz * 0.78),
+        new THREE.Vector3(px * 0.92, 1.05, pz * 0.92)
+      ], 0.032, brushedTitaniumMat, solidCopperBusMat));
+    }
+
+    // Heavy Bolted Top & Bottom Containment Rings
+    for (const cy of [0.46, 0.32 + coreH - 0.14]) {
+      const crown = new THREE.Mesh(new THREE.TorusGeometry(1.08, 0.13, 16, 36), darkIronMat);
+      crown.rotation.x = Math.PI / 2;
+      crown.position.y = cy;
+      producerGroup.add(crown);
+    }
+
+    // Counter-Rotating Gimbal Hoops with Copper Inductors
+    const centerY = 0.32 + coreH * 0.52;
+    for (let r = 0; r < Math.min(4, ringN); r++) {
+      const radius = 0.88 - r * 0.12;
+      const hoop = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.045, 14, 40), r % 2 === 0 ? brushedTitaniumMat : solidCopperBusMat);
+      hoop.position.y = centerY;
+      producerGroup.add(hoop);
+      animRefs.gimbalRings.push({ mesh: hoop, axis: r % 2 === 0 ? 'x' : 'z', speed: (r + 1) * 0.65 * (r % 2 === 0 ? 1 : -1) });
+    }
+
+    // Levitating Octahedral Runic Crystal Core + Outer Wireframe Cage
+    const crystalGroup = new THREE.Group();
+    crystalGroup.position.y = centerY;
+    crystalGroup.name = 'Abyssal_Void_Crystal';
+    const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(0.44, 0), coreGlowMat);
+    crystalGroup.add(crystal);
+    const crystalCage = new THREE.Mesh(
+      new THREE.OctahedronGeometry(0.52, 0),
+      new THREE.MeshStandardMaterial({ color: 0xd97736, wireframe: true, metalness: 0.95, roughness: 0.2 })
+    );
+    crystalGroup.add(crystalCage);
+    producerGroup.add(crystalGroup);
+    animRefs.voidCrystal = { mesh: crystalGroup, baseY: centerY };
+
+    // Front Control Console with Perforated Exhaust Fan
+    const fanUnit = createCagedCoolingFan(0.28, brushedTitaniumMat, solidCopperBusMat);
+    fanUnit.position.set(1.38, 0.72, 0);
+    producerGroup.add(fanUnit);
+
+  } else if (PARAMS.preset === 'scifi-fusion') {
+    // PRESET 2: Sci-Fi Tokamak / Tesla Fusion Substation (AAA Upgrade)
+    const torusY = 0.32 + coreH * 0.46;
+
+    // Outer Cryostat Containment Ring & Glowing Plasma Viewport
+    const plasmaTorus = new THREE.Mesh(new THREE.TorusGeometry(0.94, 0.24, 24, 56), coreGlowMat);
+    plasmaTorus.rotation.x = Math.PI / 2;
+    plasmaTorus.position.y = torusY;
+    producerGroup.add(plasmaTorus);
+
+    const glassShield = new THREE.Mesh(new THREE.TorusGeometry(0.94, 0.29, 20, 48), clearPolycarbonateMat);
+    glassShield.rotation.x = Math.PI / 2;
+    glassShield.position.y = torusY;
+    producerGroup.add(glassShield);
+
+    // Toroidal D-Shaped Copper Magnetic Confinement Coils
+    for (let i = 0; i < ringN; i++) {
+      const ang = (i / ringN) * Math.PI * 2;
+      const coil = new THREE.Mesh(new THREE.TorusGeometry(0.36, 0.065, 14, 28), solidCopperBusMat);
+      coil.position.set(Math.cos(ang) * 0.94, torusY, Math.sin(ang) * 0.94);
+      coil.rotation.y = -ang;
+      producerGroup.add(coil);
+    }
+
+    // Central Solenoid Column + Spinning Cryo-Turbine Crown
+    const solenoid = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.44, coreH, 28), brushedTitaniumMat);
+    solenoid.position.y = 0.32 + coreH / 2;
+    producerGroup.add(solenoid);
+
+    const topRotor = new THREE.Mesh(new THREE.CylinderGeometry(0.64, 0.64, 0.16, 18), darkIronMat);
+    topRotor.position.y = 0.32 + coreH + 0.08;
+    producerGroup.add(topRotor);
+    animRefs.rotors.push({ mesh: topRotor, axis: 'y', speed: 2.4 });
+
+    // Dual Cryo Coolant Towers + Caged Exhaust Fans + Braided Cryo Lines
+    for (const side of [-1, 1]) {
+      const tower = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.34, coreH * 0.88, 24), darkIronMat);
+      tower.position.set(side * 1.18, 0.32 + coreH * 0.44, -0.55);
+      producerGroup.add(tower);
+
+      const fan = createCagedCoolingFan(0.24, brushedTitaniumMat, solidCopperBusMat);
+      fan.position.set(side * 1.18, 0.32 + coreH * 0.55, -0.22);
+      fan.rotation.y = Math.PI / 2;
+      producerGroup.add(fan);
+
+      producerGroup.add(createBraidedPipe([
+        new THREE.Vector3(side * 1.18, 0.32 + coreH * 0.78, -0.55),
+        new THREE.Vector3(side * 0.95, 0.32 + coreH * 0.82, -0.15),
+        new THREE.Vector3(side * 0.42, 0.32 + coreH * 0.75, 0.0)
+      ], 0.036, brushedTitaniumMat, solidCopperBusMat));
+
+      // Ribbed Red Ceramic HV Bushings on front deck
+      for (let b = 0; b < 5; b++) {
+        const shed = new THREE.Mesh(new THREE.CylinderGeometry(0.14 - b * 0.012, 0.18 - b * 0.012, 0.055, 20), redCeramicInsulatorMat);
+        shed.position.set(side * 0.85, 0.52 + b * 0.075, 0.75);
+        producerGroup.add(shed);
+      }
+    }
+
+  } else if (PARAMS.preset === 'industrial-diesel') {
+    // PRESET 3: Industrial V12 Diesel / Turbine Backup Generator (AAA Upgrade)
+    const blockH = Math.min(1.65, coreH * 0.58);
+
+    // Ribbed Cast-Iron Engine Block + Alternator Housing
+    const engineBlock = new THREE.Mesh(new THREE.BoxGeometry(2.15, blockH, 1.12), darkIronMat);
+    engineBlock.position.set(-0.12, 0.32 + blockH / 2, 0);
+    engineBlock.castShadow = true;
+    producerGroup.add(engineBlock);
+
+    // Side Louver Vents on Engine Block
+    for (const sz of [-0.57, 0.57]) {
+      const louver = createLouverVentAssembly(1.45, blockH * 0.62, 6, brushedTitaniumMat, darkIronMat);
+      louver.position.set(-0.15, 0.32 + blockH * 0.5, sz);
+      if (sz < 0) louver.rotation.y = Math.PI;
+      producerGroup.add(louver);
+    }
+
+    // V12 Cylinder Heads + Copper Fuel Rails
+    const cylPairs = Math.max(3, Math.min(6, Math.round(ringN)));
+    for (let i = 0; i < cylPairs; i++) {
+      const xPos = -0.88 + (i / Math.max(1, cylPairs - 1)) * 1.42;
+      for (const side of [-1, 1]) {
+        const head = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.14, 0.44, 16), brushedTitaniumMat);
+        head.position.set(xPos, 0.32 + blockH + 0.08, side * 0.35);
+        head.rotation.x = side * 0.42;
+        producerGroup.add(head);
+      }
+    }
+
+    // Spinning Radiator Fan behind Perforated Safety Cage at front (+X)
+    const radFan = createCagedCoolingFan(0.46, brushedTitaniumMat, solidCopperBusMat);
+    radFan.position.set(1.02, 0.32 + blockH * 0.52, 0);
+    producerGroup.add(radFan);
+
+    // Twin Vertical Exhaust Stacks with Perforated Muffler Heat Shields + Flapper Caps
+    for (const side of [-1, 1]) {
+      const stack = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.11, coreH * 0.88, 18), brushedTitaniumMat);
+      stack.position.set(-0.68, 0.32 + coreH * 0.44, side * 0.68);
+      producerGroup.add(stack);
+
+      const shield = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, coreH * 0.48, 16), darkIronMat);
+      shield.position.set(-0.68, 0.32 + coreH * 0.38, side * 0.68);
+      producerGroup.add(shield);
+    }
+
+    // Belly Fuel Tank with Brass Pressure Relief Valve & Braided Fuel Hose
+    const tank = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 1.95, 24), solidCopperBusMat);
+    tank.rotation.z = Math.PI / 2;
+    tank.position.set(-0.12, 0.68, -0.82);
+    producerGroup.add(tank);
+
+    const valveWheel = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.018, 10, 20), redCeramicInsulatorMat);
+    valveWheel.position.set(0.45, 1.05, -0.82);
+    producerGroup.add(valveWheel);
+
+  } else {
+    // PRESET 4: Rooftop Bifacial Solar Array + Lithium Battery Wall (AAA Upgrade)
+    const rackGroup = new THREE.Group();
+    rackGroup.position.set(0, 0.32, 0);
+    producerGroup.add(rackGroup);
+
+    for (const sx of [-0.95, 0.95]) {
+      const strut = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.10, coreH * 0.72, 16), brushedTitaniumMat);
+      strut.position.set(sx, coreH * 0.36, 0);
+      rackGroup.add(strut);
+    }
+
+    const tiltGroup = new THREE.Group();
+    tiltGroup.position.set(0, coreH * 0.72, 0);
+    tiltGroup.rotation.x = THREE.MathUtils.degToRad(PARAMS.panelTiltDeg);
+    rackGroup.add(tiltGroup);
+
+    const cols = PARAMS.panelColumns;
+    const rows = PARAMS.panelRows;
+    const cellW = 0.56, cellH = 0.72;
+    const totalW = cols * (cellW + 0.04);
+    const totalH = rows * (cellH + 0.04);
+
+    const frameBacking = new THREE.Mesh(new THREE.BoxGeometry(totalW + 0.14, 0.06, totalH + 0.14), brushedTitaniumMat);
+    tiltGroup.add(frameBacking);
+
+    const pvMat = new THREE.MeshPhysicalMaterial({
+      color: 0x082f49,
+      emissive: 0x0284c7,
+      emissiveIntensity: 0.28,
+      roughness: 0.08,
+      metalness: 0.85,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.05
+    });
+    animRefs.producerGlowMats.push(pvMat);
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const px = -totalW / 2 + cellW / 2 + c * (cellW + 0.04);
+        const pz = -totalH / 2 + cellH / 2 + r * (cellH + 0.04);
+        const panel = new THREE.Mesh(new THREE.BoxGeometry(cellW, 0.04, cellH), pvMat);
+        panel.position.set(px, 0.04, pz);
+        tiltGroup.add(panel);
+      }
+    }
+  }
+
+  // Producer HV Ceramic Terminal Lug
+  const prodLug = createCeramicTerminalLug('Terminal_Lug_Producer_Out', new THREE.Vector3(-1.05, 1.15, 0.88), 0x38bdf8, 'output');
+  assetRoot.add(prodLug);
+
+  // --------------------------------------------------------------------------
+  // B. MODULAR LFP BATTERY BANK & HYBRID INVERTER WALL (x = -0.35, z = -1.65)
+  // --------------------------------------------------------------------------
+  if (PARAMS.showBatteryWall) {
+    const batteryGroup = new THREE.Group();
+    batteryGroup.name = 'LFP_Battery_Inverter_Wall';
+    batteryGroup.position.set(-0.35, 0, -1.65);
+    assetRoot.add(batteryGroup);
+
+    batteryGroup.add(createContactAoMesh(2.05, 1.05, 0.003));
+
+    const cab = new THREE.Mesh(new THREE.BoxGeometry(1.62, 2.22, 0.56), brushedTitaniumMat);
+    cab.position.y = 1.11;
+    cab.castShadow = true;
+    cab.receiveShadow = true;
+    batteryGroup.add(cab);
+
+    const inverterBox = new THREE.Mesh(new THREE.BoxGeometry(1.42, 0.86, 0.62), darkIronMat);
+    inverterBox.position.set(0, 1.56, 0.03);
+    batteryGroup.add(inverterBox);
+
+    // Side Cooling Louvers on Hybrid Inverter
+    const invLouver = createLouverVentAssembly(0.42, 0.65, 6, brushedTitaniumMat, darkIronMat);
+    invLouver.position.set(-0.72, 1.56, 0.03);
+    invLouver.rotation.y = -Math.PI / 2;
+    batteryGroup.add(invLouver);
+
+    // High-Res Oscilloscope / Telemetry Screen + Clearcoat Glass Cover
+    const screenMat = new THREE.MeshBasicMaterial({ map: telemetryTexture });
+    const screenMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.22, 0.62), screenMat);
+    screenMesh.position.set(0, 1.56, 0.345);
+    batteryGroup.add(screenMesh);
+
+    const glassCover = new THREE.Mesh(new THREE.PlaneGeometry(1.24, 0.64), clearPolycarbonateMat);
+    glassCover.position.set(0, 1.56, 0.352);
+    batteryGroup.add(glassCover);
+
+    // LFP Rack Modules with Copper Bus Interconnects
+    const barMat = new THREE.MeshStandardMaterial({
+      color: 0x10b981,
+      emissive: 0x10b981,
+      emissiveIntensity: 1.2
+    });
+    for (let i = 0; i < 4; i++) {
+      const rackMod = new THREE.Mesh(new THREE.BoxGeometry(1.32, 0.16, 0.58), darkIronMat);
+      rackMod.position.set(0, 0.34 + i * 0.21, 0.02);
+      batteryGroup.add(rackMod);
+
+      const ledStrip = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.035, 0.60), barMat);
+      ledStrip.position.set(-0.1, 0.34 + i * 0.21, 0.02);
+      batteryGroup.add(ledStrip);
+
+      const busLink = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.18, 0.61), solidCopperBusMat);
+      busLink.position.set(0.52, 0.34 + i * 0.21, 0.02);
+      batteryGroup.add(busLink);
+    }
+
+    const battLug = createCeramicTerminalLug('Terminal_Lug_Battery_Out', new THREE.Vector3(0.48, 0.95, -1.32), 0xf43f5e, 'output');
+    assetRoot.add(battLug);
+  }
+
+  // --------------------------------------------------------------------------
+  // C. NEMA INDUSTRIAL SWITCHGEAR BREAKER BOX WITH RECESSED COPPER BUSBARS & ANALOG DIALS
+  // --------------------------------------------------------------------------
+  const breakerGroup = new THREE.Group();
+  breakerGroup.name = 'Distribution_Breaker_Box';
+  breakerGroup.position.set(1.35, 0, -0.5);
+  assetRoot.add(breakerGroup);
+
+  breakerGroup.add(createContactAoMesh(1.95, 1.25, 0.003));
+
+  // Heavy I-Beam & Hazard-Striped Switchgear Pedestal
+  const ped = new THREE.Mesh(new THREE.BoxGeometry(1.48, 0.52, 0.68), darkIronMat);
+  ped.position.y = 0.26;
+  ped.castShadow = true;
+  breakerGroup.add(ped);
+
+  const pedStripe = new THREE.Mesh(
+    new THREE.BoxGeometry(1.46, 0.065, 0.015),
+    new THREE.MeshStandardMaterial({ map: hazardChevronTex, roughness: 0.4 })
+  );
+  pedStripe.position.set(0, 0.46, 0.345);
+  breakerGroup.add(pedStripe);
+
+  // Outer Flanged NEMA Steel Enclosure Shell (Back & Perimeter Walls forming a deep recessed cavity!)
+  const backWall = new THREE.Mesh(new THREE.BoxGeometry(1.56, 2.05, 0.14), darkIronMat);
+  backWall.position.set(0, 1.54, -0.22);
+  backWall.castShadow = true;
+  breakerGroup.add(backWall);
+
+  const leftWall = new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.05, 0.56), darkIronMat);
+  leftWall.position.set(-0.72, 1.54, -0.01);
+  leftWall.castShadow = true;
+  breakerGroup.add(leftWall);
+
+  const rightWall = new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.05, 0.56), darkIronMat);
+  rightWall.position.set(0.72, 1.54, -0.01);
+  rightWall.castShadow = true;
+  breakerGroup.add(rightWall);
+
+  const topRoof = new THREE.Mesh(new THREE.BoxGeometry(1.64, 0.12, 0.62), brushedTitaniumMat);
+  topRoof.position.set(0, 2.60, 0.0);
+  topRoof.castShadow = true;
+  breakerGroup.add(topRoof);
+
+  // Dark Interior Backplane inside the recessed cavity
+  const interiorBackplane = new THREE.Mesh(
+    new THREE.BoxGeometry(1.32, 1.88, 0.03),
+    new THREE.MeshStandardMaterial({ color: 0x090d16, roughness: 0.6, metalness: 0.5 })
+  );
+  interiorBackplane.position.set(0, 1.54, -0.13);
+  breakerGroup.add(interiorBackplane);
+
+  // --------------------------------------------------------------------------
+  // EXPOSED 3-PHASE SOLID COPPER BUSBARS ('#d97736') + CERAMIC STANDOFFS IN UPPER CAVITY
+  // --------------------------------------------------------------------------
+  for (const bx of [-0.36, 0.0, 0.36]) {
+    // Vertical 3-Phase Solid Copper Busbar
+    const vBus = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.78, 0.028), solidCopperBusMat);
+    vBus.position.set(bx, 2.02, -0.04);
+    breakerGroup.add(vBus);
+
+    // 2 Ribbed Red Ceramic Standoff Insulators behind each Copper Busbar
+    for (const sy of [1.78, 2.26]) {
+      const insulator = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.052, 0.08, 16), redCeramicInsulatorMat);
+      insulator.rotation.x = Math.PI / 2;
+      insulator.position.set(bx, sy, -0.09);
+      breakerGroup.add(insulator);
+    }
+  }
+
+  // Translucent Polycarbonate Inter-Phase Arc Barriers between the 3 Copper Busbars
+  for (const px of [-0.18, 0.18]) {
+    const phaseBarrier = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.82, 0.14), clearPolycarbonateMat);
+    phaseBarrier.position.set(px, 2.02, -0.03);
+    breakerGroup.add(phaseBarrier);
+  }
+
+  // 3-Phase MOV Surge Arrester Bank with Ribbed Ceramic Sheds on Right Side of Busbar Chamber
+  for (let sa = 0; sa < 3; sa++) {
+    const sy = 1.84 + sa * 0.18;
+    const arrester = new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.042, 0.14, 16), redCeramicInsulatorMat);
+    arrester.rotation.z = Math.PI / 2;
+    arrester.position.set(0.54, sy, -0.04);
+    breakerGroup.add(arrester);
+  }
+
+  // Horizontal Copper Phase Cross-Bars feeding the MCCB Breakers
+  for (const hy of [1.92, 2.15]) {
+    const hBus = new THREE.Mesh(new THREE.BoxGeometry(0.96, 0.045, 0.024), solidCopperBusMat);
+    hBus.position.set(0, hy, 0.0);
+    breakerGroup.add(hBus);
+  }
+
+  // Framed Polycarbonate Inspection Window over the Upper Copper Busbar Cavity
+  const windowFrameTop = new THREE.Mesh(new THREE.BoxGeometry(1.36, 0.06, 0.06), brushedTitaniumMat);
+  windowFrameTop.position.set(0, 2.48, 0.25);
+  breakerGroup.add(windowFrameTop);
+
+  const windowFrameMid = new THREE.Mesh(new THREE.BoxGeometry(1.36, 0.07, 0.08), brushedTitaniumMat);
+  windowFrameMid.position.set(0, 1.72, 0.25);
+  breakerGroup.add(windowFrameMid);
+
+  const polyWindow = new THREE.Mesh(new THREE.BoxGeometry(1.28, 0.70, 0.02), clearPolycarbonateMat);
+  polyWindow.position.set(0, 2.10, 0.25);
+  breakerGroup.add(polyWindow);
+
+  // Internal Busbar Cavity Illumination Light
+  const cavityLight = new THREE.PointLight(0xffedd5, 1.6, 1.8);
+  cavityLight.position.set(0, 2.15, 0.12);
+  breakerGroup.add(cavityLight);
+
+  // --------------------------------------------------------------------------
+  // ROTARY ANALOG NEEDLE VOLTMETER & AMMETER DIAL GAUGES (y = 2.26)
+  // --------------------------------------------------------------------------
+  const buildDialGauge = (xPos, tex, isVolt) => {
+    const gGroup = new THREE.Group();
+    gGroup.position.set(xPos, 2.26, 0.14);
+
+    const bezel = new THREE.Mesh(new THREE.CylinderGeometry(0.155, 0.165, 0.06, 24), brushedTitaniumMat);
+    bezel.rotation.x = Math.PI / 2;
+    gGroup.add(bezel);
+
+    const face = new THREE.Mesh(
+      new THREE.CircleGeometry(0.14, 32),
+      new THREE.MeshStandardMaterial({
+        map: tex,
+        normalMap: tex.normalMap,
+        normalScale: new THREE.Vector2(1.4, 1.4),
+        roughness: 0.22,
+        metalness: 0.78,
+        envMapIntensity: 1.5
+      })
+    );
+    face.position.z = 0.032;
+    gGroup.add(face);
+
+    const needlePivot = new THREE.Group();
+    needlePivot.position.set(0, 0, 0.038);
+    gGroup.add(needlePivot);
+
+    const needle = new THREE.Mesh(
+      new THREE.BoxGeometry(0.014, 0.11, 0.008),
+      new THREE.MeshBasicMaterial({ color: 0xf43f5e })
+    );
+    needle.position.y = 0.045;
+    needlePivot.add(needle);
+
+    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.015, 12), solidCopperBusMat);
+    cap.rotation.x = Math.PI / 2;
+    needlePivot.add(cap);
+
+    if (isVolt) animRefs.voltNeedle = needlePivot;
+    else animRefs.ampNeedle = needlePivot;
+
+    return gGroup;
+  };
+  breakerGroup.add(buildDialGauge(-0.46, voltDialTex, true));
+  breakerGroup.add(buildDialGauge(0.46, ampDialTex, false));
+
+  // --------------------------------------------------------------------------
+  // LOWER MCCB SWITCHGEAR BAY & SLOTTED STEEL DIN RAIL
+  // --------------------------------------------------------------------------
+  const lowerPanel = new THREE.Mesh(new THREE.BoxGeometry(1.34, 1.15, 0.08), brushedTitaniumMat);
+  lowerPanel.position.set(0, 1.12, 0.18);
+  breakerGroup.add(lowerPanel);
+
+  // Horizontal Slotted Steel DIN Rail across y = 1.15
+  const dinRail = new THREE.Mesh(new THREE.BoxGeometry(1.26, 0.12, 0.04), solidCopperBusMat);
+  dinRail.position.set(0, 1.18, 0.23);
+  breakerGroup.add(dinRail);
+
+  // 4 Molded-Case Circuit Breaker (MCCB) Modules with Stamped Nameplates, Flag Windows & Ribbed Handles
+  const breakerConfigs = [
+    { key: 'breakerMain', nodeName: 'Breaker_Switch_Main', title: 'MAIN 200A',      sub: 'PRIMARY BUS FEED', y: 1.88, x: 0.0,   accent: '#38bdf8' },
+    { key: 'breakerC1',   nodeName: 'Breaker_Switch_C1',   title: 'SANCTUARY_MAIN', sub: 'C1 • SPOTLIGHT',   y: 1.18, x: -0.42, accent: '#22d3ee' },
+    { key: 'breakerC2',   nodeName: 'Breaker_Switch_C2',   title: 'ABYSS_TRANSIT',  sub: 'C2 • HOLO-BRIDGE', y: 1.18, x: 0.0,   accent: '#a855f7' },
+    { key: 'breakerC3',   nodeName: 'Breaker_Switch_C3',   title: 'DEFENSE_GRID',   sub: 'C3 • TURRET LOAD', y: 1.18, x: 0.42,  accent: '#f59e0b' }
+  ];
+
+  const mccbBodyMat = new THREE.MeshStandardMaterial({
+    color: 0x111622,
+    roughness: 0.42,
+    metalness: 0.35,
+    bumpMap,
+    bumpScale: 0.04
+  });
+
+  for (const cfg of breakerConfigs) {
+    const isOn = !!PARAMS[cfg.key];
+
+    // Molded-Case Breaker Body
+    const mccbBox = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.46, 0.12), mccbBodyMat);
+    mccbBox.position.set(cfg.x, cfg.y, 0.24);
+    mccbBox.userData = { isBreakerSwitch: true, paramKey: cfg.key };
+    breakerGroup.add(mccbBox);
+
+    // Top & Bottom Copper Screw Lug Clamps on each MCCB
+    for (const ly of [cfg.y + 0.24, cfg.y - 0.24]) {
+      const lugClamp = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.04, 0.09), solidCopperBusMat);
+      lugClamp.position.set(cfg.x, ly, 0.24);
+      breakerGroup.add(lugClamp);
+    }
+
+    // Stamped Metal Nameplate Label below handle (manthrax/JSlug Bezier + Normal-Bevel Specular)
+    const plateTex = createStampedPlateTexture(cfg.title, cfg.sub, cfg.accent);
+    const nameplate = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.31, 0.088),
+      plateTex.createMaterial()
+    );
+    nameplate.position.set(cfg.x, cfg.y - 0.15, 0.305);
+    nameplate.userData = mccbBox.userData;
+    breakerGroup.add(nameplate);
+
+    // Mechanical ON / TRIPPED / OFF Flag Window
+    const flagColor = !isOn ? 0xef4444 : (GRID_STATE.state === 'BROWNOUT' ? 0xf59e0b : 0x10b981);
+    const flagMat = new THREE.MeshStandardMaterial({
+      color: flagColor,
+      emissive: flagColor,
+      emissiveIntensity: 1.6
+    });
+    const flagWindow = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.045, 0.02), flagMat);
+    flagWindow.position.set(cfg.x, cfg.y + 0.15, 0.302);
+    flagWindow.userData = mccbBox.userData;
+    breakerGroup.add(flagWindow);
+
+    // Ribbed Toggle Handle Pivot (+35 deg ON / -35 deg OFF)
+    const leverPivot = new THREE.Group();
+    leverPivot.name = cfg.nodeName;
+    leverPivot.position.set(cfg.x, cfg.y - 0.01, 0.30);
+    leverPivot.rotation.x = THREE.MathUtils.degToRad(isOn ? -35 : 35);
+    leverPivot.userData = { isBreakerSwitch: true, paramKey: cfg.key };
+    breakerGroup.add(leverPivot);
+
+    const handleMat = new THREE.MeshStandardMaterial({
+      color: isOn ? 0x10b981 : 0xef4444,
+      roughness: 0.28,
+      metalness: 0.45
+    });
+    const shaft = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.05, 0.14), brushedTitaniumMat);
+    shaft.position.set(0, 0, 0.06);
+    shaft.userData = leverPivot.userData;
+    leverPivot.add(shaft);
+
+    const grip = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.065, 0.065), handleMat);
+    grip.position.set(0, 0, 0.14);
+    grip.userData = leverPivot.userData;
+    leverPivot.add(grip);
+
+    animRefs.breakerSwitchMeshes[cfg.key] = { leverPivot, flagMat, handleMat };
+  }
+
+  // Breaker Box Ceramic HV Terminal Lugs
+  assetRoot.add(createCeramicTerminalLug('Terminal_Lug_Breaker_In',    new THREE.Vector3(0.55, 1.95, -0.18), 0x38bdf8, 'input'));
+  assetRoot.add(createCeramicTerminalLug('Terminal_Lug_Breaker_AuxIn', new THREE.Vector3(0.55, 1.38, -0.18), 0xf43f5e, 'input'));
+  assetRoot.add(createCeramicTerminalLug('Terminal_Lug_Breaker_C1',    new THREE.Vector3(0.93, 0.72, -0.12), 0x22d3ee, 'output'));
+  assetRoot.add(createCeramicTerminalLug('Terminal_Lug_Breaker_C2',    new THREE.Vector3(1.35, 0.72, -0.12), 0xa855f7, 'output'));
+  assetRoot.add(createCeramicTerminalLug('Terminal_Lug_Breaker_C3',    new THREE.Vector3(1.77, 0.72, -0.12), 0xf59e0b, 'output'));
+
+  // --------------------------------------------------------------------------
+  // D. THREE BUILT-IN TEST CONSUMER LOADS (z = +1.85) WITH CONTACT SHADOWS
+  // --------------------------------------------------------------------------
+  // 1. Consumer 1: Flush Gimbal Puck SpotLight ('SANCTUARY_MAIN') at x = -1.5, z = 1.85
+  const load1Group = new THREE.Group();
+  load1Group.name = 'Consumer_1_Gimbal_Puck_SpotLight';
+  load1Group.position.set(-1.5, 0, 1.85);
+  assetRoot.add(load1Group);
+
+  load1Group.add(createContactAoMesh(1.85, 1.85, 0.003));
+
+  const stand1 = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.22, 2.35, 20), darkIronMat);
+  stand1.position.y = 1.175;
+  stand1.castShadow = true;
+  load1Group.add(stand1);
+
+  const arm1 = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.12, 0.68), brushedTitaniumMat);
+  arm1.position.set(0, 2.35, 0.22);
+  load1Group.add(arm1);
+
+  const puckHousing = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.38, 0.16, 28), brushedTitaniumMat);
+  puckHousing.position.set(0, 2.28, 0.45);
+  load1Group.add(puckHousing);
+
+  const bulbMat = new THREE.MeshStandardMaterial({
+    color: 0xecfeff,
+    emissive: 0x38bdf8,
+    emissiveIntensity: 2.2
+  });
+  animRefs.testSpotBulbMat = bulbMat;
+  const puckLens = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.04, 24), bulbMat);
+  puckLens.position.set(0, 2.19, 0.45);
+  load1Group.add(puckLens);
+
+  const spotLight = new THREE.SpotLight(0x38bdf8, 7.5, 9.5, Math.PI / 4, 0.45, 1.2);
+  spotLight.position.set(-1.5, 2.16, 2.30);
+  spotLight.target.position.set(-1.5, 0, 2.30);
+  scene.add(spotLight.target);
+  assetRoot.add(spotLight);
+  animRefs.testSpotLight = spotLight;
+
+  const targetPad = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.84, 0.09, 28), darkIronMat);
+  targetPad.position.set(0, 0.045, 0.45);
+  targetPad.receiveShadow = true;
+  load1Group.add(targetPad);
+
+  const l1Plate = createStampedPlateTexture('SANCTUARY_MAIN', `${PARAMS.load1Kw}KW • SPOTLIGHT`, '#22d3ee');
+  const l1PlaqueMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.46, 0.12), l1Plate.createMaterial());
+  l1PlaqueMesh.position.set(0, 0.42, 0.24);
+  load1Group.add(l1PlaqueMesh);
+  assetRoot.add(createCeramicTerminalLug('Terminal_Lug_Load_SpotLight', new THREE.Vector3(-1.5, 0.95, 1.62), 0x22d3ee, 'input'));
+
+  // 2. Consumer 2: Mini Holographic Bridge Emitter ('ABYSS_TRANSIT') at x = 0.65, z = 1.85
+  const load2Group = new THREE.Group();
+  load2Group.name = 'Consumer_2_Holo_Bridge_Emitter';
+  load2Group.position.set(0.65, 0, 1.85);
+  assetRoot.add(load2Group);
+
+  load2Group.add(createContactAoMesh(2.1, 1.1, 0.003));
+
+  for (const side of [-0.75, 0.75]) {
+    const pylon = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.24, 0.88, 20), darkIronMat);
+    pylon.position.set(side, 0.44, 0);
+    pylon.castShadow = true;
+    load2Group.add(pylon);
+
+    const copperRing = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.025, 12, 24), solidCopperBusMat);
+    copperRing.rotation.x = Math.PI / 2;
+    copperRing.position.set(side, 0.62, 0);
+    load2Group.add(copperRing);
+  }
+
+  const holoMat = new THREE.MeshStandardMaterial({
+    color: 0x38bdf8,
+    emissive: 0x06b6d4,
+    emissiveIntensity: 1.5,
+    transparent: true,
+    opacity: 0.78,
+    roughness: 0.1
+  });
+  animRefs.testHoloBridgeMat = holoMat;
+  const holoSpan = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.06, 0.56), holoMat);
+  holoSpan.position.set(0, 0.62, 0);
+  load2Group.add(holoSpan);
+  animRefs.testHoloBridgeMesh = holoSpan;
+
+  assetRoot.add(createCeramicTerminalLug('Terminal_Lug_Load_HoloBridge', new THREE.Vector3(0.65, 0.65, 1.52), 0xa855f7, 'input'));
+
+  // 3. Consumer 3: Mini Turret / Motor Load ('DEFENSE_GRID') at x = 2.85, z = 1.85
+  const load3Group = new THREE.Group();
+  load3Group.name = 'Consumer_3_Rotary_Turret_Motor';
+  load3Group.position.set(2.85, 0, 1.85);
+  assetRoot.add(load3Group);
+
+  load3Group.add(createContactAoMesh(1.45, 1.45, 0.003));
+
+  const turretBase = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.58, 0.64, 24), darkIronMat);
+  turretBase.position.y = 0.32;
+  turretBase.castShadow = true;
+  load3Group.add(turretBase);
+
+  const turretHead = new THREE.Group();
+  turretHead.position.y = 0.86;
+  load3Group.add(turretHead);
+
+  const headPod = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.44, 0.64), brushedTitaniumMat);
+  headPod.castShadow = true;
+  turretHead.add(headPod);
+
+  const barrelCluster = new THREE.Group();
+  barrelCluster.position.set(0, 0, 0.46);
+  turretHead.add(barrelCluster);
+  for (let b = 0; b < 4; b++) {
+    const ang = (b / 4) * Math.PI * 2;
+    const brl = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.72, 12), solidCopperBusMat);
+    brl.rotation.x = Math.PI / 2;
+    brl.position.set(Math.cos(ang) * 0.11, Math.sin(ang) * 0.11, 0);
+    barrelCluster.add(brl);
+  }
+  animRefs.testTurretBarrel = barrelCluster;
+
+  const strobeMat = new THREE.MeshStandardMaterial({
+    color: 0x10b981,
+    emissive: 0x10b981,
+    emissiveIntensity: 1.6
+  });
+  animRefs.testTurretStrobeMat = strobeMat;
+  const strobeBeacon = new THREE.Mesh(new THREE.SphereGeometry(0.085, 16, 16), strobeMat);
+  strobeBeacon.position.set(0, 0.29, 0);
+  turretHead.add(strobeBeacon);
+
+  const l3Plate = createStampedPlateTexture('DEFENSE_GRID', `${PARAMS.load3Kw}KW • TURRET MOTOR`, '#f59e0b');
+  const l3PlaqueMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.48, 0.12), l3Plate.createMaterial());
+  l3PlaqueMesh.position.set(0, 0.32, 0.58);
+  load3Group.add(l3PlaqueMesh);
+  assetRoot.add(createCeramicTerminalLug('Terminal_Lug_Load_Turret', new THREE.Vector3(2.85, 0.55, 1.38), 0xf59e0b, 'input'));
+
+  // --------------------------------------------------------------------------
+  // E. 1.70m .VRM ENGINEER SCALE AVATAR REFERENCE
+  // --------------------------------------------------------------------------
+  if (PARAMS.showVrm) {
+    const vrmGroup = new THREE.Group();
+    vrmGroup.name = 'VRM_Scale_Reference_1_70m';
+    vrmGroup.position.set(0.15, 0, 0.35);
+    assetRoot.add(vrmGroup);
+
+    const holoAvatarMat = new THREE.MeshStandardMaterial({
+      color: 0x38bdf8,
+      emissive: 0x0284c7,
+      emissiveIntensity: 0.45,
+      transparent: true,
+      opacity: 0.55,
+      roughness: 0.25
+    });
+
+    const legs = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.11, 0.82, 14), holoAvatarMat);
+    legs.position.y = 0.41;
+    vrmGroup.add(legs);
+
+    const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.15, 0.58, 14), holoAvatarMat);
+    torso.position.y = 1.11;
+    vrmGroup.add(torso);
+
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 16), holoAvatarMat);
+    head.position.y = 1.56;
+    vrmGroup.add(head);
+  }
+
+  // --------------------------------------------------------------------------
+  // F. BUILD 3-STRAND BUNDLED HV CATENARY CONDUIT ASSEMBLIES
+  // --------------------------------------------------------------------------
+  buildCatenaryCables();
+  evaluatePowerGraph();
+  renderPatchListUI();
+}
+
+function buildCatenaryCables() {
+  const existing = assetRoot.getObjectByName('Catenary_Conduit_Group');
+  if (existing) assetRoot.remove(existing);
+
+  const cableGroup = new THREE.Group();
+  cableGroup.name = 'Catenary_Conduit_Group';
+  assetRoot.add(cableGroup);
+  animRefs.conduitBundles = [];
+
+  const mainRadius = (PARAMS.cableRadiusMm / 1000);
+  const armorRadius = mainRadius * 0.48;
+  const tracerRadius = mainRadius * 0.28;
+  const sag = PARAMS.cableSag;
+
+  // 1. Matte Corrugated Industrial Rubber Jacket Material (NEVER glows like a pool noodle!)
+  const rubberJacketMat = new THREE.MeshStandardMaterial({
+    color: 0x141821,
+    roughness: 0.72,
+    metalness: 0.12,
+    bumpMap: corrugatedRubberBumpTex,
+    bumpScale: 0.045,
+    envMapIntensity: 0.9
+  });
+
+  // 2. Braided Steel Armor Ground Line Material
+  const braidedSteelMat = new THREE.MeshStandardMaterial({
+    color: 0x94a3b8,
+    roughness: 0.28,
+    metalness: 0.92,
+    bumpMap: corrugatedRubberBumpTex,
+    bumpScale: 0.025,
+    envMapIntensity: 1.5
+  });
+
+  // 3. Metallic Cable-Clamp Collar Material
+  const clampMetalMat = new THREE.MeshStandardMaterial({
+    color: 0x334155,
+    roughness: 0.30,
+    metalness: 0.88,
+    envMapIntensity: 1.4
+  });
+
+  for (const link of cableLinks) {
+    if (!link.active) continue;
+    const fromEntry = animRefs.terminalLugMap[link.from];
+    const toEntry = animRefs.terminalLugMap[link.to];
+    if (!fromEntry || !toEntry) continue;
+
+    const p0 = fromEntry.group.position.clone().add(new THREE.Vector3(0, 0, 0.16));
+    const p4 = toEntry.group.position.clone().add(new THREE.Vector3(0, 0, 0.16));
+    const dist = p0.distanceTo(p4);
+
+    // 5-Point Catenary Curve with realistic gravity sag clamped above floor y = 0.05
+    const p1 = p0.clone().lerp(p4, 0.25);
+    const p2 = p0.clone().lerp(p4, 0.50);
+    const p3 = p0.clone().lerp(p4, 0.75);
+
+    const dropMid = sag * (0.65 + dist * 0.12);
+    p1.y = Math.max(0.05, p1.y - dropMid * 0.75);
+    p2.y = Math.max(0.05, p2.y - dropMid);
+    p3.y = Math.max(0.05, p3.y - dropMid * 0.75);
+
+    const mainPts = [p0, p1, p2, p3, p4];
+    const mainCurve = new THREE.CatmullRomCurve3(mainPts);
+
+    // Offset points for Braided Steel Armor Line & Thin Recessed Tracer Core
+    const armorOffset = new THREE.Vector3(mainRadius * 1.15, mainRadius * 0.55, 0);
+    const tracerOffset = new THREE.Vector3(0, mainRadius * 1.18, mainRadius * 0.55);
+
+    const armorCurve = new THREE.CatmullRomCurve3(mainPts.map(pt => pt.clone().add(armorOffset)));
+    const tracerCurve = new THREE.CatmullRomCurve3(mainPts.map(pt => pt.clone().add(tracerOffset)));
+
+    // Strand 1: Thick Matte Corrugated Rubber Main Power Trunk
+    const mainTube = new THREE.Mesh(new THREE.TubeGeometry(mainCurve, 40, mainRadius, 12, false), rubberJacketMat);
+    mainTube.name = `Conduit_Trunk_${link.id}`;
+    mainTube.castShadow = true;
+    cableGroup.add(mainTube);
+
+    // Strand 2: Braided Steel Armor Ground Line
+    const armorTube = new THREE.Mesh(new THREE.TubeGeometry(armorCurve, 36, armorRadius, 8, false), braidedSteelMat);
+    armorTube.name = `Conduit_Armor_${link.id}`;
+    armorTube.castShadow = true;
+    cableGroup.add(armorTube);
+
+    // Strand 3: Thin Recessed Diagnostic Fiber / Coolant Tracer Core (ONLY this & sight-rings emit light!)
+    const tracerMat = new THREE.MeshStandardMaterial({
+      color: link.color,
+      emissive: link.color,
+      emissiveIntensity: 1.35,
+      roughness: 0.2,
+      metalness: 0.3
+    });
+    const tracerTube = new THREE.Mesh(new THREE.TubeGeometry(tracerCurve, 36, tracerRadius, 8, false), tracerMat);
+    tracerTube.name = `Conduit_Tracer_${link.id}`;
+    cableGroup.add(tracerTube);
+
+    // 5 Metallic 3D Cable-Clamp Collars spaced along the catenary curve holding the 3 strands together
+    const collarSightMats = [];
+    for (const u of [0.16, 0.33, 0.50, 0.67, 0.84]) {
+      const pt = mainCurve.getPointAt(u);
+      const tan = mainCurve.getTangentAt(u).normalize();
+
+      const clampGroup = new THREE.Group();
+      clampGroup.position.copy(pt).add(new THREE.Vector3(mainRadius * 0.35, mainRadius * 0.45, 0));
+      clampGroup.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), tan);
+
+      const collarBand = new THREE.Mesh(
+        new THREE.CylinderGeometry(mainRadius * 1.95, mainRadius * 1.95, 0.055, 16),
+        clampMetalMat
+      );
+      clampGroup.add(collarBand);
+
+      const sightMat = new THREE.MeshStandardMaterial({
+        color: link.color,
+        emissive: link.color,
+        emissiveIntensity: 1.5
+      });
+      collarSightMats.push(sightMat);
+
+      const sightRing = new THREE.Mesh(
+        new THREE.TorusGeometry(mainRadius * 1.98, 0.008, 8, 20),
+        sightMat
+      );
+      sightRing.rotation.x = Math.PI / 2;
+      clampGroup.add(sightRing);
+
+      cableGroup.add(clampGroup);
+    }
+
+    // Traveling Diagnostic Energy Pulse Ring along the Tracer Core
+    const pulseMat = new THREE.MeshStandardMaterial({
+      color: link.color,
+      emissive: link.color,
+      emissiveIntensity: 2.8
+    });
+    const pulseBead = new THREE.Mesh(new THREE.TorusGeometry(tracerRadius * 2.2, tracerRadius * 0.85, 10, 18), pulseMat);
+    cableGroup.add(pulseBead);
+
+    animRefs.conduitBundles.push({
+      link,
+      tracerMat,
+      collarSightMats,
+      pulseBead,
+      pulseMat,
+      tracerCurve,
+      fromLug: fromEntry,
+      toLug: toEntry
+    });
+  }
+}
+
+// ============================================================================
+// 10. SIDEBAR PATCH MATRIX & UI SYNCHRONIZATION
+// ============================================================================
+function renderPatchListUI() {
+  const listEl = document.getElementById('patch-list');
+  if (!listEl) return;
+  listEl.innerHTML = '';
+
+  cableLinks.forEach((link, idx) => {
+    const row = document.createElement('div');
+    row.className = 'flex items-center justify-between p-1.5 rounded bg-slate-950 border border-slate-800';
+    row.innerHTML = `
+      <span class="text-[10px] ${link.active ? 'text-cyan-300' : 'text-slate-500 line-through'}">${link.label}</span>
+      <button data-link-idx="${idx}" class="px-2 py-0.5 rounded text-[9px] font-bold ${
+        link.active ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-800 text-slate-400'
+      }">${link.active ? 'WIRED' : 'OPEN'}</button>
+    `;
+    row.querySelector('button').addEventListener('click', () => {
+      cableLinks[idx].active = !cableLinks[idx].active;
+      buildCatenaryCables();
+      evaluatePowerGraph();
+      renderPatchListUI();
+    });
+    listEl.appendChild(row);
+  });
+}
+
+function syncUIControlsFromParams() {
+  const numIds = [
+    'supplyKw', 'batteryReserveKw', 'batteryKwh', 'producerScale', 'coreHeight',
+    'ringCount', 'panelTiltDeg', 'panelColumns', 'panelRows', 'cableSag',
+    'cableRadiusMm', 'pulseSpeed', 'load1Kw', 'load2Kw', 'load3Kw',
+    'crackDensity', 'bumpScale', 'roughness', 'metalness'
+  ];
+  for (const k of numIds) {
+    const el = document.getElementById(`p-${k}`);
+    if (el) el.value = PARAMS[k];
+  }
+
+  const fmtMap = {
+    supplyKw: v => `${v} kW`,
+    batteryReserveKw: v => `${v} kW`,
+    batteryKwh: v => `${v} kWh`,
+    producerScale: v => `${Number(v).toFixed(2)}x`,
+    coreHeight: v => `${Number(v).toFixed(2)} m`,
+    ringCount: v => `${v}`,
+    panelTiltDeg: v => `${v}°`,
+    panelColumns: v => `${v}`,
+    panelRows: v => `${v}`,
+    cableSag: v => `${Number(v).toFixed(2)} m`,
+    cableRadiusMm: v => `${v} mm`,
+    pulseSpeed: v => `${Number(v).toFixed(2)}x`,
+    load1Kw: v => `${v} kW`,
+    load2Kw: v => `${v} kW`,
+    load3Kw: v => `${v} kW`,
+    crackDensity: v => `${v}%`,
+    bumpScale: v => Number(v).toFixed(2),
+    roughness: v => Number(v).toFixed(2),
+    metalness: v => Number(v).toFixed(2)
+  };
+  for (const [k, fn] of Object.entries(fmtMap)) {
+    const vEl = document.getElementById(`v-${k}`);
+    if (vEl) vEl.textContent = fn(PARAMS[k]);
+  }
+
+  const boolIds = ['producerActive', 'breakerMain', 'breakerC1', 'breakerC2', 'breakerC3', 'showVrm', 'showBatteryWall'];
+  for (const k of boolIds) {
+    const el = document.getElementById(`p-${k}`);
+    if (el) el.checked = !!PARAMS[k];
+  }
+
+  const kindSel = document.getElementById('p-kind');
+  if (kindSel) kindSel.value = PARAMS.kind;
+
+  document.querySelectorAll('.preset-card').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.preset === PARAMS.preset);
+  });
+  document.querySelectorAll('.preset-top-btn').forEach(btn => {
+    const active = btn.dataset.preset === PARAMS.preset;
+    btn.className = active
+      ? 'preset-top-btn px-2 py-1 rounded text-[10px] font-medium mono bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+      : 'preset-top-btn px-2 py-1 rounded text-[10px] font-medium mono text-slate-400 hover:text-white';
+  });
+}
+
+// ============================================================================
+// 11. INTERACTIVE 3D RAYCASTER (BREAKER SWITCHES + ARC FLASH & TERMINAL LUGS)
+// ============================================================================
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+let downPos = { x: 0, y: 0 };
+
+renderer.domElement.addEventListener('pointerdown', e => {
+  downPos = { x: e.clientX, y: e.clientY };
+});
+
+renderer.domElement.addEventListener('pointerup', e => {
+  const dx = e.clientX - downPos.x;
+  const dy = e.clientY - downPos.y;
+  if (Math.hypot(dx, dy) > 6) return;
+
+  const rect = renderer.domElement.getBoundingClientRect();
+  pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+  raycaster.setFromCamera(pointer, camera);
+  const hits = raycaster.intersectObjects(assetRoot.children, true);
+  if (hits.length === 0) return;
+
+  const hitPoint = hits[0].point.clone();
+  let obj = hits[0].object;
+  while (obj && obj !== assetRoot) {
+    if (obj.userData && obj.userData.isBreakerSwitch) {
+      const key = obj.userData.paramKey;
+      PARAMS[key] = !PARAMS[key];
+      triggerArcSparkBurst(hitPoint.add(new THREE.Vector3(0, 0.08, 0.05)), 0x7dd3fc);
+      syncUIControlsFromParams();
+      buildSceneGeometry();
+      return;
+    }
+    if (obj.userData && obj.userData.isTerminalLug) {
+      handleTerminalLugClick(obj.userData.lugName);
+      return;
+    }
+    obj = obj.parent;
+  }
+});
+
+function handleTerminalLugClick(lugName) {
+  const lblLug = document.getElementById('lbl-selected-lug');
+  const hintEl = document.getElementById('hud-interaction-hint');
+
+  if (!selectedLugName) {
+    selectedLugName = lugName;
+    if (lblLug) lblLug.textContent = `Selected: ${lugName.replace('Terminal_Lug_', '')}`;
+    if (hintEl) hintEl.textContent = `🔌 Selected ${lugName} — now click a second Ceramic HV Terminal Lug to connect/disconnect a 3-Strand Bundled Conduit.`;
+    buildSceneGeometry();
+    return;
+  }
+
+  if (selectedLugName === lugName) {
+    selectedLugName = null;
+    if (lblLug) lblLug.textContent = 'Click any 3D Lug';
+    buildSceneGeometry();
+    return;
+  }
+
+  const existing = cableLinks.find(l =>
+    (l.from === selectedLugName && l.to === lugName) ||
+    (l.from === lugName && l.to === selectedLugName)
+  );
+  if (existing) {
+    existing.active = !existing.active;
+  } else {
+    cableLinks.push({
+      id: `W_${cableLinks.length + 1}`,
+      from: selectedLugName,
+      to: lugName,
+      label: `${selectedLugName.replace('Terminal_Lug_', '')} → ${lugName.replace('Terminal_Lug_', '')}`,
+      active: true,
+      color: 0x38bdf8
+    });
+  }
+
+  selectedLugName = null;
+  if (lblLug) lblLug.textContent = 'Patch Updated!';
+  if (hintEl) hintEl.textContent = '✅ 3-Strand Bundled Catenary Conduit netlist updated & graph re-walked.';
+  buildSceneGeometry();
+}
+
+// ============================================================================
+// 12. EVENT LISTENERS & UI BINDINGS
+// ============================================================================
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const target = btn.dataset.tab;
+    document.querySelectorAll('.tab-pane').forEach(p => {
+      p.classList.toggle('hidden', p.id !== `tab-${target}`);
+    });
+  });
+});
+
+function applyPreset(presetKey) {
+  const p = PRESETS[presetKey];
+  if (!p) return;
+  Object.assign(PARAMS, p);
+  syncUIControlsFromParams();
+  buildSceneGeometry();
+}
+
+document.querySelectorAll('[data-preset]').forEach(btn => {
+  btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
+});
+
+document.getElementById('p-kind').addEventListener('change', e => {
+  PARAMS.kind = e.target.value;
+  syncUIControlsFromParams();
+  buildSceneGeometry();
+});
+
+const sliderKeys = [
+  'supplyKw', 'batteryReserveKw', 'batteryKwh', 'producerScale', 'coreHeight',
+  'ringCount', 'panelTiltDeg', 'panelColumns', 'panelRows', 'cableSag',
+  'cableRadiusMm', 'pulseSpeed', 'load1Kw', 'load2Kw', 'load3Kw',
+  'crackDensity', 'bumpScale', 'roughness', 'metalness'
+];
+for (const k of sliderKeys) {
+  const el = document.getElementById(`p-${k}`);
+  if (!el) continue;
+  el.addEventListener('input', e => {
+    PARAMS[k] = parseFloat(e.target.value);
+    syncUIControlsFromParams();
+    buildSceneGeometry();
+  });
+}
+
+const checkboxKeys = ['producerActive', 'breakerMain', 'breakerC1', 'breakerC2', 'breakerC3', 'showVrm', 'showBatteryWall'];
+for (const k of checkboxKeys) {
+  const el = document.getElementById(`p-${k}`);
+  if (!el) continue;
+  el.addEventListener('change', e => {
+    PARAMS[k] = e.target.checked;
+    if (k.startsWith('breaker')) {
+      triggerArcSparkBurst(new THREE.Vector3(1.35, 1.95, -0.22), 0x7dd3fc);
+    }
+    syncUIControlsFromParams();
+    buildSceneGeometry();
+  });
+}
+
+function triggerStateScenario(mode) {
+  if (mode === 'ONLINE') {
+    PARAMS.producerActive = true;
+    PARAMS.breakerMain = true;
+    PARAMS.breakerC1 = true;
+    PARAMS.breakerC2 = true;
+    PARAMS.breakerC3 = true;
+    PARAMS.supplyKw = Math.max(110, PARAMS.load1Kw + PARAMS.load2Kw + PARAMS.load3Kw + 15);
+    triggerArcSparkBurst(new THREE.Vector3(1.35, 2.05, -0.22), 0x34d399);
+  } else if (mode === 'BROWNOUT') {
+    PARAMS.producerActive = true;
+    PARAMS.breakerMain = true;
+    PARAMS.breakerC1 = true;
+    PARAMS.breakerC2 = true;
+    PARAMS.breakerC3 = true;
+    PARAMS.supplyKw = Math.max(15, (PARAMS.load1Kw + PARAMS.load2Kw + PARAMS.load3Kw) - 25);
+    triggerArcSparkBurst(new THREE.Vector3(1.35, 2.05, -0.22), 0xfbbf24);
+  } else if (mode === 'EMERGENCY_RESERVE') {
+    PARAMS.producerActive = false;
+    PARAMS.showBatteryWall = true;
+    PARAMS.breakerMain = true;
+    PARAMS.batteryReserveKw = 40;
+    triggerArcSparkBurst(new THREE.Vector3(1.35, 2.05, -0.22), 0xf43f5e);
+  } else if (mode === 'OFFLINE') {
+    PARAMS.breakerMain = false;
+    triggerArcSparkBurst(new THREE.Vector3(1.35, 2.05, -0.22), 0x7dd3fc);
+  }
+  syncUIControlsFromParams();
+  buildSceneGeometry();
+}
+
+document.getElementById('btn-state-online').addEventListener('click', () => triggerStateScenario('ONLINE'));
+document.getElementById('btn-state-brownout').addEventListener('click', () => triggerStateScenario('BROWNOUT'));
+document.getElementById('btn-state-emergency').addEventListener('click', () => triggerStateScenario('EMERGENCY_RESERVE'));
+document.getElementById('btn-state-offline').addEventListener('click', () => triggerStateScenario('OFFLINE'));
+
+document.getElementById('btn-flip-main').addEventListener('click', () => {
+  PARAMS.breakerMain = !PARAMS.breakerMain;
+  triggerArcSparkBurst(new THREE.Vector3(1.35, 1.95, -0.22), 0x7dd3fc);
+  syncUIControlsFromParams();
+  buildSceneGeometry();
+});
+document.getElementById('btn-sim-brownout').addEventListener('click', () => triggerStateScenario('BROWNOUT'));
+document.getElementById('btn-sim-emergency').addEventListener('click', () => triggerStateScenario('EMERGENCY_RESERVE'));
+document.getElementById('btn-focus-breaker').addEventListener('click', () => {
+  camera.position.set(1.35, 2.05, 1.95);
+  controls.target.set(1.35, 1.75, -0.35);
+});
+document.getElementById('btn-reset-cam').addEventListener('click', () => {
+  camera.position.set(0.6, 4.1, 8.6);
+  controls.target.set(0.25, 1.35, 0.0);
+});
+
+document.getElementById('btn-wire-all').addEventListener('click', () => {
+  cableLinks = JSON.parse(JSON.stringify(DEFAULT_LINKS));
+  buildCatenaryCables();
+  evaluatePowerGraph();
+  renderPatchListUI();
+});
+document.getElementById('btn-wire-clear').addEventListener('click', () => {
+  cableLinks.forEach(l => { l.active = false; });
+  buildCatenaryCables();
+  evaluatePowerGraph();
+  renderPatchListUI();
+});
+
+// ============================================================================
+// 13. EXPORTERS (.GLB, PBR .PNGs, ELYSIUM .JSON, .OBJ)
+// ============================================================================
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+document.getElementById('btn-export-glb').addEventListener('click', () => {
+  const exporter = new GLTFExporter();
+  exporter.parse(
+    assetRoot,
+    result => {
+      const blob = new Blob([result], { type: 'model/gltf-binary' });
+      downloadBlob(blob, `powercad_${PARAMS.preset}_v6.glb`);
+    },
+    err => console.error(err),
+    { binary: true }
+  );
+});
+
+document.getElementById('btn-export-pbr').addEventListener('click', () => {
+  lastPbrKey = '';
+  const maps = generatePBRMaps(PARAMS.kind, PARAMS.crackDensity);
+  if (maps.bumpCanvas) {
+    maps.bumpCanvas.toBlob(b => downloadBlob(b, `powercad_${PARAMS.preset}_height_bump.png`));
+  }
+  if (maps.normCanvas) {
+    setTimeout(() => {
+      maps.normCanvas.toBlob(b => downloadBlob(b, `powercad_${PARAMS.preset}_normal_rgb.png`));
+    }, 200);
+  }
+  if (maps.roughCanvas) {
+    setTimeout(() => {
+      maps.roughCanvas.toBlob(b => downloadBlob(b, `powercad_${PARAMS.preset}_roughness_cavity.png`));
+    }, 400);
+  }
+});
+
+document.getElementById('btn-export-json').addEventListener('click', () => {
+  const payload = {
+    studio: 'POWERCAD v6.0',
+    endpointTarget: 'window.ELYSIUM_POWER_ENDPOINT',
+    timestamp: new Date().toISOString(),
+    PowerProducerNode: {
+      nodeName: 'Power_Producer_Core',
+      preset: PARAMS.preset,
+      kind: PARAMS.kind,
+      active: PARAMS.producerActive,
+      supplyKw: PARAMS.supplyKw,
+      batteryReserveKw: PARAMS.batteryReserveKw,
+      batteryKwh: PARAMS.batteryKwh,
+      dimensions: {
+        producerScale: PARAMS.producerScale,
+        coreHeight: PARAMS.coreHeight,
+        ringCount: PARAMS.ringCount,
+        panelTiltDeg: PARAMS.panelTiltDeg,
+        panelColumns: PARAMS.panelColumns,
+        panelRows: PARAMS.panelRows
+      }
+    },
+    gridEvaluation: GRID_STATE,
+    breakers: {
+      Breaker_Switch_Main: { circuit: 'MAIN_BREAKER', closed: PARAMS.breakerMain, angleDeg: PARAMS.breakerMain ? 35 : -35 },
+      Breaker_Switch_C1:   { circuit: 'SANCTUARY_MAIN', closed: PARAMS.breakerC1, angleDeg: PARAMS.breakerC1 ? 35 : -35 },
+      Breaker_Switch_C2:   { circuit: 'ABYSS_TRANSIT',  closed: PARAMS.breakerC2, angleDeg: PARAMS.breakerC2 ? 35 : -35 },
+      Breaker_Switch_C3:   { circuit: 'DEFENSE_GRID',   closed: PARAMS.breakerC3, angleDeg: PARAMS.breakerC3 ? 35 : -35 }
+    },
+    conduitGraph: cableLinks,
+    pbrConfig: {
+      crackDensity: PARAMS.crackDensity,
+      bumpScale: PARAMS.bumpScale,
+      roughness: PARAMS.roughness,
+      metalness: PARAMS.metalness
+    }
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  downloadBlob(blob, `elysium_power_endpoint_${PARAMS.preset}_v6.json`);
+});
+
+document.getElementById('btn-export-obj').addEventListener('click', () => {
+  const exporter = new OBJExporter();
+  const objText = exporter.parse(assetRoot);
+  downloadBlob(new Blob([objText], { type: 'text/plain' }), `powercad_${PARAMS.preset}_v6.obj`);
+});
+
+// ============================================================================
+// 14. REAL-TIME ANIMATION LOOP (4 ELYSIUM GRID STATES, DIAL NEEDLES & ARC SPARKS)
+// ============================================================================
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta();
+  const t = clock.getElapsedTime();
+
+  updateArcSparkBurst(dt);
+
+  const st = GRID_STATE.state;
+  const motorSpeedFactor = st === 'ONLINE' ? 1.0
+    : st === 'BROWNOUT' ? 0.45
+    : st === 'EMERGENCY_RESERVE' ? 0.50
+    : 0.0;
+
+  // Per-frame voltage sag flicker wave for BROWNOUT: (0.45 + 0.35 * sin(19t) * cos(7t))
+  const brownoutFlicker = Math.max(0.08, 0.45 + 0.35 * Math.sin(19 * t) * Math.cos(7 * t));
+
+  // 1. Producer Rotors & Gimbal Rings
+  const prodRunning = PARAMS.producerActive && PARAMS.kind !== 'battery-bank';
+  const prodFactor = prodRunning ? Math.max(0.35, motorSpeedFactor) : 0.0;
+
+  for (const r of animRefs.rotors) {
+    r.mesh.rotation[r.axis] += r.speed * prodFactor * dt;
+  }
+  for (const g of animRefs.gimbalRings) {
+    g.mesh.rotation[g.axis] += g.speed * prodFactor * dt;
+  }
+  if (animRefs.voidCrystal) {
+    animRefs.voidCrystal.mesh.rotation.y += 1.4 * prodFactor * dt;
+    animRefs.voidCrystal.mesh.position.y = animRefs.voidCrystal.baseY + Math.sin(t * 2.6) * 0.08 * prodFactor;
+  }
+
+  for (const mat of animRefs.producerGlowMats) {
+    mat.emissiveIntensity = prodRunning ? (1.15 + 0.32 * Math.sin(t * 4.0)) : 0.04;
+  }
+
+  // 2. Rotary Analog Voltmeter & Ammeter Needles inside Switchgear Box
+  if (animRefs.voltNeedle && animRefs.ampNeedle) {
+    let voltRatio = 0.0;
+    if (st === 'ONLINE') voltRatio = 0.80 + 0.01 * Math.sin(t * 9);
+    else if (st === 'BROWNOUT') voltRatio = 0.52 * brownoutFlicker;
+    else if (st === 'EMERGENCY_RESERVE') voltRatio = 0.40;
+
+    let ampRatio = 0.0;
+    if (st !== 'OFFLINE') {
+      ampRatio = Math.min(1.0, GRID_STATE.connectedLoadKw / 150);
+      if (st === 'BROWNOUT') ampRatio *= (0.75 + 0.25 * Math.sin(19 * t));
+    }
+
+    // Map ratio [0..1] to needle rotation (+120 deg down to -120 deg)
+    const targetVoltRot = THREE.MathUtils.degToRad(120 - voltRatio * 240);
+    const targetAmpRot  = THREE.MathUtils.degToRad(120 - ampRatio * 240);
+    animRefs.voltNeedle.rotation.z += (targetVoltRot - animRefs.voltNeedle.rotation.z) * 0.15;
+    animRefs.ampNeedle.rotation.z  += (targetAmpRot  - animRefs.ampNeedle.rotation.z) * 0.15;
+  }
+
+  // 3. Consumer 1: Flush Gimbal Puck SpotLight ('SANCTUARY_MAIN')
+  if (animRefs.testSpotLight && animRefs.testSpotBulbMat) {
+    if (!GRID_STATE.c1Powered || st === 'OFFLINE') {
+      animRefs.testSpotLight.intensity = 0;
+      animRefs.testSpotBulbMat.emissiveIntensity = 0.0;
+    } else if (st === 'ONLINE') {
+      animRefs.testSpotLight.color.setHex(0x38bdf8);
+      animRefs.testSpotLight.intensity = 7.5;
+      animRefs.testSpotBulbMat.emissive.setHex(0x38bdf8);
+      animRefs.testSpotBulbMat.emissiveIntensity = 2.2;
+    } else if (st === 'BROWNOUT') {
+      animRefs.testSpotLight.color.setHex(0xfbbf24);
+      animRefs.testSpotLight.intensity = 7.5 * brownoutFlicker;
+      animRefs.testSpotBulbMat.emissive.setHex(0xfbbf24);
+      animRefs.testSpotBulbMat.emissiveIntensity = 2.2 * brownoutFlicker;
+    } else if (st === 'EMERGENCY_RESERVE') {
+      animRefs.testSpotLight.color.setHex(0xff1e27);
+      animRefs.testSpotLight.intensity = 7.5 * 0.15;
+      animRefs.testSpotBulbMat.emissive.setHex(0xff1e27);
+      animRefs.testSpotBulbMat.emissiveIntensity = 0.65;
+    }
+  }
+
+  // 4. Consumer 2: Mini Holographic Bridge Emitter ('ABYSS_TRANSIT')
+  if (animRefs.testHoloBridgeMesh && animRefs.testHoloBridgeMat) {
+    if (!GRID_STATE.c2Powered || st === 'OFFLINE') {
+      animRefs.testHoloBridgeMesh.visible = false;
+    } else {
+      animRefs.testHoloBridgeMesh.visible = true;
+      if (st === 'ONLINE') {
+        animRefs.testHoloBridgeMat.emissive.setHex(0x06b6d4);
+        animRefs.testHoloBridgeMat.opacity = 0.78 + 0.12 * Math.sin(t * 5);
+      } else if (st === 'BROWNOUT') {
+        animRefs.testHoloBridgeMat.emissive.setHex(0xf59e0b);
+        animRefs.testHoloBridgeMat.opacity = 0.78 * brownoutFlicker;
+      } else if (st === 'EMERGENCY_RESERVE') {
+        animRefs.testHoloBridgeMat.emissive.setHex(0xff1e27);
+        animRefs.testHoloBridgeMat.opacity = 0.32;
+      }
+    }
+  }
+
+  // 5. Consumer 3: Mini Turret / Motor Load ('DEFENSE_GRID')
+  if (animRefs.testTurretBarrel && animRefs.testTurretStrobeMat) {
+    if (!GRID_STATE.c3Powered || st === 'OFFLINE') {
+      animRefs.testTurretStrobeMat.emissiveIntensity = 0.0;
+    } else {
+      animRefs.testTurretBarrel.rotation.z += 7.5 * motorSpeedFactor * dt;
+      if (st === 'ONLINE') {
+        animRefs.testTurretStrobeMat.color.setHex(0x10b981);
+        animRefs.testTurretStrobeMat.emissive.setHex(0x10b981);
+        animRefs.testTurretStrobeMat.emissiveIntensity = 1.6;
+      } else if (st === 'BROWNOUT') {
+        animRefs.testTurretStrobeMat.color.setHex(0xf59e0b);
+        animRefs.testTurretStrobeMat.emissive.setHex(0xf59e0b);
+        animRefs.testTurretStrobeMat.emissiveIntensity = Math.sin(t * 14) > 0 ? 2.6 : 0.15;
+      } else if (st === 'EMERGENCY_RESERVE') {
+        animRefs.testTurretStrobeMat.color.setHex(0xff1e27);
+        animRefs.testTurretStrobeMat.emissive.setHex(0xff1e27);
+        animRefs.testTurretStrobeMat.emissiveIntensity = 0.9;
+      }
+    }
+  }
+
+  // 6. 3-Strand Bundled Catenary Conduit Tracer Core & Collar Sight-Rings
+  for (const bundle of animRefs.conduitBundles) {
+    // Check if this specific cable link is actually energized
+    let linkPowered = st !== 'OFFLINE';
+    if (bundle.link.id === 'W_PROD_BRK') linkPowered = prodRunning;
+    else if (bundle.link.id === 'W_BATT_BRK') linkPowered = PARAMS.showBatteryWall && PARAMS.batteryReserveKw > 0;
+    else if (bundle.link.id === 'W_C1_LOAD1') linkPowered = GRID_STATE.c1Powered;
+    else if (bundle.link.id === 'W_C2_LOAD2') linkPowered = GRID_STATE.c2Powered;
+    else if (bundle.link.id === 'W_C3_LOAD3') linkPowered = GRID_STATE.c3Powered;
+
+    if (!linkPowered) {
+      bundle.pulseBead.visible = false;
+      bundle.tracerMat.emissiveIntensity = 0.0;
+      for (const sm of bundle.collarSightMats) sm.emissiveIntensity = 0.0;
+      if (bundle.fromLug && selectedLugName !== bundle.fromLug.group.name) bundle.fromLug.sightRingMat.emissiveIntensity = 0.0;
+      if (bundle.toLug && selectedLugName !== bundle.toLug.group.name) bundle.toLug.sightRingMat.emissiveIntensity = 0.0;
+    } else {
+      bundle.pulseBead.visible = true;
+      const u = (t * 0.55 * PARAMS.pulseSpeed * Math.max(0.35, motorSpeedFactor)) % 1.0;
+      const pt = bundle.tracerCurve.getPointAt(u);
+      const tan = bundle.tracerCurve.getTangentAt(u).normalize();
+      bundle.pulseBead.position.copy(pt);
+      bundle.pulseBead.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), tan);
+
+      const pulseCol = st === 'ONLINE' ? bundle.link.color
+        : st === 'BROWNOUT' ? 0xf59e0b
+        : 0xff1e27;
+
+      const intensity = st === 'BROWNOUT' ? 1.8 * brownoutFlicker
+        : st === 'EMERGENCY_RESERVE' ? 0.65
+        : 1.45;
+
+      bundle.tracerMat.color.setHex(pulseCol);
+      bundle.tracerMat.emissive.setHex(pulseCol);
+      bundle.tracerMat.emissiveIntensity = intensity;
+
+      bundle.pulseMat.color.setHex(pulseCol);
+      bundle.pulseMat.emissive.setHex(pulseCol);
+
+      for (const sm of bundle.collarSightMats) {
+        sm.color.setHex(pulseCol);
+        sm.emissive.setHex(pulseCol);
+        sm.emissiveIntensity = intensity * 0.9;
+      }
+      if (bundle.fromLug) bundle.fromLug.sightRingMat.emissiveIntensity = intensity;
+      if (bundle.toLug) bundle.toLug.sightRingMat.emissiveIntensity = intensity;
+    }
+  }
+
+  updateTelemetryScreen(t);
+  const mPos = atmosphericMotes.geometry.attributes.position;
+  for (let mi = 0; mi < MOTE_COUNT; mi++) {
+    let my = mPos.getY(mi) + 0.004;
+    if (my > 4.5) my = 0.15;
+    mPos.setY(mi, my);
+  }
+  mPos.needsUpdate = true;
+  controls.update();
+  if (bloomEnabled) composer.render();
+  else renderer.render(scene, camera);
+}
+
+// ============================================================================
+// 15. RESIZE HANDLER & INITIALIZATION
+// ============================================================================
+function handleResize() {
+  const w = Math.max(1, container.clientWidth || window.innerWidth);
+  const h = Math.max(1, container.clientHeight || window.innerHeight);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+  composer.setSize(w, h);
+}
+
+window.__STUDIO_E2E__ = {
+  studioCode: 'POWERCAD',
+  version: '6.0',
+  scene, camera, renderer, composer, unrealBloomPass, assetRoot,
+  getBloomEnabled: () => bloomEnabled
+};
+window.addEventListener('resize', handleResize);
+
+syncUIControlsFromParams();
+buildSceneGeometry();
+handleResize();
+animate();
+</script>
+</body>
+</html>

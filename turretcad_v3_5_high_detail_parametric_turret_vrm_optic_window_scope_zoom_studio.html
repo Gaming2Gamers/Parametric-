@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TURRETCAD v3.5 — High-Detail Parametric Turret, .VRM Optic Window & Scope Zoom Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <style>
+    * { box-sizing: border-box; user-select: none; }
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #080b11;
+      color: #e2e8f0;
+    }
+    .font-mono-tech { font-family: 'JetBrains Mono', monospace; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.4); }
+    ::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.6); border-radius: 3px; }
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: #1e293b;
+      border-radius: 999px;
+      outline: none;
+      border: 1px solid #334155;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #10b981;
+      cursor: pointer;
+      border: 2px solid #0f172a;
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.55);
+      transition: transform 0.1s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(51, 65, 85, 0.65);
+    }
+    .dimension-badge {
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.2s ease;
+    }
+  </style>
+</head>
+<body class="h-screen w-screen flex flex-col bg-[#080b11] text-slate-100">
+
+  <!-- TOP HEADER BAR -->
+  <header class="h-14 border-b border-slate-800/80 bg-slate-950/90 px-4 flex items-center justify-between z-20 shrink-0">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-lg bg-emerald-500/15 border border-emerald-400/35 flex items-center justify-center text-emerald-400 shadow-inner">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="font-semibold text-sm tracking-tight text-white">TURRET<span class="text-emerald-400">CAD</span></h1>
+          <span class="text-[10px] font-mono-tech uppercase px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">v4.0 • PBR Bump/Cracks & .VRM Optic Sight</span>
+        </div>
+        <p class="text-[11px] text-slate-400">High-Detail Defense Turret, .VRM Gunner Targeting Window, Reticle HUD & 1x–8x Optic Zoom</p>
+      </div>
+    </div>
+
+    <!-- ARCHETYPE PRESETS -->
+    <div class="hidden xl:flex items-center gap-1.5 bg-slate-900/90 p-1 rounded-lg border border-slate-800">
+      <span class="text-[11px] font-medium text-slate-400 px-2">Archetype:</span>
+      <button data-preset="flak" class="preset-btn px-2.5 py-1 rounded text-xs font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 transition">Twin Flak .VRM Seat</button>
+      <button data-preset="railgun" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Arcane Railgun Spire</button>
+      <button data-preset="gatling" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Rotary Gatling Bastion</button>
+      <button data-preset="mortar" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Heavy Siege Howitzer</button>
+      <button data-preset="cupola" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-amber-300 hover:bg-amber-950/40 border border-amber-500/30 transition">Armored Bunker Cupola</button>
+    </div>
+
+    <!-- EXPORT ACTIONS -->
+    <div class="flex items-center gap-2">
+      <button id="btnRandomize" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">Randomize</button>
+      <button id="btnExportPBR" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-emerald-300 font-mono-tech border border-emerald-500/30 transition" title="Download Seamless Bump/Crack Height Map & RGB Normal Map (.PNG)">PBR .PNGs</button>
+      <button id="btnExportJSON" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-amber-400 font-mono-tech border border-slate-700 transition">.JSON</button>
+      <button id="btnExportOBJ" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">Export .OBJ</button>
+      <button id="btnExportGLB" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-500/20 transition">Export .GLB</button>
+    </div>
+  </header>
+
+  <div class="flex-1 flex relative overflow-hidden">
+
+    <!-- LEFT PANEL -->
+    <aside class="w-80 md:w-96 border-r border-slate-800/80 bg-slate-950/95 flex flex-col z-10 shrink-0">
+      <div class="grid grid-cols-5 border-b border-slate-800 bg-slate-900/60 p-1 gap-1 text-[11px] font-medium">
+        <button data-tab="tab-base" class="tab-btn py-2 rounded bg-slate-800 text-emerald-400 shadow-sm transition">Base Ring</button>
+        <button data-tab="tab-cockpit" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">.VRM Seat</button>
+        <button data-tab="tab-barrels" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Barrels</button>
+        <button data-tab="tab-ammo" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Ammo</button>
+        <button data-tab="tab-controls" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Buttons</button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-4 space-y-5">
+
+        <!-- TAB 1: PEDESTAL & AZIMUTH RING GEAR -->
+        <div id="tab-base" class="tab-content space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Pedestal & Traverse Ring Gear</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Turret Ring Diameter</label>
+                  <span id="val-ringDiameter" class="font-mono-tech text-emerald-400">2.60 m</span>
+                </div>
+                <input id="param-ringDiameter" type="range" min="1.60" max="4.40" step="0.10" value="2.60">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Base Pedestal Height</label>
+                  <span id="val-baseHeight" class="font-mono-tech text-emerald-400">0.75 m</span>
+                </div>
+                <input id="param-baseHeight" type="range" min="0.30" max="2.20" step="0.05" value="0.75">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Stabilizer Outrigger Legs</label>
+                  <span id="val-outriggerCount" class="font-mono-tech text-emerald-400">4 legs</span>
+                </div>
+                <input id="param-outriggerCount" type="range" min="0" max="8" step="2" value="4">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Exposed Traverse Ring Teeth</span>
+                  <span class="text-[11px] text-slate-400">Mechanical azimuth bull-gear teeth</span>
+                </div>
+                <input id="param-showRingTeeth" type="checkbox" checked class="w-4 h-4 accent-emerald-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: GUNHOUSE, .VRM GUNNER SEAT & TARGETING WINDOW -->
+        <div id="tab-cockpit" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">.VRM Gunner Seat & Targeting Window</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Turret Crew Architecture</label>
+                <select id="param-cockpitType" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="open-vrm-seat">Open Walk-In .VRM Gunner Seat & Yoke</option>
+                  <option value="armored-cupola">Enclosed Armored Cupola + Optic Window</option>
+                  <option value="remote-spire">Unmanned Automated Defense Spire</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Gunner Targeting Window Style</label>
+                <select id="param-opticWindowStyle" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="hud-canopy">Armored Ballistic Glass + Holo Reticle</option>
+                  <option value="wide-visor">Panoramic Curved Gunner Visor Shield</option>
+                  <option value="telescopic-pod">Dual Periscope & Laser Rangefinder</option>
+                </select>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Gunner Optic Scope Zoom</label>
+                  <span id="val-opticZoom" class="font-mono-tech text-emerald-400">1.0x</span>
+                </div>
+                <input id="param-opticZoom" type="range" min="1.0" max="8.0" step="0.5" value="1.0">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Carriage Width (X)</label>
+                  <span id="val-carriageWidth" class="font-mono-tech text-emerald-400">2.20 m</span>
+                </div>
+                <input id="param-carriageWidth" type="range" min="1.40" max="3.60" step="0.10" value="2.20">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Carriage Height (Y)</label>
+                  <span id="val-carriageHeight" class="font-mono-tech text-emerald-400">1.90 m</span>
+                </div>
+                <input id="param-carriageHeight" type="range" min="1.20" max="3.00" step="0.10" value="1.90">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-emerald-300 block">Show .VRM 1.70m Gunner Avatar</span>
+                  <span class="text-[11px] text-slate-400">Preview avatar looking through optic window</span>
+                </div>
+                <input id="param-showVrmGunner" type="checkbox" checked class="w-4 h-4 accent-emerald-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: BARRELS, RECOIL CRADLE & AIMING -->
+        <div id="tab-barrels" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">High-Detail Barrels & Trunnion Cradle</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Barrel Count</label>
+                  <span id="val-barrelCount" class="font-mono-tech text-emerald-400">2 barrels</span>
+                </div>
+                <input id="param-barrelCount" type="range" min="1" max="6" step="1" value="2">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Barrel Length (Z)</label>
+                  <span id="val-barrelLength" class="font-mono-tech text-emerald-400">3.40 m</span>
+                </div>
+                <input id="param-barrelLength" type="range" min="1.60" max="6.00" step="0.20" value="3.40">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Bore Caliber Diameter</label>
+                  <span id="val-caliberMm" class="font-mono-tech text-emerald-400">120 mm</span>
+                </div>
+                <input id="param-caliberMm" type="range" min="60" max="280" step="10" value="120">
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Muzzle Brake & Barrel Style</label>
+                <select id="param-muzzleStyle" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="baffled-brake">Slotted Heavy Recoil Muzzle Brake</option>
+                  <option value="arcane-rails">Magneto-Arcane Railgun Induction Coils</option>
+                  <option value="gatling-clamp">Multi-Barrel Rotary Clamp Assembly</option>
+                </select>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Azimuth Traverse Yaw</label>
+                  <span id="val-yawDeg" class="font-mono-tech text-amber-400">20°</span>
+                </div>
+                <input id="param-yawDeg" type="range" min="-180" max="180" step="5" value="20">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Elevation Pitch Angle</label>
+                  <span id="val-pitchDeg" class="font-mono-tech text-amber-400">18°</span>
+                </div>
+                <input id="param-pitchDeg" type="range" min="-10" max="75" step="1" value="18">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: AMMO DRUMS, SHIELDS & MATERIALS -->
+        <div id="tab-ammo" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Magazines, Shield & Metallurgy</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Side Ammo Drums / Mana Cells</span>
+                  <span class="text-[11px] text-slate-400">External feed drums on trunnion cheeks</span>
+                </div>
+                <input id="param-ammoDrums" type="checkbox" checked class="w-4 h-4 accent-emerald-500 rounded cursor-pointer">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Forward Gunner Ballistic Shield</span>
+                  <span class="text-[11px] text-slate-400">Sloped armor mantlet + optic viewport</span>
+                </div>
+                <input id="param-gunShield" type="checkbox" checked class="w-4 h-4 accent-emerald-500 rounded cursor-pointer">
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Armor Metallurgy Finish</label>
+                <select id="param-metalFinish" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="gunmetal">Tactical Anodized Gunmetal Steel</option>
+                  <option value="orichalcum">Dwarven Orichalcum & Brass</option>
+                  <option value="wrought-iron">Blackened Dungeon Wrought Iron</option>
+                  <option value="hazard-olive">Siege Olive & Hazard Yellow</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Energy / Reticle HUD Color</label>
+                <select id="param-energyColor" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="emerald">Fel Plasma Emerald</option>
+                  <option value="amber">High-Explosive Tracer Amber</option>
+                  <option value="ice-blue">Railgun Arc Cyan</option>
+                  <option value="arcane-purple">Abyssal Void Violet</option>
+                  <option value="crimson">Hellfire Ruby</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 5: GUNNER CONSOLE BUTTONS & EXPORT -->
+        <div id="tab-controls" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">3D Gunner Control Panel & Export</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1">Fire Button Legend</label>
+                <input id="param-fireBtnLabel" type="text" maxlength="6" value="FIRE" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono-tech text-emerald-300">
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">3D Export Scope</label>
+                <select id="param-exportScope" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="full">Full Emplacement (Base + Yaw + Pitch)</option>
+                  <option value="turret-only">Rotating Turret Upper Carriage Only</option>
+                </select>
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-200">3D Dimension Callouts</span>
+                <input id="param-showDimensions" type="checkbox" checked class="w-4 h-4 accent-emerald-500 rounded cursor-pointer">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800">
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-emerald-300 font-medium">PBR Crack & Scar Density</label>
+                  <span id="val-crackDensity" class="font-mono-tech text-emerald-400">45%</span>
+                </div>
+                <input id="param-crackDensity" type="range" min="0" max="100" step="5" value="45">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-emerald-300 font-medium">Normal / Bump Relief Depth</label>
+                  <span id="val-bumpScale" class="font-mono-tech text-emerald-400">0.08</span>
+                </div>
+                <input id="param-bumpScale" type="range" min="0.00" max="0.25" step="0.01" value="0.08">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-200">Wireframe Overlay Pass</span>
+                <input id="param-wireframe" type="checkbox" class="w-4 h-4 accent-emerald-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- TELEMETRY FOOTER -->
+      <div class="p-3.5 border-t border-slate-800 bg-slate-900/90 space-y-2">
+        <div class="flex items-center justify-between text-[11px] text-slate-400">
+          <span class="uppercase font-semibold tracking-wider">Ordnance Telemetry</span>
+          <span id="stat-triangles" class="font-mono-tech text-slate-300">0 tris</span>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">Caliber</span>
+            <span id="stat-caliber" class="font-mono-tech text-xs font-semibold text-emerald-400">2×120mm</span>
+          </div>
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">Traverse</span>
+            <span id="stat-yaw" class="font-mono-tech text-xs font-semibold text-amber-400">20° / 18°</span>
+          </div>
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">Fire Rate</span>
+            <span id="stat-rof" class="font-mono-tech text-xs font-semibold text-sky-400">240 rpm</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- VIEWPORT -->
+    <main class="flex-1 relative bg-gradient-to-b from-[#091512] via-[#090d14] to-[#05070b] overflow-hidden">
+      <div id="canvas-mount" class="w-full h-full"></div>
+
+      <!-- GUNNER OPTIC SCOPE HUD OVERLAY (Active when zoomed or in .VRM Gunner Sight mode) -->
+      <div id="optic-hud-overlay" class="pointer-events-none opacity-0 transition-opacity duration-300 absolute inset-0 flex items-center justify-center">
+        <div class="w-80 h-80 rounded-full border-2 border-emerald-400/50 shadow-[0_0_50px_rgba(16,185,129,0.2)] flex items-center justify-center relative">
+          <div class="w-60 h-60 rounded-full border border-dashed border-emerald-400/35"></div>
+          <div class="absolute inset-x-8 h-px bg-emerald-400/45"></div>
+          <div class="absolute inset-y-8 w-px bg-emerald-400/45"></div>
+          <div class="w-3 h-3 rounded-full border-2 border-emerald-300"></div>
+          <span id="hud-zoom-badge" class="absolute bottom-5 font-mono-tech text-xs text-emerald-300 bg-slate-950/80 px-2 py-0.5 rounded border border-emerald-500/40">OPTIC ZOOM 1.0x • PITCH 18°</span>
+        </div>
+      </div>
+
+      <div id="labels-container" class="absolute inset-0 pointer-events-none overflow-hidden">
+        <div id="label-ring" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/90 border border-emerald-500/50 text-[11px] font-mono-tech text-emerald-300 shadow-lg">Ring: 2.60m</div>
+        <div id="label-barrel" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/90 border border-emerald-500/50 text-[11px] font-mono-tech text-emerald-300 shadow-lg">Barrel: 3.40m</div>
+        <div id="label-height" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/90 border border-emerald-500/50 text-[11px] font-mono-tech text-emerald-300 shadow-lg">H: 2.65m</div>
+      </div>
+
+      <!-- CAMERA PRESETS -->
+      <div class="absolute top-4 left-4 glass-panel rounded-xl p-1.5 flex items-center gap-1 shadow-xl">
+        <span class="text-[10px] font-mono-tech uppercase text-slate-400 px-2">Camera:</span>
+        <button data-cam="iso" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition">3/4 Battery</button>
+        <button data-cam="gunner" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">.VRM Gunner Sight</button>
+        <button data-cam="muzzle" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">Muzzle Bore</button>
+        <button data-cam="side" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">Elevation Profile</button>
+      </div>
+
+      <!-- FIRE CONTROL TEST PANEL -->
+      <div class="absolute top-4 right-4 w-60 glass-panel rounded-2xl p-3.5 shadow-2xl flex flex-col gap-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-300">Fire Control & Optic Zoom</span>
+          <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981]"></span>
+        </div>
+
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 flex items-center justify-between">
+          <div>
+            <span class="text-[10px] text-slate-400 uppercase block">Battery Status</span>
+            <span id="sim-status-text" class="text-[11px] font-mono-tech text-emerald-400">ARMED • MANUAL AIM</span>
+          </div>
+          <span id="sim-yaw-readout" class="font-mono-tech text-sm font-bold text-amber-400">20°</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-1.5">
+          <button id="btnFireSalvo" class="py-1.5 px-2 rounded-lg text-xs font-semibold bg-rose-500/25 hover:bg-rose-500/35 text-rose-200 border border-rose-500/40 transition">
+            💥 Fire Recoil
+          </button>
+          <button id="btnToggleSweep" class="py-1.5 px-2 rounded-lg text-xs font-medium bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-200 border border-emerald-500/35 transition">
+            🎯 Auto-Sweep
+          </button>
+        </div>
+
+        <button id="btnCycleZoom" type="button" class="w-full py-1.5 px-3 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/35 text-xs font-medium transition">
+          🔭 Cycle Gunner Optic Scope (1x / 2x / 4x / 8x)
+        </button>
+      </div>
+
+      <!-- BOTTOM-LEFT HINT -->
+      <div class="absolute bottom-4 left-4 glass-panel rounded-lg px-3 py-1.5 text-[11px] text-slate-400 flex items-center gap-3 pointer-events-none">
+        <span><strong class="text-slate-200">LMB:</strong> Orbit / Click 3D Barrels or Gunner Console Button to Fire</span>
+        <span>•</span>
+        <span><strong class="text-slate-200">RMB:</strong> Pan</span>
+      </div>
+
+      <!-- TOAST -->
+      <div id="toast-notification" class="pointer-events-none opacity-0 transition-opacity duration-300 absolute bottom-4 right-4 glass-panel border-emerald-500/40 bg-slate-900/95 text-emerald-200 px-4 py-2.5 rounded-xl text-xs font-medium shadow-2xl">
+        <span id="toast-text">Turret updated!</span>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+    import { OBJExporter } from 'three/addons/exporters/OBJExporter.js';
+
+    const state = {
+      ringDiameter: 2.60,
+      baseHeight: 0.75,
+      outriggerCount: 4,
+      showRingTeeth: true,
+
+      cockpitType: 'open-vrm-seat',
+      opticWindowStyle: 'hud-canopy',
+      opticZoom: 1.0,
+      carriageWidth: 2.20,
+      carriageHeight: 1.90,
+      showVrmGunner: true,
+
+      barrelCount: 2,
+      barrelLength: 3.40,
+      caliberMm: 120,
+      muzzleStyle: 'baffled-brake',
+      yawDeg: 20,
+      pitchDeg: 18,
+
+      ammoDrums: true,
+      gunShield: true,
+      metalFinish: 'gunmetal',
+      energyColor: 'emerald',
+
+      fireBtnLabel: 'FIRE',
+      exportScope: 'full',
+      showDimensions: true,
+      crackDensity: 45,
+      bumpScale: 0.08,
+      wireframe: false,
+
+      activeCamMode: 'iso',
+      autoSweep: false,
+      recoilOffset: 0,
+      flashTimer: 0
+    };
+
+    const PRESETS = {
+      flak: {
+        ringDiameter: 2.60, baseHeight: 0.75, outriggerCount: 4, cockpitType: 'open-vrm-seat', opticWindowStyle: 'hud-canopy',
+        carriageWidth: 2.20, carriageHeight: 1.90, barrelCount: 2, barrelLength: 3.40, caliberMm: 120,
+        muzzleStyle: 'baffled-brake', pitchDeg: 18, ammoDrums: true, gunShield: true, metalFinish: 'gunmetal', energyColor: 'emerald'
+      },
+      railgun: {
+        ringDiameter: 3.00, baseHeight: 0.90, outriggerCount: 6, cockpitType: 'open-vrm-seat', opticWindowStyle: 'wide-visor',
+        carriageWidth: 2.40, carriageHeight: 2.00, barrelCount: 1, barrelLength: 5.20, caliberMm: 180,
+        muzzleStyle: 'arcane-rails', pitchDeg: 12, ammoDrums: true, gunShield: true, metalFinish: 'orichalcum', energyColor: 'ice-blue'
+      },
+      gatling: {
+        ringDiameter: 2.40, baseHeight: 0.70, outriggerCount: 4, cockpitType: 'open-vrm-seat', opticWindowStyle: 'hud-canopy',
+        carriageWidth: 2.00, carriageHeight: 1.80, barrelCount: 6, barrelLength: 2.80, caliberMm: 80,
+        muzzleStyle: 'gatling-clamp', pitchDeg: 10, ammoDrums: true, gunShield: true, metalFinish: 'hazard-olive', energyColor: 'amber'
+      },
+      mortar: {
+        ringDiameter: 3.40, baseHeight: 0.85, outriggerCount: 6, cockpitType: 'armored-cupola', opticWindowStyle: 'telescopic-pod',
+        carriageWidth: 2.80, carriageHeight: 2.20, barrelCount: 2, barrelLength: 2.40, caliberMm: 260,
+        muzzleStyle: 'baffled-brake', pitchDeg: 45, ammoDrums: false, gunShield: true, metalFinish: 'wrought-iron', energyColor: 'crimson'
+      },
+      cupola: {
+        ringDiameter: 3.20, baseHeight: 0.50, outriggerCount: 0, cockpitType: 'armored-cupola', opticWindowStyle: 'wide-visor',
+        carriageWidth: 2.70, carriageHeight: 2.10, barrelCount: 3, barrelLength: 3.80, caliberMm: 150,
+        muzzleStyle: 'baffled-brake', pitchDeg: 15, ammoDrums: true, gunShield: true, metalFinish: 'gunmetal', energyColor: 'arcane-purple'
+      }
+    };
+
+    const ENERGY_MAP = {
+      'emerald': 0x10b981,
+      'amber': 0xf59e0b,
+      'ice-blue': 0x38bdf8,
+      'arcane-purple': 0xc084fc,
+      'crimson': 0xf43f5e
+    };
+
+    const mount = document.getElementById('canvas-mount');
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x070a0f, 0.015);
+
+    const camera = new THREE.PerspectiveCamera(44, mount.clientWidth / mount.clientHeight, 0.1, 150);
+    camera.position.set(5.2, 3.6, 5.8);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setSize(mount.clientWidth, mount.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
+    mount.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.target.set(0, 1.5, 0);
+
+    scene.add(new THREE.HemisphereLight(0xd1fae5, 0x090d16, 0.95));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 2.0);
+    dirLight.position.set(10, 18, 12);
+    dirLight.castShadow = true;
+    scene.add(dirLight);
+
+    const gridHelper = new THREE.GridHelper(32, 32, 0x10b981, 0x1e293b);
+    gridHelper.position.y = 0;
+    scene.add(gridHelper);
+
+    const assetRoot = new THREE.Group();
+    assetRoot.name = 'Parametric_Defense_Turret_Asset';
+    scene.add(assetRoot);
+
+    const baseStaticGroup = new THREE.Group();
+    baseStaticGroup.name = 'Turret_Base_Static';
+    assetRoot.add(baseStaticGroup);
+
+    const yawCarriageGroup = new THREE.Group();
+    yawCarriageGroup.name = 'Turret_Yaw_Carriage';
+    assetRoot.add(yawCarriageGroup);
+
+    let pitchCradleGroup = null;
+    let barrelRecoilGroup = null;
+    const clickableTurretMeshes = [];
+
+    function createConsoleBtnTexture(label) {
+      const c = document.createElement('canvas');
+      c.width = 128; c.height = 128;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#090d14';
+      ctx.fillRect(0, 0, 128, 128);
+      ctx.strokeStyle = '#f43f5e';
+      ctx.lineWidth = 10;
+      ctx.beginPath(); ctx.arc(64, 64, 52, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = '#fecdd3';
+      ctx.font = 'bold 34px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, 64, 64);
+      return new THREE.CanvasTexture(c);
+    }
+
+    // Create Holographic Target Crosshair Texture for the 3D Ballistic Optic Window!
+    function createOpticReticleTexture(hexColor) {
+      const c = document.createElement('canvas');
+      c.width = 256; c.height = 256;
+      const ctx = c.getContext('2d');
+      ctx.clearRect(0, 0, 256, 256);
+      ctx.strokeStyle = hexColor;
+      ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.arc(128, 128, 86, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(128, 128, 42, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(20, 128); ctx.lineTo(95, 128);
+      ctx.moveTo(161, 128); ctx.lineTo(236, 128);
+      ctx.moveTo(128, 20); ctx.lineTo(128, 95);
+      ctx.moveTo(128, 161); ctx.lineTo(128, 236);
+      ctx.stroke();
+      ctx.fillStyle = hexColor;
+      ctx.font = 'bold 18px "JetBrains Mono", monospace';
+      ctx.fillText(`ZM ${state.opticZoom.toFixed(1)}X`, 140, 215);
+      return new THREE.CanvasTexture(c);
+    }
+
+    
+    // =========================================================================
+    // PROCEDURAL PBR ALBEDO, BUMP/CRACK HEIGHT & TANGENT-SPACE NORMAL MAP ENGINE
+    // =========================================================================
+    const pbrMapCache = {};
+    function generatePBRMaps(kind, crackPct) {
+      const key = `${kind}_${Math.round(crackPct)}`;
+      if (pbrMapCache[key]) return pbrMapCache[key];
+
+      const size = 256;
+      const bumpCanvas = document.createElement('canvas');
+      bumpCanvas.width = size; bumpCanvas.height = size;
+      const bCtx = bumpCanvas.getContext('2d');
+
+      // Base mid-height 180
+      bCtx.fillStyle = 'rgb(180,180,180)';
+      bCtx.fillRect(0, 0, size, size);
+
+      // Deterministic pseudo-random generator so textures don't flicker
+      let seed = 1337 + kind.charCodeAt(0) * 31;
+      const rand = () => {
+        seed = (seed * 16807) % 2147483647;
+        return (seed - 1) / 2147483646;
+      };
+
+      // Surface micro-grain noise
+      for (let i = 0; i < 2400; i++) {
+        const x = rand() * size;
+        const y = rand() * size;
+        const v = Math.floor(150 + rand() * 60);
+        bCtx.fillStyle = `rgb(${v},${v},${v})`;
+        bCtx.fillRect(x, y, 2, 2);
+      }
+
+      if (kind === 'stone') {
+        // Ashlar stone block mortar joints
+        bCtx.strokeStyle = 'rgb(45,45,45)';
+        bCtx.lineWidth = 4;
+        for (let r = 0; r < 4; r++) {
+          const y = r * 64;
+          bCtx.beginPath(); bCtx.moveTo(0, y); bCtx.lineTo(size, y); bCtx.stroke();
+          const xOffset = (r % 2) * 64;
+          for (let c = 0; c < 2; c++) {
+            const x = (c * 128 + xOffset) % size;
+            bCtx.beginPath(); bCtx.moveTo(x, y); bCtx.lineTo(x, y + 64); bCtx.stroke();
+          }
+        }
+      } else if (kind === 'armor') {
+        // Riveted armor panel seams & raised rivets
+        bCtx.strokeStyle = 'rgb(60,60,60)';
+        bCtx.lineWidth = 3;
+        bCtx.strokeRect(4, 4, size - 8, size - 8);
+        bCtx.beginPath();
+        bCtx.moveTo(0, 128); bCtx.lineTo(size, 128);
+        bCtx.moveTo(128, 0); bCtx.lineTo(128, size);
+        bCtx.stroke();
+        bCtx.fillStyle = 'rgb(245,245,245)';
+        for (let p = 16; p < size; p += 32) {
+          for (const edge of [12, 116, 140, 244]) {
+            bCtx.beginPath(); bCtx.arc(p, edge, 3.2, 0, Math.PI * 2); bCtx.fill();
+          }
+        }
+      } else if (kind === 'timber') {
+        // Heavy fortress wood planks & grain grooves
+        bCtx.strokeStyle = 'rgb(55,55,55)';
+        bCtx.lineWidth = 3;
+        for (let y = 0; y < size; y += 32) {
+          bCtx.beginPath(); bCtx.moveTo(0, y); bCtx.lineTo(size, y); bCtx.stroke();
+        }
+      }
+
+      // Procedural Jagged Cracks & Battle Scars scaled by crackPct (0 - 100)
+      const crackCount = Math.floor((crackPct / 100) * 28);
+      bCtx.strokeStyle = 'rgb(20,20,20)';
+      for (let c = 0; c < crackCount; c++) {
+        let cx = rand() * size;
+        let cy = rand() * size;
+        bCtx.lineWidth = 1.2 + rand() * 2.2;
+        bCtx.beginPath();
+        bCtx.moveTo(cx, cy);
+        const segs = 4 + Math.floor(rand() * 5);
+        for (let s = 0; s < segs; s++) {
+          cx += (rand() - 0.5) * 34;
+          cy += (rand() - 0.5) * 34;
+          bCtx.lineTo(cx, cy);
+        }
+        bCtx.stroke();
+      }
+
+      // Compute Tangent-Space Normal Map (RGB) from Height/Bump Map via Sobel-like gradient
+      const normCanvas = document.createElement('canvas');
+      normCanvas.width = size; normCanvas.height = size;
+      const nCtx = normCanvas.getContext('2d');
+      const srcData = bCtx.getImageData(0, 0, size, size).data;
+      const dstImg = nCtx.createImageData(size, size);
+      const dstData = dstImg.data;
+      const strength = 2.8;
+
+      const hAt = (x, y) => {
+        const wx = (x + size) % size;
+        const wy = (y + size) % size;
+        return srcData[(wy * size + wx) * 4] / 255.0;
+      };
+
+      for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+          const dX = (hAt(x + 1, y) - hAt(x - 1, y)) * strength;
+          const dY = (hAt(x, y + 1) - hAt(x, y - 1)) * strength;
+          const invLen = 1.0 / Math.sqrt(dX * dX + dY * dY + 1.0);
+          const nx = (-dX * invLen) * 0.5 + 0.5;
+          const ny = (-dY * invLen) * 0.5 + 0.5;
+          const nz = (1.0 * invLen) * 0.5 + 0.5;
+          const idx = (y * size + x) * 4;
+          dstData[idx] = Math.floor(nx * 255);
+          dstData[idx + 1] = Math.floor(ny * 255);
+          dstData[idx + 2] = Math.floor(nz * 255);
+          dstData[idx + 3] = 255;
+        }
+      }
+      nCtx.putImageData(dstImg, 0, 0);
+
+      const bumpTex = new THREE.CanvasTexture(bumpCanvas);
+      bumpTex.wrapS = THREE.RepeatWrapping;
+      bumpTex.wrapT = THREE.RepeatWrapping;
+      bumpTex.repeat.set(2, 2);
+
+      const normalTex = new THREE.CanvasTexture(normCanvas);
+      normalTex.wrapS = THREE.RepeatWrapping;
+      normalTex.wrapT = THREE.RepeatWrapping;
+      normalTex.repeat.set(2, 2);
+
+      const entry = { bumpCanvas, normCanvas, bumpTex, normalTex };
+      pbrMapCache[key] = entry;
+      return entry;
+    }
+
+    function exportPBRTexturePack(prefix, kind, crackPct) {
+      const maps = generatePBRMaps(kind, crackPct);
+      maps.bumpCanvas.toBlob((blob) => {
+        if (blob) downloadBlob(blob, `${prefix}_${kind}_bump_cracks_height.png`);
+      });
+      setTimeout(() => {
+        maps.normCanvas.toBlob((blob) => {
+          if (blob) downloadBlob(blob, `${prefix}_${kind}_normal_map_rgb.png`);
+        });
+      }, 250);
+    }
+
+    function getMaterials() {
+      const wf = state.wireframe;
+      const finishMap = {
+        'gunmetal':     { armor: 0x334155, trim: 0x94a3b8 },
+        'orichalcum':   { armor: 0x292524, trim: 0xd4af37 },
+        'wrought-iron': { armor: 0x1e222b, trim: 0x64748b },
+        'hazard-olive': { armor: 0x364128, trim: 0xeab308 }
+      };
+      const f = finishMap[state.metalFinish] || finishMap.gunmetal;
+      const glowHex = ENERGY_MAP[state.energyColor] || 0x10b981;
+      const glowCss = '#' + glowHex.toString(16).padStart(6, '0');
+      const retTex = createOpticReticleTexture(glowCss);
+
+      const armorPBR = generatePBRMaps('armor', state.crackDensity);
+      return {
+        armor: new THREE.MeshStandardMaterial({ color: f.armor, roughness: 0.38, metalness: 0.80, bumpMap: armorPBR.bumpTex, bumpScale: state.bumpScale, normalMap: armorPBR.normalTex, wireframe: wf }),
+        trim: new THREE.MeshStandardMaterial({ color: f.trim, roughness: 0.22, metalness: 0.90, bumpMap: armorPBR.bumpTex, bumpScale: state.bumpScale * 0.5, wireframe: wf }),
+        darkSteel: new THREE.MeshStandardMaterial({ color: 0x11151d, roughness: 0.42, metalness: 0.85, wireframe: wf }),
+        chrome: new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.12, metalness: 0.96, wireframe: wf }),
+        seatMat: new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.65, metalness: 0.15, wireframe: wf }),
+        opticGlass: new THREE.MeshPhysicalMaterial({
+          color: glowHex,
+          transparent: true,
+          opacity: 0.28,
+          roughness: 0.05,
+          metalness: 0.1,
+          transmission: 0.72,
+          wireframe: wf
+        }),
+        reticleHud: new THREE.MeshBasicMaterial({
+          map: retTex,
+          transparent: true,
+          side: THREE.DoubleSide
+        }),
+        glow: new THREE.MeshStandardMaterial({ color: glowHex, emissive: glowHex, emissiveIntensity: 2.5, wireframe: wf }),
+        vrmAvatar: new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.35, roughness: 0.3, wireframe: wf }),
+        flash: new THREE.MeshStandardMaterial({ color: 0xf59e0b, emissive: 0xf59e0b, emissiveIntensity: 4.5, wireframe: wf })
+      };
+    }
+
+    function clearGroup(group) {
+      while (group.children.length > 0) {
+        const c = group.children[0];
+        group.remove(c);
+        if (c.geometry) c.geometry.dispose();
+      }
+    }
+
+    // Build Dedicated .VRM Gunner Targeting Window & Holographic Reticle HUD directly in front of the .VRM Gunner Seat!
+    function buildGunnerOpticViewport(cW, cH, mats) {
+      const opticGroup = new THREE.Group();
+      opticGroup.name = 'Turret_Optic_Viewport';
+
+      const winW = state.opticWindowStyle === 'wide-visor' ? cW * 0.62 : 0.72;
+      const winH = 0.46;
+      const frameThick = 0.055;
+
+      // Armored Bezel Frame around the Gunner's Targeting Window
+      const topBar = new THREE.Mesh(new THREE.BoxGeometry(winW + frameThick * 2, frameThick, 0.08), mats.trim);
+      topBar.position.y = winH / 2 + frameThick / 2;
+      const botBar = topBar.clone();
+      botBar.position.y = -(winH / 2 + frameThick / 2);
+      const leftBar = new THREE.Mesh(new THREE.BoxGeometry(frameThick, winH, 0.08), mats.trim);
+      leftBar.position.x = -(winW / 2 + frameThick / 2);
+      const rightBar = leftBar.clone();
+      rightBar.position.x = winW / 2 + frameThick / 2;
+
+      // Transparent Ballistic Glass Pane (Game Engine can bind RenderTexture or Camera here!)
+      const glassPane = new THREE.Mesh(new THREE.BoxGeometry(winW, winH, 0.025), mats.opticGlass);
+      glassPane.name = 'Turret_Optic_Viewport_Glass';
+
+      // Projected Holographic Crosshair & Rangefinder Reticle on the Optic Glass
+      const reticlePlane = new THREE.Mesh(new THREE.PlaneGeometry(winH * 0.88, winH * 0.88), mats.reticleHud);
+      reticlePlane.name = 'Turret_Optic_Reticle_HUD';
+      reticlePlane.position.z = -0.018;
+
+      // Named Camera Mount Node for Game Engine Binding
+      const camMountNode = new THREE.Object3D();
+      camMountNode.name = 'Camera_Mount_Optic';
+      camMountNode.position.set(0, 0, -0.35);
+
+      opticGroup.add(topBar, botBar, leftBar, rightBar, glassPane, reticlePlane, camMountNode);
+
+      if (state.opticWindowStyle === 'telescopic-pod') {
+        const lensHood = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.16, 0.45, 24), mats.darkSteel);
+        lensHood.rotation.x = Math.PI / 2;
+        lensHood.position.set(0, winH / 2 + 0.14, 0.18);
+        const lensGlass = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.47, 24), mats.glow);
+        lensGlass.rotation.x = Math.PI / 2;
+        lensGlass.position.set(0, winH / 2 + 0.14, 0.18);
+        opticGroup.add(lensHood, lensGlass);
+      }
+
+      // Position directly in front of the .VRM Gunner's Eye Line (y = 1.48m, z = -0.32m)
+      opticGroup.position.set(0, 1.48, -0.32);
+      return opticGroup;
+    }
+
+    function buildTurretAsset() {
+      clearGroup(baseStaticGroup);
+      clearGroup(yawCarriageGroup);
+      clickableTurretMeshes.length = 0;
+
+      const mats = getMaterials();
+      const R = state.ringDiameter / 2;
+      const bH = state.baseHeight;
+      const cW = state.carriageWidth;
+      const cH = state.carriageHeight;
+
+      // 1. High-Detail Multi-Tiered Base Pedestal & Bolted Flange Collar (48 segments)
+      const lowerPlinth = new THREE.Mesh(new THREE.CylinderGeometry(R * 1.06, R * 1.16, bH * 0.45, 48), mats.darkSteel);
+      lowerPlinth.position.y = bH * 0.225;
+      const upperPedestal = new THREE.Mesh(new THREE.CylinderGeometry(R * 0.96, R * 1.04, bH * 0.55, 48), mats.armor);
+      upperPedestal.position.y = bH * 0.725;
+      const flangeCollar = new THREE.Mesh(new THREE.TorusGeometry(R * 1.02, 0.065, 16, 48), mats.trim);
+      flangeCollar.rotation.x = Math.PI / 2;
+      flangeCollar.position.y = bH * 0.46;
+      baseStaticGroup.add(lowerPlinth, upperPedestal, flangeCollar);
+
+      // Perimeter Anchor Bolts around Base Flange
+      for (let b = 0; b < 16; b++) {
+        const ang = (b / 16) * Math.PI * 2;
+        const bolt = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.12, 8), mats.chrome);
+        bolt.position.set(Math.cos(ang) * (R * 1.09), bH * 0.46, Math.sin(ang) * (R * 1.09));
+        baseStaticGroup.add(bolt);
+      }
+
+      if (state.showRingTeeth) {
+        const teeth = 36;
+        for (let t = 0; t < teeth; t++) {
+          const ang = (t / teeth) * Math.PI * 2;
+          const tooth = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.14, 0.14), mats.trim);
+          tooth.position.set(Math.cos(ang) * (R * 0.99), bH - 0.04, Math.sin(ang) * (R * 0.99));
+          tooth.rotation.y = -ang;
+          baseStaticGroup.add(tooth);
+        }
+      }
+
+      for (let l = 0; l < state.outriggerCount; l++) {
+        const ang = (l / state.outriggerCount) * Math.PI * 2 + Math.PI / 4;
+        const legGroup = new THREE.Group();
+        legGroup.rotation.y = -ang;
+        const strut = new THREE.Mesh(new THREE.BoxGeometry(R * 0.65, 0.24, 0.28), mats.armor);
+        strut.position.set(R * 1.18, bH * 0.38, 0);
+        strut.rotation.z = -0.28;
+        const piston = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, R * 0.55, 16), mats.chrome);
+        piston.position.set(R * 1.15, bH * 0.52, 0);
+        piston.rotation.z = Math.PI / 2 - 0.28;
+        const pad = new THREE.Mesh(new THREE.CylinderGeometry(0.30, 0.36, 0.12, 24), mats.trim);
+        pad.position.set(R * 1.46, 0.06, 0);
+        legGroup.add(strut, piston, pad);
+        baseStaticGroup.add(legGroup);
+      }
+
+      // 2. Rotating Yaw Carriage Turntable (48 segments)
+      yawCarriageGroup.position.y = bH;
+      yawCarriageGroup.rotation.y = THREE.MathUtils.degToRad(state.yawDeg);
+
+      const turntable = new THREE.Mesh(new THREE.CylinderGeometry(R * 0.94, R * 0.96, 0.18, 48), mats.armor);
+      turntable.position.y = 0.09;
+      yawCarriageGroup.add(turntable);
+
+      // Left & Right Trunnion Cheek Towers + Chrome Hydraulic Elevation Cylinders
+      const trunnionY = 0.18 + cH * 0.56;
+      for (const s of [-1, 1]) {
+        const cheek = new THREE.Mesh(new THREE.BoxGeometry(0.34, cH * 0.86, 1.22), mats.armor);
+        cheek.position.set(s * (cW * 0.38), 0.18 + cH * 0.43, 0.15);
+        cheek.castShadow = true;
+
+        const bevelTop = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 1.22, 24), mats.trim);
+        bevelTop.rotation.x = Math.PI / 2;
+        bevelTop.position.set(s * (cW * 0.38), 0.18 + cH * 0.86, 0.15);
+
+        const bearing = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.42, 32), mats.trim);
+        bearing.rotation.z = Math.PI / 2;
+        bearing.position.set(s * (cW * 0.38), trunnionY, 0.25);
+
+        // Hydraulic Elevation Cylinder & Chrome Ram
+        const hydCyl = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.10, 0.65, 20), mats.darkSteel);
+        hydCyl.position.set(s * (cW * 0.26), 0.52, 0.62);
+        hydCyl.rotation.x = -0.35;
+        const hydRod = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 0.65, 20), mats.chrome);
+        hydRod.position.set(s * (cW * 0.26), 0.92, 0.46);
+        hydRod.rotation.x = -0.35;
+
+        yawCarriageGroup.add(cheek, bevelTop, bearing, hydCyl, hydRod);
+      }
+
+      // Forward Sloped Ballistic Gunner Shield with Cutout for the .VRM Gunner Targeting Window!
+      if (state.gunShield) {
+        for (const s of [-1, 1]) {
+          const wingShield = new THREE.Mesh(new THREE.BoxGeometry(cW * 0.32, cH * 0.74, 0.14), mats.armor);
+          wingShield.position.set(s * (cW * 0.38), 0.18 + cH * 0.45, 0.78);
+          wingShield.rotation.x = -0.22;
+          yawCarriageGroup.add(wingShield);
+        }
+        const lowerGlacis = new THREE.Mesh(new THREE.BoxGeometry(cW * 0.52, cH * 0.36, 0.14), mats.armor);
+        lowerGlacis.position.set(0, 0.18 + cH * 0.22, 0.82);
+        lowerGlacis.rotation.x = -0.22;
+        yawCarriageGroup.add(lowerGlacis);
+      }
+
+      // Dedicated .VRM Gunner Targeting Window & Reticle HUD right in front of the Gunner Seat!
+      yawCarriageGroup.add(buildGunnerOpticViewport(cW, cH, mats));
+
+      // Cockpit / .VRM Operator Station behind the Targeting Window (-Z)
+      if (state.cockpitType === 'open-vrm-seat') {
+        const rearDeck = new THREE.Mesh(new THREE.BoxGeometry(cW * 0.88, 0.14, 1.55), mats.darkSteel);
+        rearDeck.position.set(0, 0.16, -0.78);
+
+        // Safety Side Rails around .VRM Gunner Platform
+        for (const s of [-1, 1]) {
+          const sideRail = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.4, 12), mats.trim);
+          sideRail.rotation.x = Math.PI / 2;
+          sideRail.position.set(s * (cW * 0.42), 0.92, -0.78);
+          yawCarriageGroup.add(sideRail);
+        }
+
+        const seatBase = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.44, 0.55), mats.seatMat);
+        seatBase.position.set(0, 0.42, -0.95);
+        const seatBack = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.78, 0.12), mats.seatMat);
+        seatBack.position.set(0, 0.85, -1.18);
+        yawCarriageGroup.add(rearDeck, seatBase, seatBack);
+
+        // Interactive 3D Gunner Control Yoke & Fire Pushbutton
+        const consolePost = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.10, 0.85, 16), mats.darkSteel);
+        consolePost.position.set(0, 0.58, -0.42);
+        const consoleBox = new THREE.Mesh(new THREE.BoxGeometry(0.64, 0.14, 0.36), mats.trim);
+        consoleBox.position.set(0, 1.02, -0.42);
+        consoleBox.rotation.x = 0.35;
+
+        const btnTex = createConsoleBtnTexture(state.fireBtnLabel || 'FIRE');
+        const fireBtn = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.085, 0.095, 0.05, 24),
+          new THREE.MeshStandardMaterial({ map: btnTex, emissive: 0xf43f5e, emissiveMap: btnTex, emissiveIntensity: 1.4 })
+        );
+        fireBtn.position.set(0, 1.09, -0.40);
+        fireBtn.rotation.x = 0.35;
+        fireBtn.userData.isFireTrigger = true;
+        clickableTurretMeshes.push(fireBtn);
+
+        yawCarriageGroup.add(consolePost, consoleBox, fireBtn);
+
+        if (state.showVrmGunner) {
+          const gunner = new THREE.Group();
+          const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.17, 0.52, 12, 16), mats.vrmAvatar);
+          torso.position.set(0, 1.02, -0.92);
+          const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 20, 20), mats.vrmAvatar);
+          head.position.set(0, 1.50, -0.90);
+          gunner.add(torso, head);
+          yawCarriageGroup.add(gunner);
+        }
+      } else if (state.cockpitType === 'armored-cupola') {
+        const cupola = new THREE.Mesh(new THREE.CylinderGeometry(cW * 0.44, cW * 0.52, cH * 0.88, 32), mats.armor);
+        cupola.position.set(0, 0.16 + cH * 0.44, -0.55);
+        const hatch = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.10, 24), mats.trim);
+        hatch.position.set(0, 0.16 + cH * 0.90, -0.55);
+        yawCarriageGroup.add(cupola, hatch);
+      }
+
+      // 3. Elevating Trunnion Pitch Cradle & High-Detail Multi-Barrel Recoil Assembly
+      pitchCradleGroup = new THREE.Group();
+      pitchCradleGroup.name = 'Turret_Pitch_Cradle';
+      pitchCradleGroup.position.set(0, trunnionY, 0.25);
+      pitchCradleGroup.rotation.x = -THREE.MathUtils.degToRad(state.pitchDeg);
+      yawCarriageGroup.add(pitchCradleGroup);
+
+      const breechBlock = new THREE.Mesh(new THREE.BoxGeometry(cW * 0.58, 0.46, 0.95), mats.darkSteel);
+      pitchCradleGroup.add(breechBlock);
+
+      if (state.ammoDrums) {
+        for (const s of [-1, 1]) {
+          const drum = new THREE.Mesh(new THREE.CylinderGeometry(0.44, 0.44, 0.38, 32), mats.trim);
+          drum.rotation.z = Math.PI / 2;
+          drum.position.set(s * (cW * 0.56), 0, 0);
+          const core = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.42, 24), mats.glow);
+          core.rotation.z = Math.PI / 2;
+          core.position.set(s * (cW * 0.56), 0, 0);
+          pitchCradleGroup.add(drum, core);
+        }
+      }
+
+      barrelRecoilGroup = new THREE.Group();
+      barrelRecoilGroup.name = 'Barrel_Recoil_Assembly';
+      barrelRecoilGroup.position.z = -state.recoilOffset;
+      pitchCradleGroup.add(barrelRecoilGroup);
+
+      const bCount = state.barrelCount;
+      const bLen = state.barrelLength;
+      const bRad = (state.caliberMm / 1000) * 0.55;
+
+      for (let b = 0; b < bCount; b++) {
+        let bx = 0, by = 0;
+        if (bCount === 1) {
+          bx = 0;
+        } else if (bCount === 2) {
+          bx = (b === 0 ? -1 : 1) * (cW * 0.22); // Wide spacing so center gunner optic sight is 100% unobstructed!
+        } else if (bCount === 3) {
+          bx = (b - 1) * (cW * 0.22);
+        } else if (bCount >= 4) {
+          const ang = (b / bCount) * Math.PI * 2;
+          bx = Math.cos(ang) * 0.24;
+          by = Math.sin(ang) * 0.24;
+        }
+
+        // High-Poly Recoil Jacket + Cooling Thermal Ribs + Main Rifled Tube (32 segments)
+        const jacket = new THREE.Mesh(new THREE.CylinderGeometry(bRad * 1.48, bRad * 1.58, bLen * 0.38, 32), mats.armor);
+        jacket.rotation.x = Math.PI / 2;
+        jacket.position.set(bx, by, bLen * 0.22);
+
+        for (let r = 0; r < 5; r++) {
+          const fin = new THREE.Mesh(new THREE.CylinderGeometry(bRad * 1.62, bRad * 1.62, 0.04, 28), mats.trim);
+          fin.rotation.x = Math.PI / 2;
+          fin.position.set(bx, by, bLen * 0.10 + r * (bLen * 0.06));
+          barrelRecoilGroup.add(fin);
+        }
+
+        const tube = new THREE.Mesh(new THREE.CylinderGeometry(bRad, bRad * 1.15, bLen, 32), mats.darkSteel);
+        tube.rotation.x = Math.PI / 2;
+        tube.position.set(bx, by, bLen * 0.52);
+        tube.castShadow = true;
+        tube.userData.isFireTrigger = true;
+        clickableTurretMeshes.push(tube);
+
+        barrelRecoilGroup.add(jacket, tube);
+
+        const muzzleZ = bLen + 0.05;
+        if (state.muzzleStyle === 'baffled-brake') {
+          const brake = new THREE.Mesh(new THREE.CylinderGeometry(bRad * 1.75, bRad * 1.55, 0.42, 24), mats.trim);
+          brake.rotation.x = Math.PI / 2;
+          brake.position.set(bx, by, muzzleZ);
+          barrelRecoilGroup.add(brake);
+        } else if (state.muzzleStyle === 'arcane-rails') {
+          for (let c = 0; c < 4; c++) {
+            const coil = new THREE.Mesh(new THREE.TorusGeometry(bRad * 1.65, 0.038, 12, 28), mats.glow);
+            coil.position.set(bx, by, bLen * 0.42 + c * (bLen * 0.18));
+            barrelRecoilGroup.add(coil);
+          }
+        } else if (state.muzzleStyle === 'gatling-clamp' && b === 0) {
+          for (const f of [0.45, 0.85]) {
+            const clamp = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.09, 28), mats.trim);
+            clamp.rotation.x = Math.PI / 2;
+            clamp.position.set(0, 0, bLen * f);
+            barrelRecoilGroup.add(clamp);
+          }
+        }
+
+        if (state.flashTimer > 0) {
+          const flash = new THREE.Mesh(new THREE.ConeGeometry(bRad * 2.6, 0.95, 16), mats.flash);
+          flash.rotation.x = Math.PI / 2;
+          flash.position.set(bx, by, muzzleZ + 0.55);
+          barrelRecoilGroup.add(flash);
+        }
+      }
+
+      updateTelemetry();
+    }
+
+    function updateOpticCameraAndHUD() {
+      const baseFov = 44;
+      camera.fov = baseFov / Math.max(1.0, state.opticZoom);
+      camera.updateProjectionMatrix();
+
+      const hud = document.getElementById('optic-hud-overlay');
+      const badge = document.getElementById('hud-zoom-badge');
+      if (hud && badge) {
+        const showHud = state.activeCamMode === 'gunner' || state.opticZoom > 1.05;
+        hud.style.opacity = showHud ? '1' : '0';
+        badge.textContent = `OPTIC ZOOM ${state.opticZoom.toFixed(1)}x • YAW ${Math.round(state.yawDeg)}° • PITCH ${Math.round(state.pitchDeg)}°`;
+      }
+    }
+
+    function updateTelemetry() {
+      const rof = state.barrelCount * Math.round(14000 / state.caliberMm);
+      document.getElementById('stat-caliber').textContent = `${state.barrelCount}×${state.caliberMm}mm`;
+      document.getElementById('stat-yaw').textContent = `${Math.round(state.yawDeg)}° / ${Math.round(state.pitchDeg)}°`;
+      document.getElementById('stat-rof').textContent = `${rof} rpm`;
+      document.getElementById('sim-yaw-readout').textContent = `${Math.round(state.yawDeg)}°`;
+
+      let tris = 0;
+      assetRoot.traverse((obj) => {
+        if (obj.isMesh && obj.geometry) {
+          const g = obj.geometry;
+          tris += g.index ? g.index.count / 3 : g.attributes.position.count / 3;
+        }
+      });
+      document.getElementById('stat-triangles').textContent = `${Math.round(tris).toLocaleString()} tris`;
+
+      document.getElementById('label-ring').textContent = `Ring: ${state.ringDiameter.toFixed(2)}m`;
+      document.getElementById('label-barrel').textContent = `Barrel: ${state.barrelLength.toFixed(2)}m`;
+      document.getElementById('label-height').textContent = `H: ${(state.baseHeight + state.carriageHeight).toFixed(2)}m`;
+      updateOpticCameraAndHUD();
+    }
+
+    function updateLabelsOverlay() {
+      const container = document.getElementById('labels-container');
+      if (!state.showDimensions) {
+        container.style.opacity = '0';
+        return;
+      }
+      container.style.opacity = '1';
+
+      const pts = [
+        { id: 'label-ring', pos: new THREE.Vector3(state.ringDiameter / 2 + 0.6, 0.2, 0) },
+        { id: 'label-barrel', pos: new THREE.Vector3(0, state.baseHeight + state.carriageHeight + 0.5, state.barrelLength * 0.6) },
+        { id: 'label-height', pos: new THREE.Vector3(-state.carriageWidth / 2 - 0.6, (state.baseHeight + state.carriageHeight) / 2, 0) }
+      ];
+      const rect = mount.getBoundingClientRect();
+      for (const item of pts) {
+        const v = item.pos.clone().project(camera);
+        const el = document.getElementById(item.id);
+        if (v.z > 1) {
+          el.style.opacity = '0';
+        } else {
+          el.style.opacity = '1';
+          el.style.left = `${(v.x * 0.5 + 0.5) * rect.width}px`;
+          el.style.top = `${(-(v.y * 0.5) + 0.5) * rect.height}px`;
+        }
+      }
+    }
+
+    function syncUI() {
+      const sliders = [
+        ['ringDiameter', ' m', 2],
+        ['baseHeight', ' m', 2],
+        ['outriggerCount', ' legs', 0],
+        ['opticZoom', 'x', 1],
+        ['carriageWidth', ' m', 2],
+        ['carriageHeight', ' m', 2],
+        ['barrelCount', ' barrels', 0],
+        ['barrelLength', ' m', 2],
+        ['caliberMm', ' mm', 0],
+        ['yawDeg', '°', 0],
+        ['pitchDeg', '°', 0],
+        ['crackDensity', '%', 0],
+        ['bumpScale', '', 2]
+      ];
+      for (const [k, unit, dec] of sliders) {
+        const input = document.getElementById(`param-${k}`);
+        const label = document.getElementById(`val-${k}`);
+        if (input) input.value = state[k];
+        if (label) label.textContent = Number(state[k]).toFixed(dec) + unit;
+      }
+      ['cockpitType', 'opticWindowStyle', 'muzzleStyle', 'metalFinish', 'energyColor', 'exportScope'].forEach((k) => {
+        const el = document.getElementById(`param-${k}`);
+        if (el) el.value = state[k];
+      });
+      ['showRingTeeth', 'showVrmGunner', 'ammoDrums', 'gunShield', 'showDimensions', 'wireframe'].forEach((k) => {
+        const el = document.getElementById(`param-${k}`);
+        if (el) el.checked = Boolean(state[k]);
+      });
+    }
+
+    ['ringDiameter', 'baseHeight', 'outriggerCount', 'opticZoom', 'carriageWidth', 'carriageHeight', 'barrelCount', 'barrelLength', 'caliberMm', 'yawDeg', 'pitchDeg', 'crackDensity', 'bumpScale'].forEach((k) => {
+      document.getElementById(`param-${k}`).addEventListener('input', (e) => {
+        state[k] = parseFloat(e.target.value);
+        syncUI();
+        buildTurretAsset();
+      });
+    });
+
+    ['cockpitType', 'opticWindowStyle', 'muzzleStyle', 'metalFinish', 'energyColor', 'exportScope'].forEach((k) => {
+      document.getElementById(`param-${k}`).addEventListener('change', (e) => {
+        state[k] = e.target.value;
+        syncUI();
+        buildTurretAsset();
+      });
+    });
+
+    ['showRingTeeth', 'showVrmGunner', 'ammoDrums', 'gunShield', 'showDimensions', 'wireframe'].forEach((k) => {
+      document.getElementById(`param-${k}`).addEventListener('change', (e) => {
+        state[k] = e.target.checked;
+        buildTurretAsset();
+      });
+    });
+
+    document.getElementById('param-fireBtnLabel').addEventListener('input', (e) => {
+      state.fireBtnLabel = e.target.value.toUpperCase() || 'FIRE';
+      buildTurretAsset();
+    });
+
+    document.querySelectorAll('.tab-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach((b) => {
+          b.className = 'tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition';
+        });
+        btn.className = 'tab-btn py-2 rounded bg-slate-800 text-emerald-400 shadow-sm transition';
+        document.querySelectorAll('.tab-content').forEach((p) => {
+          p.classList.toggle('hidden', p.id !== btn.dataset.tab);
+        });
+      });
+    });
+
+    document.querySelectorAll('.preset-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const p = PRESETS[btn.dataset.preset];
+        if (!p) return;
+        Object.assign(state, p);
+        syncUI();
+        buildTurretAsset();
+        document.querySelectorAll('.preset-btn').forEach((b) => {
+          b.className = 'preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition';
+        });
+        btn.className = 'preset-btn px-2.5 py-1 rounded text-xs font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 transition';
+        showToast(`Loaded ${btn.textContent} turret preset`);
+      });
+    });
+
+    document.getElementById('btnRandomize').addEventListener('click', () => {
+      const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+      state.cockpitType = pick(['open-vrm-seat', 'armored-cupola', 'remote-spire']);
+      state.opticWindowStyle = pick(['hud-canopy', 'wide-visor', 'telescopic-pod']);
+      state.barrelCount = Math.floor(1 + Math.random() * 6);
+      state.muzzleStyle = pick(['baffled-brake', 'arcane-rails', 'gatling-clamp']);
+      state.metalFinish = pick(['gunmetal', 'orichalcum', 'wrought-iron', 'hazard-olive']);
+      state.energyColor = pick(['emerald', 'amber', 'ice-blue', 'arcane-purple', 'crimson']);
+      state.pitchDeg = Math.floor(5 + Math.random() * 45);
+      syncUI();
+      buildTurretAsset();
+      showToast('Randomized High-Detail Defense Turret');
+    });
+
+    let camTarget = null;
+    let orbitTarget = null;
+    function setTurretCam(mode) {
+      state.activeCamMode = mode;
+      const yawRad = THREE.MathUtils.degToRad(state.yawDeg);
+      if (mode === 'iso') {
+        state.opticZoom = 1.0;
+        camTarget = new THREE.Vector3(5.2, 3.6, 5.8);
+        orbitTarget = new THREE.Vector3(0, 1.5, 0);
+      } else if (mode === 'gunner') {
+        // Position camera right at the .VRM Gunner's eye looking directly through the Targeting Optic Window!
+        const eyeDist = -0.82;
+        const lookDist = 4.0;
+        camTarget = new THREE.Vector3(Math.sin(yawRad) * eyeDist, state.baseHeight + 1.48, Math.cos(yawRad) * eyeDist);
+        orbitTarget = new THREE.Vector3(Math.sin(yawRad) * lookDist, state.baseHeight + 1.48 + Math.tan(THREE.MathUtils.degToRad(state.pitchDeg)) * 2.5, Math.cos(yawRad) * lookDist);
+      } else if (mode === 'muzzle') {
+        state.opticZoom = 1.0;
+        camTarget = new THREE.Vector3(1.8, state.baseHeight + 1.8, 5.6);
+        orbitTarget = new THREE.Vector3(0, state.baseHeight + 1.2, 0.5);
+      } else if (mode === 'side') {
+        state.opticZoom = 1.0;
+        camTarget = new THREE.Vector3(6.8, state.baseHeight + 1.4, 0.5);
+        orbitTarget = new THREE.Vector3(0, state.baseHeight + 1.2, 0.5);
+      }
+      syncUI();
+      updateOpticCameraAndHUD();
+      document.querySelectorAll('.cam-btn').forEach((b) => {
+        b.className = b.dataset.cam === mode
+          ? 'cam-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition'
+          : 'cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition';
+      });
+    }
+
+    document.querySelectorAll('.cam-btn').forEach((btn) => {
+      btn.addEventListener('click', () => setTurretCam(btn.dataset.cam));
+    });
+
+    document.getElementById('btnCycleZoom').addEventListener('click', () => {
+      const levels = [1.0, 2.0, 4.0, 8.0];
+      const next = levels[(levels.indexOf(state.opticZoom) + 1) % levels.length] || 2.0;
+      state.opticZoom = next;
+      setTurretCam('gunner');
+      buildTurretAsset();
+      showToast(`Gunner Optic Scope Zoom set to ${next.toFixed(1)}x`);
+    });
+
+    controls.addEventListener('start', () => { camTarget = null; orbitTarget = null; });
+
+    function triggerSalvoFire() {
+      state.recoilOffset = 0.42;
+      state.flashTimer = 0.18;
+      buildTurretAsset();
+      showToast(`Fired ${state.barrelCount}×${state.caliberMm}mm Ordnance Salvo!`);
+    }
+
+    document.getElementById('btnFireSalvo').addEventListener('click', triggerSalvoFire);
+
+    document.getElementById('btnToggleSweep').addEventListener('click', () => {
+      state.autoSweep = !state.autoSweep;
+      document.getElementById('sim-status-text').textContent = state.autoSweep
+        ? 'RADAR AUTO-SWEEP ACTIVE'
+        : 'ARMED • MANUAL AIM';
+      showToast(state.autoSweep ? 'Enabled 360° Radar Target Sweep' : 'Returned to Manual Gunner Aim');
+    });
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    let downPos = { x: 0, y: 0 };
+    renderer.domElement.addEventListener('pointerdown', (e) => { downPos = { x: e.clientX, y: e.clientY }; });
+    window.addEventListener('pointerup', (e) => {
+      if (Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > 5) return;
+      const rect = renderer.domElement.getBoundingClientRect();
+      if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) return;
+      pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(clickableTurretMeshes, false);
+      if (hits.length > 0) {
+        triggerSalvoFire();
+      }
+    });
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast-notification');
+      document.getElementById('toast-text').textContent = msg;
+      toast.style.opacity = '1';
+      setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('btnExportPBR').addEventListener('click', () => {
+      exportPBRTexturePack('defense_turret', 'armor', state.crackDensity);
+      showToast('Exported Seamless PBR Bump/Crack Height & Normal Maps (.PNG)!');
+    });
+
+    document.getElementById('btnExportJSON').addEventListener('click', () => {
+      downloadBlob(new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }), `parametric-turret-recipe.json`);
+      showToast('Exported Parametric Turret Recipe (.JSON)');
+    });
+
+    document.getElementById('btnExportGLB').addEventListener('click', () => {
+      const exporter = new GLTFExporter();
+      const target = state.exportScope === 'turret-only' ? yawCarriageGroup : assetRoot;
+      exporter.parse(target, (res) => {
+        downloadBlob(new Blob([res], { type: 'application/octet-stream' }), `parametric-turret-${state.exportScope}.glb`);
+        showToast('Exported 3D Defense Turret (.GLB) with Turret_Optic_Viewport & Camera_Mount_Optic nodes!');
+      }, (err) => console.error(err), { binary: true });
+    });
+
+    document.getElementById('btnExportOBJ').addEventListener('click', () => {
+      const exporter = new OBJExporter();
+      const target = state.exportScope === 'turret-only' ? yawCarriageGroup : assetRoot;
+      downloadBlob(new Blob([exporter.parse(target)], { type: 'text/plain' }), `parametric-turret.obj`);
+      showToast('Exported Wavefront 3D Mesh (.OBJ)');
+    });
+
+    const clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = Math.min(clock.getDelta(), 0.1);
+      const elapsed = clock.getElapsedTime();
+
+      if (camTarget && orbitTarget) {
+        camera.position.lerp(camTarget, dt * 5);
+        controls.target.lerp(orbitTarget, dt * 5);
+        if (camera.position.distanceTo(camTarget) < 0.06) {
+          camTarget = null;
+          orbitTarget = null;
+        }
+      }
+
+      if (state.flashTimer > 0) {
+        state.flashTimer = Math.max(0, state.flashTimer - dt);
+        if (state.flashTimer === 0) buildTurretAsset();
+      }
+
+      if (state.recoilOffset > 0.005) {
+        state.recoilOffset = THREE.MathUtils.lerp(state.recoilOffset, 0, dt * 8.5);
+        if (barrelRecoilGroup) barrelRecoilGroup.position.z = -state.recoilOffset;
+      }
+
+      if (state.autoSweep) {
+        state.yawDeg = Math.sin(elapsed * 0.9) * 65;
+        state.pitchDeg = 20 + Math.cos(elapsed * 1.4) * 14;
+        yawCarriageGroup.rotation.y = THREE.MathUtils.degToRad(state.yawDeg);
+        if (pitchCradleGroup) pitchCradleGroup.rotation.x = -THREE.MathUtils.degToRad(state.pitchDeg);
+        document.getElementById('sim-yaw-readout').textContent = `${Math.round(state.yawDeg)}°`;
+      }
+
+      controls.update();
+      updateLabelsOverlay();
+      renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = mount.clientWidth / mount.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(mount.clientWidth, mount.clientHeight);
+    });
+
+    syncUI();
+    buildTurretAsset();
+    animate();
+  </script>
+</body>
+</html>

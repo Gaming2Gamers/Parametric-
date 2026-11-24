@@ -1,0 +1,1746 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BRIDGECAD v6.0 — Connected Bascule Chains, Sliding & Holographic Chasm Bridge Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <style>
+    * { box-sizing: border-box; user-select: none; }
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #090a0f;
+      color: #e2e8f0;
+    }
+    .font-mono-tech { font-family: 'JetBrains Mono', monospace; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.4); }
+    ::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.6); border-radius: 3px; }
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: #1e293b;
+      border-radius: 999px;
+      outline: none;
+      border: 1px solid #334155;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #f59e0b;
+      cursor: pointer;
+      border: 2px solid #0f172a;
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.55);
+      transition: transform 0.1s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.84);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(51, 65, 85, 0.65);
+    }
+    .dimension-badge {
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.2s ease;
+    }
+  </style>
+</head>
+<body class="h-screen w-screen flex flex-col bg-[#090a0f] text-slate-100">
+
+  <!-- TOP HEADER BAR -->
+  <header class="h-14 border-b border-slate-800/80 bg-slate-950/90 px-4 flex items-center justify-between z-20 shrink-0">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-lg bg-amber-500/15 border border-amber-400/35 flex items-center justify-center text-amber-400 shadow-inner">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0V4a1 1 0 011-1h3v17m10 0V3h3a1 1 0 011 1v16"></path>
+        </svg>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="font-semibold text-sm tracking-tight text-white">BRIDGE<span class="text-amber-400">CAD</span></h1>
+          <span class="text-[10px] font-mono-tech uppercase px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">v6.0 • PBR Cracks, Bascule & Hard-Light</span>
+        </div>
+        <p class="text-[11px] text-slate-400">Connected Counterweight Chains, Retractable Sliding Span & Holographic Hard-Light Bridge Studio</p>
+      </div>
+    </div>
+
+    <!-- ARCHETYPE PRESETS -->
+    <div class="hidden xl:flex items-center gap-1.5 bg-slate-900/90 p-1 rounded-lg border border-slate-800">
+      <span class="text-[11px] font-medium text-slate-400 px-2">Archetype:</span>
+      <button data-preset="citadel" class="preset-btn px-2.5 py-1 rounded text-xs font-medium bg-amber-500/20 text-amber-300 border border-amber-500/40 transition">Citadel Bascule Span</button>
+      <button data-preset="dwarven" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Dwarven Deep-Viaduct</button>
+      <button data-preset="gothic" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Cathedral Chasm Bridge</button>
+      <button data-preset="industrial" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Iron Chain-Winch</button>
+      <button data-preset="hellgate" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-rose-300 hover:bg-rose-950/40 border border-rose-500/30 transition">100F Hell-Chasm Crossing</button>
+    </div>
+
+    <!-- EXPORT ACTIONS -->
+    <div class="flex items-center gap-2">
+      <button id="btnToggleBloom" type="button" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 font-mono-tech border border-cyan-500/40 transition" title="Toggle Selective ACES Filmic HDR UnrealBloom Post-Processing">✨ Bloom: ON</button>
+      <button id="btnRandomize" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">Randomize</button>
+      <button id="btnExportPBR" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-emerald-300 font-mono-tech border border-emerald-500/30 transition" title="Download Seamless Bump/Crack Height Map & RGB Normal Map (.PNG)">PBR .PNGs</button>
+      <button id="btnExportJSON" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-amber-400 font-mono-tech border border-slate-700 transition">.JSON</button>
+      <button id="btnExportOBJ" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">Export .OBJ</button>
+      <button id="btnExportGLB" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-lg shadow-amber-500/20 transition">Export .GLB</button>
+    </div>
+  </header>
+
+  <div class="flex-1 flex relative overflow-hidden">
+
+    <!-- LEFT PANEL -->
+    <aside class="w-80 md:w-96 border-r border-slate-800/80 bg-slate-950/95 flex flex-col z-10 shrink-0">
+      <div class="grid grid-cols-5 border-b border-slate-800 bg-slate-900/60 p-1 gap-1 text-[11px] font-medium">
+        <button data-tab="tab-span" class="tab-btn py-2 rounded bg-slate-800 text-amber-400 shadow-sm transition">Span</button>
+        <button data-tab="tab-drawbridge" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Bascule</button>
+        <button data-tab="tab-towers" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Towers</button>
+        <button data-tab="tab-chains" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Lanterns</button>
+        <button data-tab="tab-chasm" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Chasm</button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-4 space-y-5">
+
+        <!-- TAB 1: SPAN & ROADWAY -->
+        <div id="tab-span" class="tab-content space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Viaduct Span & .VRM Roadway</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Total Bridge Span (X)</label>
+                  <span id="val-spanLength" class="font-mono-tech text-amber-400">36.0 m</span>
+                </div>
+                <input id="param-spanLength" type="range" min="20.0" max="48.0" step="1.0" value="36.0">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Roadway Clear Width (Z)</label>
+                  <span id="val-roadWidth" class="font-mono-tech text-amber-400">6.00 m</span>
+                </div>
+                <input id="param-roadWidth" type="range" min="3.50" max="9.00" step="0.25" value="6.00">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Parapet Battlement Height</label>
+                  <span id="val-parapetHeight" class="font-mono-tech text-amber-400">1.20 m</span>
+                </div>
+                <input id="param-parapetHeight" type="range" min="0.60" max="2.20" step="0.10" value="1.20">
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Under-Deck Structural Arch</label>
+                <select id="param-archSupport" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="stone-arches">Open-Spandrel Masonry Rib Arches</option>
+                  <option value="iron-truss">Riveted Steel Lattice Box Truss</option>
+                  <option value="deep-piers">Colossal Chasm Support Columns</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: BASCULE, SLIDING OR HOLOGRAPHIC SPAN & WINCH CHAINS -->
+        <div id="tab-drawbridge" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Center Span Mechanism & Chains</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Center Span Bridge Type</label>
+                <select id="param-spanMechanism" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="bascule-drawbridge">Counterweighted Bascule Drawbridge</option>
+                  <option value="sliding-retract">Horizontal Retractable Sliding Span</option>
+                  <option value="holographic-light">Holographic Hard-Light Energy Bridge</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Hoist Suspension Rigging</label>
+                <select id="param-chainRigStyle" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="heavy-links">3D Interlocking Forged Iron Chain Links</option>
+                  <option value="twin-cables">Twin Braided Steel Winch Cables</option>
+                </select>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Center Chasm Gap Width</label>
+                  <span id="val-drawGap" class="font-mono-tech text-amber-400">10.0 m</span>
+                </div>
+                <input id="param-drawGap" type="range" min="5.0" max="15.0" step="0.5" value="10.0">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Span Actuation (Raise / Retract)</label>
+                  <span id="val-drawRaise" class="font-mono-tech text-emerald-400">25°</span>
+                </div>
+                <input id="param-drawRaise" type="range" min="0" max="75" step="1" value="25">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Overhead Counterweight Balance Arms</span>
+                  <span class="text-[11px] text-slate-400">Connected trunnion beams, drums & chains</span>
+                </div>
+                <input id="param-counterweights" type="checkbox" checked class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-amber-300 block">Sub-Deck Trunnion Rack & Pinion</span>
+                  <span class="text-[11px] text-slate-400">Tucked inside bascule pier machinery pit</span>
+                </div>
+                <input id="param-trunnionGears" type="checkbox" checked class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: TOLL TOWERS & PORTCULLIS -->
+        <div id="tab-towers" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Fortified Toll Gatehouses</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Gatehouse Tower Height</label>
+                  <span id="val-towerHeight" class="font-mono-tech text-amber-400">11.5 m</span>
+                </div>
+                <input id="param-towerHeight" type="range" min="6.5" max="16.0" step="0.5" value="11.5">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Portcullis Gate Open %</label>
+                  <span id="val-portcullisOpen" class="font-mono-tech text-amber-400">90%</span>
+                </div>
+                <input id="param-portcullisOpen" type="range" min="0" max="100" step="5" value="90">
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Tower Roof Crown</label>
+                <select id="param-towerCrown" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="battlements">Crenellated Fortress Battlements</option>
+                  <option value="gothic-spires">Pointed Gothic Slate Spires</option>
+                  <option value="brazier-beacons">Great Watchtower Fire Beacons</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: CHAINS, BRAZIERS & MATERIALS -->
+        <div id="tab-chains" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Suspension Chains & Braziers</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Catenary Suspension Chains</span>
+                  <span class="text-[11px] text-slate-400">Heavy iron chains + vertical hanger rods</span>
+                </div>
+                <input id="param-suspensionChains" type="checkbox" checked class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Runic Brazier Pairs</label>
+                  <span id="val-brazierPairs" class="font-mono-tech text-amber-400">4 pairs</span>
+                </div>
+                <input id="param-brazierPairs" type="range" min="0" max="8" step="1" value="4">
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Masonry & Iron Finish</label>
+                <select id="param-bridgeMaterial" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="granite-iron">Fortress Ashlar Granite & Wrought Iron</option>
+                  <option value="dwarven-brass">Basalt Stone & Gilded Orichalcum</option>
+                  <option value="obsidian-blood">Black Obsidian & Hellforged Steel</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Brazier & Hard-Light Energy Color</label>
+                <select id="param-flameColor" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="amber">Watchfire Amber Gold</option>
+                  <option value="crimson">Abyssal Blood-Fire</option>
+                  <option value="arcane-purple">Void Beacon Violet</option>
+                  <option value="emerald">Necrotic Soul-Flame</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 5: CHASM & EXPORT -->
+        <div id="tab-chasm" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Chasm Cliff Abutments & Export</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Show Chasm Cliff Abutments</span>
+                  <span class="text-[11px] text-slate-400">East & West dungeon cliff walls</span>
+                </div>
+                <input id="param-showCliffs" type="checkbox" checked class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">3D Export Scope</label>
+                <select id="param-exportScope" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="full">Bridge + Towers & Cliff Abutments</option>
+                  <option value="bridge-only">Bridge & Towers Structure Only</option>
+                </select>
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-200">3D Dimension Callouts</span>
+                <input id="param-showDimensions" type="checkbox" checked class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800">
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-emerald-300 font-medium">PBR Crack & Scar Density</label>
+                  <span id="val-crackDensity" class="font-mono-tech text-emerald-400">45%</span>
+                </div>
+                <input id="param-crackDensity" type="range" min="0" max="100" step="5" value="45">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-emerald-300 font-medium">Normal / Bump Relief Depth</label>
+                  <span id="val-bumpScale" class="font-mono-tech text-emerald-400">0.08</span>
+                </div>
+                <input id="param-bumpScale" type="range" min="0.00" max="0.25" step="0.01" value="0.08">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-200">Wireframe Overlay Pass</span>
+                <input id="param-wireframe" type="checkbox" class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- TELEMETRY FOOTER -->
+      <div class="p-3.5 border-t border-slate-800 bg-slate-900/90 space-y-2">
+        <div class="flex items-center justify-between text-[11px] text-slate-400">
+          <span class="uppercase font-semibold tracking-wider">Civil Engineering</span>
+          <span id="stat-triangles" class="font-mono-tech text-slate-300">0 tris</span>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">Clear Span</span>
+            <span id="stat-span" class="font-mono-tech text-xs font-semibold text-amber-400">36.0 m</span>
+          </div>
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">Bascule Tilt</span>
+            <span id="stat-angle" class="font-mono-tech text-xs font-semibold text-emerald-400">25°</span>
+          </div>
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">Axle Load</span>
+            <span id="stat-load" class="font-mono-tech text-xs font-semibold text-sky-400">778 t</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- VIEWPORT -->
+    <main class="flex-1 relative bg-gradient-to-b from-[#14110b] via-[#0b0d14] to-[#050609] overflow-hidden">
+      <div id="canvas-mount" class="w-full h-full"></div>
+
+      <div id="labels-container" class="absolute inset-0 pointer-events-none overflow-hidden">
+        <div id="label-span" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/90 border border-amber-500/50 text-[11px] font-mono-tech text-amber-300 shadow-lg">Span: 36.0m</div>
+        <div id="label-width" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/90 border border-amber-500/50 text-[11px] font-mono-tech text-amber-300 shadow-lg">Width: 6.00m</div>
+        <div id="label-tower" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/90 border border-amber-500/50 text-[11px] font-mono-tech text-amber-300 shadow-lg">Tower: 11.5m</div>
+      </div>
+
+      <!-- CAMERA PRESETS -->
+      <div class="absolute top-4 left-4 glass-panel rounded-xl p-1.5 flex items-center gap-1 shadow-xl">
+        <span class="text-[10px] font-mono-tech uppercase text-slate-400 px-2">Camera:</span>
+        <button data-cam="iso" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-500/20 text-amber-300 border border-amber-500/30 transition">Chasm Overview</button>
+        <button data-cam="bascule" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">Drawbridge Gap</button>
+        <button data-cam="roadway" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">Toll Gate Approach</button>
+        <button data-cam="side" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">Viaduct Elevation</button>
+      </div>
+
+      <!-- WINCH HOUSE CONTROLLER -->
+      <div class="absolute top-4 right-4 w-60 glass-panel rounded-2xl p-3.5 shadow-2xl flex flex-col gap-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-300">Winch House Control</span>
+          <span class="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_#f59e0b]"></span>
+        </div>
+
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 flex items-center justify-between">
+          <div>
+            <span class="text-[10px] text-slate-400 uppercase block">Bridge State</span>
+            <span id="sim-status-text" class="text-[11px] font-mono-tech text-amber-400">PARTIAL RAISE (25°)</span>
+          </div>
+          <span id="sim-deg-readout" class="font-mono-tech text-sm font-bold text-emerald-400">25°</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-1.5">
+          <button id="btnLowerBridge" class="py-1.5 px-2 rounded-lg text-xs font-medium bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/35 transition">
+            ⬇ Lower Roadway
+          </button>
+          <button id="btnRaiseBridge" class="py-1.5 px-2 rounded-lg text-xs font-semibold bg-amber-500/25 hover:bg-amber-500/35 text-amber-200 border border-amber-500/40 transition">
+            ⬆ Raise Drawbridge
+          </button>
+        </div>
+
+        <button id="btnLockdownGates" class="w-full py-1.5 px-3 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/35 text-xs font-medium transition">
+          🛡 Full Siege Lockdown
+        </button>
+      </div>
+
+      <!-- BOTTOM-LEFT HINT -->
+      <div class="absolute bottom-4 left-4 glass-panel rounded-lg px-3 py-1.5 text-[11px] text-slate-400 flex items-center gap-3 pointer-events-none">
+        <span><strong class="text-slate-200">LMB:</strong> Orbit / Click 3D Drawbridge Leaves to Raise or Lower</span>
+        <span>•</span>
+        <span><strong class="text-slate-200">RMB:</strong> Pan</span>
+      </div>
+
+      <!-- TOAST -->
+      <div id="toast-notification" class="pointer-events-none opacity-0 transition-opacity duration-300 absolute bottom-4 right-4 glass-panel border-amber-500/40 bg-slate-900/95 text-amber-200 px-4 py-2.5 rounded-xl text-xs font-medium shadow-2xl">
+        <span id="toast-text">Bridge updated!</span>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+    import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+    import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+    import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+    import { OBJExporter } from 'three/addons/exporters/OBJExporter.js';
+
+    const state = {
+      spanLength: 36.0,
+      roadWidth: 6.00,
+      parapetHeight: 1.20,
+      archSupport: 'stone-arches',
+
+      spanMechanism: 'bascule-drawbridge', // 'bascule-drawbridge' | 'sliding-retract' | 'holographic-light'
+      chainRigStyle: 'heavy-links',        // 'heavy-links' | 'twin-cables'
+      drawGap: 10.0,
+      drawRaise: 25,
+      targetDrawRaise: 25,
+      counterweights: true,
+      trunnionGears: true,
+
+      towerHeight: 11.5,
+      portcullisOpen: 90,
+      towerCrown: 'battlements',
+
+      suspensionChains: true,
+      brazierPairs: 4,
+      bridgeMaterial: 'granite-iron',
+      flameColor: 'amber',
+
+      showCliffs: true,
+      exportScope: 'full',
+      showDimensions: true,
+      crackDensity: 45,
+      bumpScale: 0.08,
+      wireframe: false
+    };
+
+    const PRESETS = {
+      citadel: {
+        spanLength: 36.0, roadWidth: 6.00, parapetHeight: 1.20, archSupport: 'stone-arches',
+        spanMechanism: 'bascule-drawbridge', chainRigStyle: 'heavy-links', drawGap: 10.0, drawRaise: 25, targetDrawRaise: 25, counterweights: true, trunnionGears: true,
+        towerHeight: 11.5, portcullisOpen: 90, towerCrown: 'battlements',
+        suspensionChains: true, brazierPairs: 4, bridgeMaterial: 'granite-iron', flameColor: 'amber'
+      },
+      dwarven: {
+        spanLength: 42.0, roadWidth: 7.00, parapetHeight: 1.50, archSupport: 'deep-piers',
+        spanMechanism: 'sliding-retract', chainRigStyle: 'heavy-links', drawGap: 11.0, drawRaise: 30, targetDrawRaise: 30, counterweights: false, trunnionGears: true,
+        towerHeight: 12.5, portcullisOpen: 100, towerCrown: 'brazier-beacons',
+        suspensionChains: false, brazierPairs: 6, bridgeMaterial: 'dwarven-brass', flameColor: 'amber'
+      },
+      gothic: {
+        spanLength: 38.0, roadWidth: 5.50, parapetHeight: 1.40, archSupport: 'stone-arches',
+        spanMechanism: 'holographic-light', chainRigStyle: 'heavy-links', drawGap: 10.5, drawRaise: 0, targetDrawRaise: 0, counterweights: false, trunnionGears: false,
+        towerHeight: 14.0, portcullisOpen: 85, towerCrown: 'gothic-spires',
+        suspensionChains: true, brazierPairs: 6, bridgeMaterial: 'granite-iron', flameColor: 'arcane-purple'
+      },
+      industrial: {
+        spanLength: 36.0, roadWidth: 6.50, parapetHeight: 1.10, archSupport: 'iron-truss',
+        spanMechanism: 'bascule-drawbridge', chainRigStyle: 'twin-cables', drawGap: 11.0, drawRaise: 40, targetDrawRaise: 40, counterweights: true, trunnionGears: true,
+        towerHeight: 10.5, portcullisOpen: 95, towerCrown: 'battlements',
+        suspensionChains: true, brazierPairs: 4, bridgeMaterial: 'granite-iron', flameColor: 'amber'
+      },
+      hellgate: {
+        spanLength: 46.0, roadWidth: 7.00, parapetHeight: 1.60, archSupport: 'stone-arches',
+        spanMechanism: 'bascule-drawbridge', chainRigStyle: 'heavy-links', drawGap: 12.0, drawRaise: 55, targetDrawRaise: 55, counterweights: true, trunnionGears: true,
+        towerHeight: 14.0, portcullisOpen: 15, towerCrown: 'brazier-beacons',
+        suspensionChains: true, brazierPairs: 8, bridgeMaterial: 'obsidian-blood', flameColor: 'crimson'
+      }
+    };
+
+    const FLAME_MAP = {
+      'amber': 0xf59e0b,
+      'crimson': 0xf43f5e,
+      'arcane-purple': 0xc084fc,
+      'emerald': 0x10b981
+    };
+
+    const mount = document.getElementById('canvas-mount');
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x08090e, 0.011);
+
+    const camera = new THREE.PerspectiveCamera(44, mount.clientWidth / mount.clientHeight, 0.1, 250);
+    camera.position.set(16, 12, 24);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
+    renderer.setSize(mount.clientWidth, mount.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.22;
+    mount.appendChild(renderer.domElement);
+    const pmremGen = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmremGen.fromScene(new RoomEnvironment(), 0.04).texture;
+
+    // v6.0 Selective High-Threshold HDR Post-Processing (EffectComposer + UnrealBloomPass + OutputPass)
+    let bloomEnabled = true;
+    const initW = Math.max(1, mount.clientWidth || window.innerWidth);
+    const initH = Math.max(1, mount.clientHeight || window.innerHeight);
+    const composer = new EffectComposer(renderer);
+    composer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    composer.setSize(initW, initH);
+    composer.addPass(new RenderPass(scene, camera));
+    const unrealBloomPass = new UnrealBloomPass(new THREE.Vector2(initW, initH), 0.42, 0.55, 0.85);
+    composer.addPass(unrealBloomPass);
+    composer.addPass(new OutputPass());
+
+
+    // v6.0 Subtle Atmospheric Floating Ember / Mana Mote Field (in scene, outside assetRoot so GLB export stays clean)
+    const MOTE_COUNT = 56;
+    const motePositions = new Float32Array(MOTE_COUNT * 3);
+    for (let mi = 0; mi < MOTE_COUNT; mi++) {
+      motePositions[mi * 3]     = (Math.sin(mi * 73.1) * 0.5) * 26.0;
+      motePositions[mi * 3 + 1] = 0.25 + ((mi * 0.618034) % 1.0) * 12.0;
+      motePositions[mi * 3 + 2] = (Math.cos(mi * 41.7) * 0.5) * 26.0;
+    }
+    const moteGeo = new THREE.BufferGeometry();
+    moteGeo.setAttribute('position', new THREE.BufferAttribute(motePositions, 3));
+    const moteMat = new THREE.PointsMaterial({
+      color: 0xf59e0b,
+      size: 0.055,
+      transparent: true,
+      opacity: 0.58,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+    const atmosphericMotes = new THREE.Points(moteGeo, moteMat);
+    atmosphericMotes.name = 'Viewport_Atmospheric_Motes';
+    scene.add(atmosphericMotes);
+
+    const btnToggleBloomEl = document.getElementById('btnToggleBloom');
+    if (btnToggleBloomEl) {
+      btnToggleBloomEl.addEventListener('click', () => {
+        bloomEnabled = !bloomEnabled;
+        unrealBloomPass.enabled = bloomEnabled;
+        btnToggleBloomEl.textContent = bloomEnabled ? '✨ Bloom: ON' : '✨ Bloom: OFF';
+        btnToggleBloomEl.className = bloomEnabled
+          ? 'px-2.5 py-1.5 rounded-lg text-xs font-medium bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 font-mono-tech border border-cyan-500/40 transition'
+          : 'px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-400 font-mono-tech border border-slate-700 transition';
+      });
+    }
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.target.set(0, 2.5, 0);
+
+    scene.add(new THREE.HemisphereLight(0xfef3c7, 0x1e293b, 1.05));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 2.1);
+    dirLight.position.set(22, 32, 24);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.set(2048, 2048);
+    dirLight.shadow.bias = -0.0005;
+    dirLight.shadow.normalBias = 0.02;
+    dirLight.shadow.camera.near = 0.5;
+    dirLight.shadow.camera.far = 85;
+    dirLight.shadow.camera.left = -28.0;
+    dirLight.shadow.camera.right = 28.0;
+    dirLight.shadow.camera.top = 28.0;
+    dirLight.shadow.camera.bottom = -28.0;
+    scene.add(dirLight);
+
+    const rimLight = new THREE.DirectionalLight(0x38bdf8, 0.7);
+    rimLight.position.set(-20, 8, -18);
+    scene.add(rimLight);
+
+    const gridHelper = new THREE.GridHelper(72, 72, 0xd97706, 0x1e293b);
+    gridHelper.position.y = -8.5;
+    scene.add(gridHelper);
+
+    const assetRoot = new THREE.Group();
+    assetRoot.name = 'Megastructure_Chasm_Bridge_Scene';
+    scene.add(assetRoot);
+
+    const bridgeStructureGroup = new THREE.Group();
+    bridgeStructureGroup.name = 'Bridge_And_Towers_Actor';
+    assetRoot.add(bridgeStructureGroup);
+
+    const cliffGroup = new THREE.Group();
+    cliffGroup.name = 'Chasm_Cliff_Abutments';
+    assetRoot.add(cliffGroup);
+
+    const clickableLeaves = [];
+
+    
+    // =========================================================================
+    // PROCEDURAL PBR ALBEDO, BUMP/CRACK HEIGHT & TANGENT-SPACE NORMAL MAP ENGINE
+    // =========================================================================
+    const pbrMapCache = {};
+
+    // Helper: Compute 3x3 Sobel Tangent-Space Normal Map Texture from a Height Canvas
+    function computeSobelNormalTexture(heightCanvas, bevelStrength = 3.4) {
+      const w = heightCanvas.width;
+      const h = heightCanvas.height;
+      const hCtx = heightCanvas.getContext('2d');
+      const src = hCtx.getImageData(0, 0, w, h).data;
+
+      const normCanvas = document.createElement('canvas');
+      normCanvas.width = w;
+      normCanvas.height = h;
+      const nCtx = normCanvas.getContext('2d');
+      const dstImg = nCtx.createImageData(w, h);
+      const dst = dstImg.data;
+
+      const sample = (x, y) => {
+        const cx = (x + w) % w;
+        const cy = (y + h) % h;
+        return src[(cy * w + cx) * 4] / 255.0;
+      };
+
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const tl = sample(x - 1, y - 1), t = sample(x, y - 1), tr = sample(x + 1, y - 1);
+          const l  = sample(x - 1, y),                           r  = sample(x + 1, y);
+          const bl = sample(x - 1, y + 1), b = sample(x, y + 1), br = sample(x + 1, y + 1);
+
+          const dX = (tr + 2 * r + br) - (tl + 2 * l + bl);
+          const dY = (bl + 2 * b + br) - (tl + 2 * t + tr);
+          let vx = -dX * bevelStrength;
+          let vy = -dY * bevelStrength;
+          let vz = 1.0;
+          const inv = 1.0 / (Math.sqrt(vx * vx + vy * vy + vz * vz) || 1.0);
+          const idx = (y * w + x) * 4;
+          dst[idx]     = Math.floor((vx * inv * 0.5 + 0.5) * 255);
+          dst[idx + 1] = Math.floor((vy * inv * 0.5 + 0.5) * 255);
+          dst[idx + 2] = Math.floor((vz * inv * 0.5 + 0.5) * 255);
+          dst[idx + 3] = 255;
+        }
+      }
+      nCtx.putImageData(dstImg, 0, 0);
+      return { normCanvas, normalTex: new THREE.CanvasTexture(normCanvas) };
+    }
+
+    // ULTRA-CRISP BEZIER VECTOR INDUSTRIAL NAMEPLATE GENERATOR ('manthrax/JSlug' pattern, 1024x256 + Normal Bevel)
+    const stampedPlateCache = {};
+    function createStampedPlateTexture(text, subtext, accentHex = '#38bdf8') {
+      const key = `${text}_${subtext}_${accentHex}`;
+      if (stampedPlateCache[key]) return stampedPlateCache[key];
+
+      const W = 1024, H = 256;
+      const c = document.createElement('canvas');
+      c.width = W; c.height = H;
+      const ctx = c.getContext('2d');
+
+      const hc = document.createElement('canvas');
+      hc.width = W; hc.height = H;
+      const hCtx = hc.getContext('2d');
+      hCtx.fillStyle = 'rgb(128,128,128)';
+      hCtx.fillRect(0, 0, W, H);
+
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+      bgGrad.addColorStop(0.0, '#1e293b');
+      bgGrad.addColorStop(0.5, '#0f172a');
+      bgGrad.addColorStop(1.0, '#090d16');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, W, H);
+
+      for (let y = 0; y < H; y += 3) {
+        ctx.fillStyle = y % 6 === 0 ? 'rgba(255,255,255,0.025)' : 'rgba(0,0,0,0.04)';
+        ctx.fillRect(0, y, W, 1.5);
+      }
+
+      const drawBezierFrame = (targetCtx, strokeCol, lineW, inset = 14, ch = 28) => {
+        targetCtx.strokeStyle = strokeCol;
+        targetCtx.lineWidth = lineW;
+        targetCtx.lineJoin = 'round';
+        targetCtx.beginPath();
+        targetCtx.moveTo(inset + ch, inset);
+        targetCtx.lineTo(W - inset - ch, inset);
+        targetCtx.bezierCurveTo(W - inset, inset, W - inset, inset, W - inset, inset + ch);
+        targetCtx.lineTo(W - inset, H - inset - ch);
+        targetCtx.bezierCurveTo(W - inset, H - inset, W - inset, H - inset, W - inset - ch, H - inset);
+        targetCtx.lineTo(inset + ch, H - inset);
+        targetCtx.bezierCurveTo(inset, H - inset, inset, H - inset, inset, H - inset - ch);
+        targetCtx.lineTo(inset, inset + ch);
+        targetCtx.bezierCurveTo(inset, inset, inset, inset, inset + ch, inset);
+        targetCtx.closePath();
+        targetCtx.stroke();
+      };
+
+      drawBezierFrame(hCtx, 'rgb(45,45,45)', 22, 16, 28);
+      drawBezierFrame(hCtx, 'rgb(240,240,240)', 10, 16, 28);
+      drawBezierFrame(ctx, '#475569', 12, 16, 28);
+      drawBezierFrame(ctx, accentHex, 5, 22, 24);
+
+      for (const [rx, ry] of [[52, 52], [W - 52, 52], [52, H - 52], [W - 52, H - 52]]) {
+        hCtx.fillStyle = 'rgb(40,40,40)';
+        hCtx.beginPath(); hCtx.arc(rx, ry, 20, 0, Math.PI * 2); hCtx.fill();
+        hCtx.fillStyle = 'rgb(245,245,245)';
+        hCtx.beginPath(); hCtx.arc(rx, ry, 15, 0, Math.PI * 2); hCtx.fill();
+
+        const rGrad = ctx.createRadialGradient(rx - 4, ry - 4, 2, rx, ry, 16);
+        rGrad.addColorStop(0.0, '#f8fafc');
+        rGrad.addColorStop(0.6, '#94a3b8');
+        rGrad.addColorStop(1.0, '#1e293b');
+        ctx.fillStyle = rGrad;
+        ctx.beginPath(); ctx.arc(rx, ry, 15, 0, Math.PI * 2); ctx.fill();
+      }
+
+      const renderStampedVectorText = (str, yPos, fontSize, fillHex, isMain) => {
+        const fontSpec = `900 ${fontSize}px "JetBrains Mono", "Inter", monospace`;
+        ctx.font = fontSpec;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+
+        hCtx.font = fontSpec;
+        hCtx.textAlign = 'center';
+        hCtx.textBaseline = 'middle';
+        hCtx.lineJoin = 'round';
+        hCtx.lineCap = 'round';
+
+        hCtx.strokeStyle = 'rgb(38,38,38)';
+        hCtx.lineWidth = isMain ? 18 : 12;
+        hCtx.strokeText(str, W / 2, yPos);
+
+        hCtx.strokeStyle = 'rgb(205,205,205)';
+        hCtx.lineWidth = isMain ? 9 : 6;
+        hCtx.strokeText(str, W / 2, yPos);
+
+        hCtx.fillStyle = 'rgb(255,255,255)';
+        hCtx.fillText(str, W / 2, yPos);
+
+        ctx.strokeStyle = '#020617';
+        ctx.lineWidth = isMain ? 12 : 8;
+        ctx.strokeText(str, W / 2 + 2.5, yPos + 2.5);
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+        ctx.lineWidth = isMain ? 4 : 2.5;
+        ctx.strokeText(str, W / 2 - 1.5, yPos - 1.5);
+
+        ctx.fillStyle = fillHex;
+        ctx.fillText(str, W / 2, yPos);
+      };
+
+      renderStampedVectorText(text, 102, 74, '#f8fafc', true);
+      renderStampedVectorText(subtext, 188, 44, accentHex, false);
+
+      const colorTex = new THREE.CanvasTexture(c);
+      colorTex.anisotropy = 8;
+      const { normalTex } = computeSobelNormalTexture(hc, 3.6);
+      normalTex.anisotropy = 8;
+      const bumpTex = new THREE.CanvasTexture(hc);
+      bumpTex.anisotropy = 8;
+
+      colorTex.normalMap = normalTex;
+      colorTex.bumpMap = bumpTex;
+      colorTex.createMaterial = () => new THREE.MeshStandardMaterial({
+        map: colorTex,
+        normalMap: normalTex,
+        normalScale: new THREE.Vector2(1.85, 1.85),
+        bumpMap: bumpTex,
+        bumpScale: 0.035,
+        metalness: 0.86,
+        roughness: 0.24,
+        envMapIntensity: 1.65
+      });
+
+      stampedPlateCache[key] = colorTex;
+      return colorTex;
+    }
+
+    // mrdoob/harmony Proximity-History Stress-Fracture, Cross-Hatch & Weld-Bead Pass in generatePBRMaps
+    function generatePBRMaps(kind, crackPct) {
+      const key = `${kind}_${Math.round(crackPct)}`;
+      if (pbrMapCache[key]) return pbrMapCache[key];
+      const size = 256;
+      const bumpCanvas = document.createElement('canvas');
+      bumpCanvas.width = size; bumpCanvas.height = size;
+      const bCtx = bumpCanvas.getContext('2d');
+      bCtx.fillStyle = 'rgb(175,175,175)';
+      bCtx.fillRect(0, 0, size, size);
+
+      let seed = 911 + kind.charCodeAt(0) * 37;
+      const rand = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+      const crackFactor = Math.max(0.05, crackPct / 100);
+
+      for (let i = 0; i < 2200; i++) {
+        const v = Math.floor(145 + rand() * 68);
+        bCtx.fillStyle = `rgb(${v},${v},${v})`;
+        bCtx.fillRect(rand() * size, rand() * size, 2, 2);
+      }
+
+      // Plate seams + Raised TIG/MIG Stacked-Dime Weld Beads along seams
+      bCtx.strokeStyle = 'rgb(42,42,42)';
+      bCtx.lineWidth = 3;
+      for (let y = 0; y < size; y += 64) {
+        bCtx.beginPath(); bCtx.moveTo(0, y); bCtx.lineTo(size, y); bCtx.stroke();
+        for (let wx = 4; wx < size - 4; wx += 5) {
+          bCtx.fillStyle = 'rgba(238,238,238,0.58)';
+          bCtx.beginPath(); bCtx.arc(wx, y, 2.5, 0, Math.PI * 2); bCtx.fill();
+        }
+      }
+
+      // Cross-Hatched Machining Micro-Scratches (+32 deg / -58 deg)
+      bCtx.lineCap = 'round';
+      const scratchCount = Math.floor(16 + crackFactor * 38);
+      for (let i = 0; i < scratchCount; i++) {
+        const sx = rand() * size, sy = rand() * size;
+        const ang = (i % 2 === 0 ? 0.56 : -1.01) + (rand() - 0.5) * 0.18;
+        const len = 10 + rand() * 24;
+        const ex = sx + Math.cos(ang) * len;
+        const ey = sy + Math.sin(ang) * len;
+        bCtx.strokeStyle = `rgba(22,22,22,${0.20 + crackFactor * 0.25})`;
+        bCtx.lineWidth = 0.8;
+        bCtx.beginPath(); bCtx.moveTo(sx, sy); bCtx.lineTo(ex, ey); bCtx.stroke();
+      }
+
+      // mrdoob/harmony Proximity-History Branching Stress-Fracture Web
+      const harmonyHistory = [];
+      const maxDist = 24;
+      const maxDistSq = maxDist * maxDist;
+      const walkerCount = Math.floor(3 + crackFactor * 10);
+      const stepsPerWalker = Math.floor(14 + crackFactor * 24);
+
+      for (let w = 0; w < walkerCount; w++) {
+        let cx = rand() * size, cy = rand() * size;
+        let dir = rand() * Math.PI * 2;
+        for (let s = 0; s < stepsPerWalker; s++) {
+          dir += (rand() - 0.5) * 1.15;
+          const stepLen = 4.5 + rand() * 7.5;
+          const nx = Math.max(2, Math.min(size - 2, cx + Math.cos(dir) * stepLen));
+          const ny = Math.max(2, Math.min(size - 2, cy + Math.sin(dir) * stepLen));
+          const ctrlX = (cx + nx) * 0.5 + (rand() - 0.5) * 4.5;
+          const ctrlY = (cy + ny) * 0.5 + (rand() - 0.5) * 4.5;
+
+          bCtx.strokeStyle = `rgba(12,12,12,${0.45 + crackFactor * 0.45})`;
+          bCtx.lineWidth = 1.2 + (1 - s / stepsPerWalker) * 0.85;
+          bCtx.beginPath();
+          bCtx.moveTo(cx, cy);
+          bCtx.quadraticCurveTo(ctrlX, ctrlY, nx, ny);
+          bCtx.stroke();
+
+          for (let h = 0; h < harmonyHistory.length; h++) {
+            const hp = harmonyHistory[h];
+            const dx = nx - hp.x, dy = ny - hp.y;
+            const dSq = dx * dx + dy * dy;
+            if (dSq > 5 && dSq < maxDistSq) {
+              const proxAlpha = (1.0 - dSq / maxDistSq) * 0.38 * crackFactor;
+              bCtx.strokeStyle = `rgba(18,18,18,${proxAlpha.toFixed(3)})`;
+              bCtx.lineWidth = 0.65;
+              bCtx.beginPath();
+              bCtx.moveTo(nx, ny);
+              bCtx.lineTo(hp.x, hp.y);
+              bCtx.stroke();
+            }
+          }
+          harmonyHistory.push({ x: nx, y: ny });
+          cx = nx; cy = ny;
+        }
+      }
+
+      const { normCanvas, normalTex } = computeSobelNormalTexture(bumpCanvas, 3.4);
+      const bumpTex = new THREE.CanvasTexture(bumpCanvas);
+      bumpTex.wrapS = THREE.RepeatWrapping; bumpTex.wrapT = THREE.RepeatWrapping; bumpTex.repeat.set(2, 2);
+      normalTex.wrapS = THREE.RepeatWrapping; normalTex.wrapT = THREE.RepeatWrapping; normalTex.repeat.set(2, 2);
+      // v6.0 Specular Micro-Roughness & Cavity Occlusion Map (shiny raised welds/rivets, matte cracks)
+      const roughCanvas = document.createElement('canvas');
+      roughCanvas.width = size; roughCanvas.height = size;
+      const rCtx = roughCanvas.getContext('2d');
+      const bPixels = bumpCanvas.getContext('2d').getImageData(0, 0, size, size).data;
+      const rImg = rCtx.createImageData(size, size);
+      const rData = rImg.data;
+      for (let i = 0; i < size * size; i++) {
+        const hVal = bPixels[i * 4] / 255.0;
+        // Invert height: raised weld beads & rivets (h>0.72) -> smooth shiny (low roughness ~55), cracks (h<0.45) -> matte oxidized (~238)
+        const rough = Math.max(38, Math.min(246, Math.round((1.08 - hVal * 0.86) * 235)));
+        rData[i * 4] = rough;
+        rData[i * 4 + 1] = rough;
+        rData[i * 4 + 2] = rough;
+        rData[i * 4 + 3] = 255;
+      }
+      rCtx.putImageData(rImg, 0, 0);
+      const roughnessTex = new THREE.CanvasTexture(roughCanvas);
+      roughnessTex.wrapS = THREE.RepeatWrapping; roughnessTex.wrapT = THREE.RepeatWrapping; roughnessTex.repeat.set(2, 2);
+      const entry = { bumpCanvas, normCanvas, roughCanvas, bumpTex, normalTex, roughnessTex };
+      pbrMapCache[key] = entry;
+      return entry;
+    }
+
+    function exportPBRTexturePack(prefix, kind, crackPct) {
+      const maps = generatePBRMaps(kind, crackPct);
+      maps.bumpCanvas.toBlob((blob) => {
+        if (blob) downloadBlob(blob, `${prefix}_${kind}_bump_cracks_height.png`);
+      });
+      setTimeout(() => {
+        maps.normCanvas.toBlob((blob) => {
+          if (blob) downloadBlob(blob, `${prefix}_${kind}_normal_map_rgb.png`);
+        });
+      }, 220);
+      setTimeout(() => {
+        if (maps.roughCanvas) maps.roughCanvas.toBlob((blob) => {
+          if (blob) downloadBlob(blob, `${prefix}_${kind}_roughness_cavity.png`);
+        });
+      }, 440);
+    }
+
+    function getMaterials() {
+      const wf = state.wireframe;
+      const matMap = {
+        'granite-iron':   { stone: 0x475569, road: 0x27303f, metal: 0x94a3b8 },
+        'dwarven-brass':  { stone: 0x334155, road: 0x1e2532, metal: 0xd4af37 },
+        'obsidian-blood': { stone: 0x262936, road: 0x161822, metal: 0xb91c1c }
+      };
+      const pal = matMap[state.bridgeMaterial] || matMap['granite-iron'];
+      const flameHex = FLAME_MAP[state.flameColor] || 0xf59e0b;
+
+      const stonePBR = generatePBRMaps('stone', state.crackDensity);
+      const timberPBR = generatePBRMaps('timber', state.crackDensity);
+      const armorPBR = generatePBRMaps('armor', state.crackDensity);
+      const nScale = new THREE.Vector2(state.bumpScale * 2.5, state.bumpScale * 2.5);
+      return {
+        stone: new THREE.MeshStandardMaterial({ color: pal.stone, roughness: 0.58, metalness: 0.28, bumpMap: stonePBR.bumpTex, bumpScale: state.bumpScale, normalMap: stonePBR.normalTex, roughnessMap: stonePBR.roughnessTex, normalScale: nScale, envMapIntensity: 1.35, wireframe: wf }),
+        road: new THREE.MeshStandardMaterial({ color: pal.road, roughness: 0.62, metalness: 0.22, bumpMap: stonePBR.bumpTex, bumpScale: state.bumpScale * 0.8, normalMap: stonePBR.normalTex, roughnessMap: stonePBR.roughnessTex, normalScale: nScale, envMapIntensity: 1.25, wireframe: wf }),
+        metal: new THREE.MeshStandardMaterial({ color: pal.metal, roughness: 0.20, metalness: 0.94, bumpMap: armorPBR.bumpTex, bumpScale: state.bumpScale * 0.6, normalMap: armorPBR.normalTex, roughnessMap: armorPBR.roughnessTex, normalScale: nScale, envMapIntensity: 1.85, wireframe: wf }),
+        timber: new THREE.MeshStandardMaterial({ color: 0x6b4423, roughness: 0.54, metalness: 0.16, bumpMap: timberPBR.bumpTex, bumpScale: state.bumpScale, normalMap: timberPBR.normalTex, roughnessMap: timberPBR.roughnessTex, normalScale: nScale, envMapIntensity: 1.30, wireframe: wf }),
+        flame: new THREE.MeshStandardMaterial({
+          color: flameHex,
+          emissive: flameHex,
+          emissiveIntensity: 2.8,
+          roughness: 0.15,
+          wireframe: wf
+        }),
+        hardLightDeck: new THREE.MeshStandardMaterial({
+          color: flameHex,
+          emissive: flameHex,
+          emissiveIntensity: 2.2,
+          transparent: true,
+          opacity: 0.55,
+          roughness: 0.1,
+          side: THREE.DoubleSide,
+          wireframe: wf
+        }),
+        cliffRock: new THREE.MeshStandardMaterial({ color: 0x1e222d, roughness: 0.88, metalness: 0.10, wireframe: wf })
+      };
+    }
+
+    function clearGroup(group) {
+      while (group.children.length > 0) {
+        const c = group.children[0];
+        group.remove(c);
+        if (c.geometry) c.geometry.dispose();
+      }
+    }
+
+    // Build 3D Interlocking Chain Links or Twin Braided Cables between two exact 3D points!
+    function buildPointToPointChain(pStart, pEnd, mats) {
+      const group = new THREE.Group();
+      const dist = pStart.distanceTo(pEnd);
+      if (dist < 0.1) return group;
+
+      const dir = pEnd.clone().sub(pStart).normalize();
+      const quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+
+      if (state.chainRigStyle === 'heavy-links') {
+        const linkPitch = 0.42;
+        const linkCount = Math.max(2, Math.floor(dist / linkPitch));
+        for (let i = 0; i <= linkCount; i++) {
+          const t = i / linkCount;
+          const pt = pStart.clone().lerp(pEnd, t);
+          const link = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.048, 8, 14), mats.metal);
+          link.scale.set(0.72, 1.35, 1.0);
+          link.position.copy(pt);
+          link.quaternion.copy(quat);
+          if (i % 2 === 1) link.rotateY(Math.PI / 2);
+          group.add(link);
+        }
+      } else {
+        for (const offset of [-0.07, 0.07]) {
+          const cable = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, dist, 10), mats.metal);
+          cable.position.copy(pStart).lerp(pEnd, 0.5);
+          cable.position.z += offset;
+          cable.quaternion.copy(quat);
+          group.add(cable);
+        }
+      }
+
+      // Clevis Shackles at both anchor points
+      for (const anchorPt of [pStart, pEnd]) {
+        const shackle = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 10), mats.metal);
+        shackle.position.copy(anchorPt);
+        group.add(shackle);
+      }
+
+      return group;
+    }
+
+    function buildUnderDeckArchSupport(centerX, approachLen, W, mats) {
+      const suppGroup = new THREE.Group();
+      const deckBottomY = -0.85;
+      const springY = -7.2;
+      const archRise = deckBottomY - springY - 0.35;
+      const halfSpan = approachLen * 0.46;
+
+      if (state.archSupport === 'stone-arches') {
+        const segments = 14;
+        for (const zRib of [-W * 0.38, 0, W * 0.38]) {
+          for (let i = 0; i < segments; i++) {
+            const t0 = -1 + (i / segments) * 2;
+            const t1 = -1 + ((i + 1) / segments) * 2;
+            const tm = (t0 + t1) * 0.5;
+            const x0 = centerX + t0 * halfSpan;
+            const x1 = centerX + t1 * halfSpan;
+            const y0 = deckBottomY - 0.35 - (t0 * t0) * archRise;
+            const y1 = deckBottomY - 0.35 - (t1 * t1) * archRise;
+
+            const segLen = Math.hypot(x1 - x0, y1 - y0) * 1.06;
+            const angle = Math.atan2(y1 - y0, x1 - x0);
+
+            const voussoir = new THREE.Mesh(
+              new THREE.BoxGeometry(segLen, 0.52, 0.68),
+              i % 2 === 0 ? mats.stone : mats.metal
+            );
+            voussoir.position.set((x0 + x1) * 0.5, (y0 + y1) * 0.5, zRib);
+            voussoir.rotation.z = angle;
+            suppGroup.add(voussoir);
+
+            if (i % 2 === 0) {
+              const archTopY = (y0 + y1) * 0.5 + 0.2;
+              const colH = deckBottomY - archTopY;
+              if (colH > 0.25) {
+                const spandrelCol = new THREE.Mesh(
+                  new THREE.BoxGeometry(0.42, colH, 0.52),
+                  mats.stone
+                );
+                spandrelCol.position.set(centerX + tm * halfSpan, archTopY + colH / 2, zRib);
+                suppGroup.add(spandrelCol);
+              }
+            }
+          }
+        }
+      } else if (state.archSupport === 'iron-truss') {
+        const trussH = 2.6;
+        for (const zSide of [-W * 0.42, W * 0.42]) {
+          const bottomChord = new THREE.Mesh(new THREE.BoxGeometry(approachLen * 0.94, 0.28, 0.32), mats.metal);
+          bottomChord.position.set(centerX, deckBottomY - trussH, zSide);
+          suppGroup.add(bottomChord);
+
+          const bays = 6;
+          const bayW = (approachLen * 0.92) / bays;
+          for (let b = 0; b <= bays; b++) {
+            const bx = centerX - (approachLen * 0.46) + b * bayW;
+            const post = new THREE.Mesh(new THREE.BoxGeometry(0.24, trussH, 0.28), mats.metal);
+            post.position.set(bx, deckBottomY - trussH / 2, zSide);
+            suppGroup.add(post);
+          }
+        }
+      } else {
+        for (const xOff of [-approachLen * 0.25, approachLen * 0.25]) {
+          const pier = new THREE.Mesh(new THREE.BoxGeometry(1.85, 7.6, W * 0.92), mats.stone);
+          pier.position.set(centerX + xOff, deckBottomY - 3.8, 0);
+          suppGroup.add(pier);
+        }
+      }
+
+      return suppGroup;
+    }
+
+    function buildBridgeScene() {
+      clearGroup(bridgeStructureGroup);
+      clearGroup(cliffGroup);
+      clickableLeaves.length = 0;
+
+      const mats = getMaterials();
+      const span = state.spanLength;
+      const W = state.roadWidth;
+      const gap = Math.min(state.drawGap, span * 0.46);
+      const approachLen = (span - gap) / 2;
+      const pH = state.parapetHeight;
+      const tH = state.towerHeight;
+
+      // 1. Fixed Left & Right Approach Spans + Sidewalks + Crenellated Parapets
+      for (const side of [-1, 1]) {
+        const centerX = side * (gap / 2 + approachLen / 2);
+        const deck = new THREE.Mesh(new THREE.BoxGeometry(approachLen, 0.85, W), mats.road);
+        deck.position.set(centerX, -0.425, 0);
+        deck.receiveShadow = true;
+        bridgeStructureGroup.add(deck);
+
+        for (const zSign of [-1, 1]) {
+          const sidewalk = new THREE.Mesh(new THREE.BoxGeometry(approachLen, 0.14, 0.85), mats.stone);
+          sidewalk.position.set(centerX, 0.07, zSign * (W / 2 - 0.425));
+          const wall = new THREE.Mesh(new THREE.BoxGeometry(approachLen, pH, 0.42), mats.stone);
+          wall.position.set(centerX, pH / 2, zSign * (W / 2 - 0.21));
+          bridgeStructureGroup.add(sidewalk, wall);
+
+          const merlonCount = Math.max(3, Math.floor(approachLen / 2.2));
+          for (let m = 0; m < merlonCount; m++) {
+            const mx = centerX - approachLen * 0.42 + (m / Math.max(1, merlonCount - 1)) * (approachLen * 0.84);
+            const merlon = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.42, 0.48), mats.stone);
+            merlon.position.set(mx, pH + 0.21, zSign * (W / 2 - 0.21));
+            bridgeStructureGroup.add(merlon);
+          }
+        }
+
+        bridgeStructureGroup.add(buildUnderDeckArchSupport(centerX, approachLen, W, mats));
+      }
+
+      // 2. Twin Fortified Toll Gatehouses + Selected Center Span Mechanism
+      const leafLen = gap / 2;
+      const rad = THREE.MathUtils.degToRad(state.drawRaise);
+      const actuationRatio = state.drawRaise / 75;
+
+      for (const side of [-1, 1]) {
+        const towerX = side * (gap / 2 + 1.35);
+
+        const subPier = new THREE.Mesh(new THREE.BoxGeometry(3.4, 8.2, W + 3.6), mats.stone);
+        subPier.position.set(towerX, -4.5, 0);
+        bridgeStructureGroup.add(subPier);
+
+        for (const zSign of [-1, 1]) {
+          const pylon = new THREE.Mesh(new THREE.BoxGeometry(2.8, tH, 2.4), mats.stone);
+          pylon.position.set(towerX, tH / 2 - 0.4, zSign * (W / 2 + 0.75));
+          pylon.castShadow = true;
+          bridgeStructureGroup.add(pylon);
+
+          if (state.towerCrown === 'gothic-spires') {
+            const spire = new THREE.Mesh(new THREE.ConeGeometry(1.7, 4.0, 4), mats.metal);
+            spire.rotation.y = Math.PI / 4;
+            spire.position.set(towerX, tH + 1.6, zSign * (W / 2 + 0.75));
+            bridgeStructureGroup.add(spire);
+          } else if (state.towerCrown === 'brazier-beacons') {
+            const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.5, 0.7, 12), mats.metal);
+            bowl.position.set(towerX, tH - 0.1, zSign * (W / 2 + 0.75));
+            const fire = new THREE.Mesh(new THREE.OctahedronGeometry(0.8, 0), mats.flame);
+            fire.position.set(towerX, tH + 0.65, zSign * (W / 2 + 0.75));
+            bridgeStructureGroup.add(bowl, fire);
+          }
+        }
+
+        const lintelH = tH * 0.30;
+        const lintel = new THREE.Mesh(new THREE.BoxGeometry(2.7, lintelH, W + 3.8), mats.stone);
+        lintel.position.set(towerX, tH - lintelH / 2 - 0.4, 0);
+        bridgeStructureGroup.add(lintel);
+
+        // Spiked Iron Portcullis Grate inside Gatehouse Archway
+        const clearArchH = tH - lintelH - 0.4;
+        const portOpenRatio = state.portcullisOpen / 100;
+        const portH = clearArchH * 0.85;
+        const portBottomY = portOpenRatio * (clearArchH * 0.52);
+
+        const portGroup = new THREE.Group();
+        portGroup.position.set(towerX, portBottomY + portH / 2, 0);
+        const topCross = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.24, W * 0.88), mats.metal);
+        topCross.position.y = portH / 2 - 0.12;
+        const midCross = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.20, W * 0.88), mats.metal);
+        portGroup.add(topCross, midCross);
+
+        const barCount = Math.max(5, Math.floor(W / 0.55));
+        for (let b = 0; b <= barCount; b++) {
+          const bz = -W * 0.42 + (b / barCount) * (W * 0.84);
+          const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, portH, 8), mats.metal);
+          bar.position.z = bz;
+          portGroup.add(bar);
+        }
+        bridgeStructureGroup.add(portGroup);
+
+        // -------------------------------------------------------------------
+        // 3. CENTER SPAN MECHANISM: BASCULE vs SLIDING vs HOLOGRAPHIC HARD-LIGHT
+        // -------------------------------------------------------------------
+        if (state.spanMechanism === 'bascule-drawbridge') {
+          const hingeX = side * (gap / 2);
+          const hingeY = -0.22;
+
+          const pivotGroup = new THREE.Group();
+          pivotGroup.position.set(hingeX, hingeY, 0);
+          pivotGroup.rotation.z = -side * rad; // Positive rad lifts inner tip UP!
+
+          // Sub-deck Trunnion Axle & Heel Sector Gear neatly inside Bascule Pier Slot (below roadway!)
+          if (state.trunnionGears) {
+            const trunnionAxle = new THREE.Mesh(
+              new THREE.CylinderGeometry(0.22, 0.22, W + 0.8, 16),
+              mats.metal
+            );
+            trunnionAxle.rotation.x = Math.PI / 2;
+            pivotGroup.add(trunnionAxle);
+
+            for (const zSign of [-1, 1]) {
+              const gz = zSign * (W * 0.44);
+              // Heavy Pillow-Block Trunnion Journal Bearing on Pier Shelf
+              const pillowBlock = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.54, 0.48), mats.metal);
+              pillowBlock.position.set(side * (gap / 2), -0.32, gz);
+              bridgeStructureGroup.add(pillowBlock);
+
+              const gearWheel = new THREE.Mesh(
+                new THREE.CylinderGeometry(1.15, 1.15, 0.26, 24),
+                mats.metal
+              );
+              gearWheel.rotation.x = Math.PI / 2;
+              gearWheel.position.set(side * 0.45, -0.75, gz);
+              pivotGroup.add(gearWheel);
+
+              // Radial Quadrant Rack Teeth around Heel Sector Gear
+              for (let t = 0; t < 12; t++) {
+                const tang = (t / 12) * Math.PI * 2;
+                const tooth = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.22, 0.28), mats.metal);
+                tooth.position.set(
+                  side * 0.45 + Math.cos(tang) * 1.20,
+                  -0.75 + Math.sin(tang) * 1.20,
+                  gz
+                );
+                tooth.rotation.z = tang;
+                pivotGroup.add(tooth);
+              }
+
+              const pinion = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.42, 0.42, 0.34, 16),
+                mats.flame
+              );
+              pinion.rotation.x = Math.PI / 2;
+              pinion.position.set(side * (gap / 2 + 1.05), -1.35, gz);
+              bridgeStructureGroup.add(pinion);
+            }
+          }
+
+          const leafDeck = new THREE.Mesh(new THREE.BoxGeometry(leafLen, 0.44, W * 0.92), mats.timber);
+          leafDeck.position.set(-side * (leafLen / 2), 0, 0);
+          leafDeck.castShadow = true;
+          leafDeck.userData.isDrawbridgeLeaf = true;
+          clickableLeaves.push(leafDeck);
+
+          const sideBeam1 = new THREE.Mesh(new THREE.BoxGeometry(leafLen, 0.68, 0.28), mats.metal);
+          sideBeam1.position.set(-side * (leafLen / 2), 0.12, W * 0.44);
+          const sideBeam2 = sideBeam1.clone();
+          sideBeam2.position.z = -W * 0.44;
+
+          // Under-Deck Transverse Steel Floorbeams & Center Span Shear-Lock Jaw
+          for (let fb = 1; fb <= 3; fb++) {
+            const fbx = -side * (leafLen * (fb / 4));
+            const floorBeam = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.36, W * 0.90), mats.metal);
+            floorBeam.position.set(fbx, -0.28, 0);
+            pivotGroup.add(floorBeam);
+          }
+          const shearLock = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.24, 0.65), mats.flame);
+          shearLock.position.set(-side * (leafLen - 0.12), -0.05, 0);
+          pivotGroup.add(leafDeck, sideBeam1, sideBeam2, shearLock);
+          bridgeStructureGroup.add(pivotGroup);
+
+          // CONNECTED OVERHEAD COUNTERWEIGHT BALANCE BEAMS & 3D LINKED HOIST CHAINS
+          if (state.counterweights) {
+            const cwFulcrumX = towerX;
+            const cwFulcrumY = tH - 1.35;
+            const frontArmLen = leafLen * 0.92;
+            const rearArmLen = leafLen * 0.58;
+
+            for (const zSign of [-1, 1]) {
+              const zPos = zSign * (W * 0.44);
+
+              // Trunnion Fulcrum Pedestal Bracket anchored to Gatehouse Wall
+              const fulcrumPost = new THREE.Mesh(new THREE.BoxGeometry(0.65, 1.1, 0.42), mats.metal);
+              fulcrumPost.position.set(cwFulcrumX, cwFulcrumY - 0.3, zPos);
+              const fulcrumPin = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.56, 14), mats.flame);
+              fulcrumPin.rotation.x = Math.PI / 2;
+              fulcrumPin.position.set(cwFulcrumX, cwFulcrumY, zPos);
+              bridgeStructureGroup.add(fulcrumPost, fulcrumPin);
+
+              // Exact 3D Coordinates of Front Tip (over chasm) and Rear Counterweight End (behind tower)
+              const frontTip = new THREE.Vector3(
+                cwFulcrumX - side * Math.cos(rad) * frontArmLen,
+                cwFulcrumY + Math.sin(rad) * frontArmLen,
+                zPos
+              );
+              const rearEnd = new THREE.Vector3(
+                cwFulcrumX + side * Math.cos(rad) * rearArmLen,
+                cwFulcrumY - Math.sin(rad) * rearArmLen,
+                zPos
+              );
+
+              // Continuous Steel Balance Beam from rearEnd through Fulcrum to frontTip
+              const beamLen = frontTip.distanceTo(rearEnd);
+              const beamDir = frontTip.clone().sub(rearEnd).normalize();
+              const beamMesh = new THREE.Mesh(new THREE.BoxGeometry(0.36, beamLen, 0.34), mats.metal);
+              beamMesh.position.copy(rearEnd).lerp(frontTip, 0.5);
+              beamMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), beamDir);
+              bridgeStructureGroup.add(beamMesh);
+
+              // Heavy Cylindrical Counterweight Drum bolted directly to rearEnd of Balance Beam!
+              const cwDrum = new THREE.Mesh(new THREE.CylinderGeometry(0.78, 0.78, 0.92, 18), mats.stone);
+              cwDrum.rotation.x = Math.PI / 2;
+              cwDrum.position.copy(rearEnd);
+              const cwCap = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 1.02, 14), mats.metal);
+              cwCap.rotation.x = Math.PI / 2;
+              cwCap.position.copy(rearEnd);
+              bridgeStructureGroup.add(cwDrum, cwCap);
+
+              // Exact 3D Coordinates of Drawbridge Leaf Shackle Tip
+              const leafAttachDist = leafLen * 0.88;
+              const leafTip = new THREE.Vector3(
+                hingeX - side * Math.cos(rad) * leafAttachDist,
+                hingeY + Math.sin(rad) * leafAttachDist + 0.25,
+                zPos
+              );
+
+              // Build Connected 3D Linked Iron Chain (or Twin Cables) from Balance Beam Front Tip to Drawbridge Tip!
+              bridgeStructureGroup.add(buildPointToPointChain(frontTip, leafTip, mats));
+            }
+          }
+        } else if (state.spanMechanism === 'sliding-retract') {
+          // HORIZONTAL RETRACTABLE SLIDING BRIDGE SPAN
+          const retractDist = actuationRatio * (leafLen * 0.92);
+          const slideX = side * (leafLen / 2 + retractDist);
+
+          const slideLeaf = new THREE.Mesh(new THREE.BoxGeometry(leafLen, 0.52, W * 0.90), mats.metal);
+          slideLeaf.position.set(slideX, -0.24, 0);
+          slideLeaf.userData.isDrawbridgeLeaf = true;
+          clickableLeaves.push(slideLeaf);
+          bridgeStructureGroup.add(slideLeaf);
+
+          for (const zSign of [-1, 1]) {
+            const guideRail = new THREE.Mesh(new THREE.BoxGeometry(leafLen * 1.9, 0.22, 0.28), mats.flame);
+            guideRail.position.set(side * (gap * 0.48), -0.58, zSign * (W * 0.44));
+            bridgeStructureGroup.add(guideRail);
+          }
+        } else if (state.spanMechanism === 'holographic-light') {
+          // HOLOGRAPHIC HARD-LIGHT RUNE BRIDGE (Game-Engine Ready Emissive/Alpha Mesh)
+          const activeFrac = 1.0 - actuationRatio;
+          // Emitter Pylons on Tower Ledges
+          for (const zSign of [-1, 1]) {
+            const emitter = new THREE.Mesh(new THREE.OctahedronGeometry(0.45, 0), mats.flame);
+            emitter.position.set(side * (gap / 2 + 0.15), 0.65, zSign * (W * 0.44));
+            bridgeStructureGroup.add(emitter);
+          }
+
+          if (activeFrac > 0.04) {
+            const curHoloLen = leafLen * activeFrac;
+            const holoCenter = side * (gap / 2 - curHoloLen / 2);
+            const holoDeck = new THREE.Mesh(new THREE.BoxGeometry(curHoloLen, 0.16, W * 0.88), mats.hardLightDeck);
+            holoDeck.position.set(holoCenter, -0.08, 0);
+            holoDeck.userData.isDrawbridgeLeaf = true;
+            clickableLeaves.push(holoDeck);
+            bridgeStructureGroup.add(holoDeck);
+
+            // Glowing Hard-Light Forcefield Handrails & Energy Ribs
+            for (const zSign of [-1, 1]) {
+              const holoRail = new THREE.Mesh(new THREE.BoxGeometry(curHoloLen, 0.95, 0.06), mats.hardLightDeck);
+              holoRail.position.set(holoCenter, 0.48, zSign * (W * 0.43));
+              bridgeStructureGroup.add(holoRail);
+            }
+          }
+        }
+
+        // Catenary Suspension Chains along Approach Decks
+        if (state.suspensionChains) {
+          for (const zSign of [-1, 1]) {
+            const pStart = new THREE.Vector3(towerX + side * 1.1, tH - 1.2, zSign * (W / 2));
+            const pEnd = new THREE.Vector3(side * (span / 2 - 1.2), pH + 0.3, zSign * (W / 2));
+            bridgeStructureGroup.add(buildPointToPointChain(pStart, pEnd, mats));
+          }
+        }
+      }
+
+      // 4. Roadside Runic Braziers
+      const bPairs = state.brazierPairs;
+      for (let b = 0; b < bPairs; b++) {
+        const bx = ((b - (bPairs - 1) / 2) / Math.max(1, bPairs - 1)) * (span * 0.82);
+        if (Math.abs(bx) < gap / 2 + 2.4) continue;
+        for (const zSign of [-1, 1]) {
+          const post = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 2.2, 8), mats.metal);
+          post.position.set(bx, pH + 1.1, zSign * (W / 2 - 0.2));
+          const flame = new THREE.Mesh(new THREE.OctahedronGeometry(0.32, 0), mats.flame);
+          flame.position.set(bx, pH + 2.35, zSign * (W / 2 - 0.2));
+          bridgeStructureGroup.add(post, flame);
+        }
+      }
+
+      // 5. Chasm Cliff Rock Abutments
+      if (state.showCliffs) {
+        for (const side of [-1, 1]) {
+          const cliff = new THREE.Mesh(new THREE.BoxGeometry(8.0, 14.0, W * 2.6), mats.cliffRock);
+          cliff.position.set(side * (span / 2 + 4.0), -7.0, 0);
+          cliffGroup.add(cliff);
+        }
+      }
+
+
+      // v5.5 Bezeled Stamped Bezier Vector Industrial Nameplate on Gatehouse Pylon
+      const plaqueTex = createStampedPlateTexture(
+        state.spanMechanism === 'holographic-light' ? 'HOLO_BRIDGE' : (state.spanMechanism === 'sliding-retract' ? 'SLIDING_SPAN' : 'BASCULE_SPAN'),
+        `${Math.round(span)}M SPAN • ${Math.round(state.drawRaise)} DEG`,
+        '#f59e0b'
+      );
+      const plaqueGroup = new THREE.Group();
+      plaqueGroup.name = 'Stamped_Bezier_Nameplate';
+      const plaqueBezel = new THREE.Mesh(new THREE.BoxGeometry(1.18, 0.32, 0.08), mats.metal);
+      const plaqueMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.10, 0.28), plaqueTex.createMaterial());
+      plaqueMesh.position.z = 0.045;
+      plaqueGroup.add(plaqueBezel, plaqueMesh);
+      plaqueGroup.position.set(-(gap / 2 + 1.35), 1.85, W / 2 + 1.98);
+      bridgeStructureGroup.add(plaqueGroup);
+      updateTelemetry();
+    }
+
+    function updateTelemetry() {
+      const load = Math.round(state.spanLength * state.roadWidth * 3.6);
+      document.getElementById('stat-span').textContent = `${state.spanLength.toFixed(1)} m`;
+      document.getElementById('stat-angle').textContent = `${Math.round(state.drawRaise)}°`;
+      document.getElementById('stat-load').textContent = `${load} t`;
+      document.getElementById('sim-deg-readout').textContent = `${Math.round(state.drawRaise)}°`;
+
+      let tris = 0;
+      assetRoot.traverse((obj) => {
+        if (obj.isMesh && obj.geometry) {
+          const g = obj.geometry;
+          tris += g.index ? g.index.count / 3 : g.attributes.position.count / 3;
+        }
+      });
+      document.getElementById('stat-triangles').textContent = `${Math.round(tris).toLocaleString()} tris`;
+
+      document.getElementById('label-span').textContent = `Span: ${state.spanLength.toFixed(1)}m`;
+      document.getElementById('label-width').textContent = `Width: ${state.roadWidth.toFixed(2)}m`;
+      document.getElementById('label-tower').textContent = `Tower: ${state.towerHeight.toFixed(1)}m`;
+    }
+
+    function updateLabelsOverlay() {
+      const container = document.getElementById('labels-container');
+      if (!state.showDimensions) {
+        container.style.opacity = '0';
+        return;
+      }
+      container.style.opacity = '1';
+
+      const pts = [
+        { id: 'label-span', pos: new THREE.Vector3(0, -1.8, state.roadWidth / 2 + 1.5) },
+        { id: 'label-width', pos: new THREE.Vector3(state.spanLength / 2, 0.8, 0) },
+        { id: 'label-tower', pos: new THREE.Vector3(state.drawGap / 2 + 1.25, state.towerHeight + 1.8, 0) }
+      ];
+      const rect = mount.getBoundingClientRect();
+      for (const item of pts) {
+        const v = item.pos.clone().project(camera);
+        const el = document.getElementById(item.id);
+        if (v.z > 1) {
+          el.style.opacity = '0';
+        } else {
+          el.style.opacity = '1';
+          el.style.left = `${(v.x * 0.5 + 0.5) * rect.width}px`;
+          el.style.top = `${(-(v.y * 0.5) + 0.5) * rect.height}px`;
+        }
+      }
+    }
+
+    function syncUI() {
+      const sliders = [
+        ['spanLength', ' m', 1],
+        ['roadWidth', ' m', 2],
+        ['parapetHeight', ' m', 2],
+        ['drawGap', ' m', 1],
+        ['drawRaise', '°', 0],
+        ['towerHeight', ' m', 1],
+        ['portcullisOpen', '%', 0],
+        ['brazierPairs', ' pairs', 0],
+        ['crackDensity', '%', 0],
+        ['bumpScale', '', 2]
+      ];
+      for (const [k, unit, dec] of sliders) {
+        const input = document.getElementById(`param-${k}`);
+        const label = document.getElementById(`val-${k}`);
+        if (input) input.value = state[k];
+        if (label) label.textContent = Number(state[k]).toFixed(dec) + unit;
+      }
+      ['archSupport', 'spanMechanism', 'chainRigStyle', 'towerCrown', 'bridgeMaterial', 'flameColor', 'exportScope'].forEach((k) => {
+        const el = document.getElementById(`param-${k}`);
+        if (el) el.value = state[k];
+      });
+      ['counterweights', 'trunnionGears', 'suspensionChains', 'showCliffs', 'showDimensions', 'wireframe'].forEach((k) => {
+        const el = document.getElementById(`param-${k}`);
+        if (el) el.checked = Boolean(state[k]);
+      });
+    }
+
+    ['spanLength', 'roadWidth', 'parapetHeight', 'drawGap', 'drawRaise', 'towerHeight', 'portcullisOpen', 'brazierPairs', 'crackDensity', 'bumpScale'].forEach((k) => {
+      document.getElementById(`param-${k}`).addEventListener('input', (e) => {
+        state[k] = parseFloat(e.target.value);
+        if (k === 'drawRaise') state.targetDrawRaise = state.drawRaise;
+        syncUI();
+        buildBridgeScene();
+      });
+    });
+
+    ['archSupport', 'spanMechanism', 'chainRigStyle', 'towerCrown', 'bridgeMaterial', 'flameColor', 'exportScope'].forEach((k) => {
+      document.getElementById(`param-${k}`).addEventListener('change', (e) => {
+        state[k] = e.target.value;
+        syncUI();
+        buildBridgeScene();
+      });
+    });
+
+    ['counterweights', 'trunnionGears', 'suspensionChains', 'showCliffs', 'showDimensions', 'wireframe'].forEach((k) => {
+      document.getElementById(`param-${k}`).addEventListener('change', (e) => {
+        state[k] = e.target.checked;
+        buildBridgeScene();
+      });
+    });
+
+    document.querySelectorAll('.tab-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach((b) => {
+          b.className = 'tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition';
+        });
+        btn.className = 'tab-btn py-2 rounded bg-slate-800 text-amber-400 shadow-sm transition';
+        document.querySelectorAll('.tab-content').forEach((p) => {
+          p.classList.toggle('hidden', p.id !== btn.dataset.tab);
+        });
+      });
+    });
+
+    document.querySelectorAll('.preset-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const p = PRESETS[btn.dataset.preset];
+        if (!p) return;
+        Object.assign(state, p);
+        syncUI();
+        buildBridgeScene();
+        document.querySelectorAll('.preset-btn').forEach((b) => {
+          b.className = 'preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition';
+        });
+        btn.className = 'preset-btn px-2.5 py-1 rounded text-xs font-medium bg-amber-500/20 text-amber-300 border border-amber-500/40 transition';
+        showToast(`Loaded ${btn.textContent} bridge preset`);
+      });
+    });
+
+    document.getElementById('btnRandomize').addEventListener('click', () => {
+      const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+      state.archSupport = pick(['stone-arches', 'iron-truss', 'deep-piers']);
+      state.spanMechanism = pick(['bascule-drawbridge', 'sliding-retract', 'holographic-light']);
+      state.chainRigStyle = pick(['heavy-links', 'twin-cables']);
+      state.towerCrown = pick(['battlements', 'gothic-spires', 'brazier-beacons']);
+      state.bridgeMaterial = pick(['granite-iron', 'dwarven-brass', 'obsidian-blood']);
+      state.flameColor = pick(['amber', 'crimson', 'arcane-purple', 'emerald']);
+      state.targetDrawRaise = Math.floor(Math.random() * 55);
+      syncUI();
+      buildBridgeScene();
+      showToast('Randomized Chasm Megastructure Bridge');
+    });
+
+    let camTarget = null;
+    let orbitTarget = null;
+    document.querySelectorAll('.cam-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const mode = btn.dataset.cam;
+        if (mode === 'iso') {
+          camTarget = new THREE.Vector3(16, 12, 24);
+          orbitTarget = new THREE.Vector3(0, 2.5, 0);
+        } else if (mode === 'bascule') {
+          camTarget = new THREE.Vector3(0, 6.5, 14);
+          orbitTarget = new THREE.Vector3(0, 2.0, 0);
+        } else if (mode === 'roadway') {
+          camTarget = new THREE.Vector3(-16, 1.85, 0);
+          orbitTarget = new THREE.Vector3(4, 1.85, 0);
+        } else if (mode === 'side') {
+          camTarget = new THREE.Vector3(0, -1.5, 32);
+          orbitTarget = new THREE.Vector3(0, -2.5, 0);
+        }
+        document.querySelectorAll('.cam-btn').forEach((b) => {
+          b.className = b === btn
+            ? 'cam-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-500/20 text-amber-300 border border-amber-500/30 transition'
+            : 'cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition';
+        });
+      });
+    });
+    controls.addEventListener('start', () => { camTarget = null; orbitTarget = null; });
+
+    document.getElementById('btnLowerBridge').addEventListener('click', () => {
+      state.targetDrawRaise = 0;
+      state.portcullisOpen = 100;
+      document.getElementById('sim-status-text').textContent = 'CLOSING CHASM SPAN...';
+      showToast('Deploying Bridge Span — Roadway Open for Crossing');
+    });
+
+    document.getElementById('btnRaiseBridge').addEventListener('click', () => {
+      state.targetDrawRaise = 62;
+      document.getElementById('sim-status-text').textContent = 'OPENING CHASM GAP...';
+      showToast('Winching / Retracting Center Span');
+    });
+
+    document.getElementById('btnLockdownGates').addEventListener('click', () => {
+      state.targetDrawRaise = 68;
+      state.portcullisOpen = 0;
+      syncUI();
+      buildBridgeScene();
+      document.getElementById('sim-status-text').textContent = 'SIEGE LOCKDOWN ACTIVE';
+      showToast('Dropped Portcullis Gates & Opened Chasm Span!');
+    });
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    let downPos = { x: 0, y: 0 };
+    renderer.domElement.addEventListener('pointerdown', (e) => { downPos = { x: e.clientX, y: e.clientY }; });
+    window.addEventListener('pointerup', (e) => {
+      if (Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > 5) return;
+      const rect = renderer.domElement.getBoundingClientRect();
+      if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) return;
+      pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(clickableLeaves, false);
+      if (hits.length > 0) {
+        state.targetDrawRaise = state.drawRaise > 25 ? 0 : 60;
+        showToast(state.targetDrawRaise > 25 ? 'Raising / Retracting Span' : 'Lowering / Deploying Span');
+      }
+    });
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast-notification');
+      document.getElementById('toast-text').textContent = msg;
+      toast.style.opacity = '1';
+      setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('btnExportPBR').addEventListener('click', () => {
+      exportPBRTexturePack('chasm_bridge', 'stone', state.crackDensity);
+      showToast('Exported Seamless PBR Bump/Crack Height & Normal Maps (.PNG)!');
+    });
+
+    document.getElementById('btnExportJSON').addEventListener('click', () => {
+      downloadBlob(new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }), `megastructure-bridge-recipe.json`);
+      showToast('Exported Parametric Bridge Recipe (.JSON)');
+    });
+
+    document.getElementById('btnExportGLB').addEventListener('click', () => {
+      const exporter = new GLTFExporter();
+      const target = state.exportScope === 'bridge-only' ? bridgeStructureGroup : assetRoot;
+      exporter.parse(target, (res) => {
+        downloadBlob(new Blob([res], { type: 'application/octet-stream' }), `megastructure-chasm-bridge-${state.exportScope}.glb`);
+        showToast('Exported 3D Chasm Drawbridge (.GLB)');
+      }, (err) => console.error(err), { binary: true });
+    });
+
+    document.getElementById('btnExportOBJ').addEventListener('click', () => {
+      const exporter = new OBJExporter();
+      const target = state.exportScope === 'bridge-only' ? bridgeStructureGroup : assetRoot;
+      downloadBlob(new Blob([exporter.parse(target)], { type: 'text/plain' }), `megastructure-chasm-bridge.obj`);
+      showToast('Exported Wavefront 3D Mesh (.OBJ)');
+    });
+
+    const clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = Math.min(clock.getDelta(), 0.1);
+
+      if (camTarget && orbitTarget) {
+        camera.position.lerp(camTarget, dt * 5);
+        controls.target.lerp(orbitTarget, dt * 5);
+        if (camera.position.distanceTo(camTarget) < 0.08) {
+          camTarget = null;
+          orbitTarget = null;
+        }
+      }
+
+      if (Math.abs(state.drawRaise - state.targetDrawRaise) > 0.3) {
+        const step = Math.sign(state.targetDrawRaise - state.drawRaise) * dt * 32;
+        state.drawRaise = THREE.MathUtils.clamp(state.drawRaise + step, 0, 75);
+        syncUI();
+        buildBridgeScene();
+        if (Math.abs(state.drawRaise - state.targetDrawRaise) <= 0.4) {
+          document.getElementById('sim-status-text').textContent = state.drawRaise < 3
+            ? 'ROADWAY OPEN (0°)'
+            : `SPAN OPENED (${Math.round(state.drawRaise)}°)`;
+        }
+      }
+
+      controls.update();
+      updateLabelsOverlay();
+      const mPos = atmosphericMotes.geometry.attributes.position;
+      for (let mi = 0; mi < MOTE_COUNT; mi++) {
+        let my = mPos.getY(mi) + 0.0045;
+        if (my > 12.0) my = 0.15;
+        mPos.setY(mi, my);
+      }
+      mPos.needsUpdate = true;
+      if (bloomEnabled) composer.render();
+      else renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+      const rw = Math.max(1, mount.clientWidth);
+      const rh = Math.max(1, mount.clientHeight);
+      camera.aspect = rw / rh;
+      camera.updateProjectionMatrix();
+      renderer.setSize(rw, rh);
+      composer.setSize(rw, rh);
+    });
+
+    window.__STUDIO_E2E__ = {
+      studioCode: 'BRIDGECAD',
+      version: '6.0',
+      scene, camera, renderer, composer, unrealBloomPass, assetRoot,
+      getBloomEnabled: () => bloomEnabled
+    };
+
+    syncUI();
+    buildBridgeScene();
+    animate();
+  </script>
+</body>
+</html>

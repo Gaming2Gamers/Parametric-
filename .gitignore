@@ -1,0 +1,12 @@
+# Private / local asset libraries (excluded from public repository)
+Textures/
+Not-Done/
+
+# OS & editor metadata
+desktop.ini
+.DS_Store
+Thumbs.db
+*.tmp
+*.bak
+*.swp
+*~

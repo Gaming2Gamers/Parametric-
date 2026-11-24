@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TRAPCAD v6.0 — 100F Dungeon Trap, Pendulum Scythes, Spike Grids & Crushers Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <style>
+    * { box-sizing: border-box; user-select: none; }
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #09080c;
+      color: #e2e8f0;
+    }
+    .font-mono-tech { font-family: 'JetBrains Mono', monospace; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.4); }
+    ::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.6); border-radius: 3px; }
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: #1e293b;
+      border-radius: 999px;
+      outline: none;
+      border: 1px solid #334155;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #f43f5e;
+      cursor: pointer;
+      border: 2px solid #0f172a;
+      box-shadow: 0 0 8px rgba(244, 63, 94, 0.55);
+      transition: transform 0.1s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(51, 65, 85, 0.65);
+    }
+    .dimension-badge {
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.2s ease;
+    }
+  </style>
+</head>
+<body class="h-screen w-screen flex flex-col bg-[#09080c] text-slate-100">
+
+  <!-- TOP HEADER BAR -->
+  <header class="h-14 border-b border-slate-800/80 bg-slate-950/90 px-4 flex items-center justify-between z-20 shrink-0">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-lg bg-rose-500/15 border border-rose-400/35 flex items-center justify-center text-rose-400 shadow-inner">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+        </svg>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="font-semibold text-sm tracking-tight text-white">TRAP<span class="text-rose-400">CAD</span></h1>
+          <span class="text-[10px] font-mono-tech uppercase px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-300 border border-rose-500/30">v6.0 • 100F Dungeon Hazards</span>
+        </div>
+        <p class="text-[11px] text-slate-400">Parametric Pendulum Scythes, Pressure-Plate Spike Grids, Bladed Rollers & Crushers</p>
+      </div>
+    </div>
+
+    <!-- ARCHETYPE PRESETS -->
+    <div class="hidden xl:flex items-center gap-1.5 bg-slate-900/90 p-1 rounded-lg border border-slate-800">
+      <span class="text-[11px] font-medium text-slate-400 px-2">Hazard:</span>
+      <button data-preset="pendulum" class="preset-btn px-2.5 py-1 rounded text-xs font-medium bg-rose-500/20 text-rose-300 border border-rose-500/40 transition">Pendulum Scythe Gauntlet</button>
+      <button data-preset="spikes" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Floor Spike Grid</button>
+      <button data-preset="rollers" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Spinning Bladed Columns</button>
+      <button data-preset="crusher" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Ceiling Spike Crusher</button>
+      <button data-preset="flamethrower" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-amber-300 hover:bg-amber-950/40 border border-amber-500/30 transition">Wall Flame Nozzle Bank</button>
+    </div>
+
+    <!-- EXPORT ACTIONS -->
+    <div class="flex items-center gap-2">
+      <button id="btnToggleBloom" type="button" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 font-mono-tech border border-cyan-500/40 transition" title="Toggle Selective ACES Filmic HDR UnrealBloom Post-Processing">✨ Bloom: ON</button>
+      <button id="btnRandomize" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">Randomize</button>
+      <button id="btnExportPBR" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-emerald-300 font-mono-tech border border-emerald-500/30 transition">PBR .PNGs</button>
+      <button id="btnExportJSON" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-amber-400 font-mono-tech border border-slate-700 transition">.JSON</button>
+      <button id="btnExportOBJ" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">Export .OBJ</button>
+      <button id="btnExportGLB" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-rose-500 hover:bg-rose-400 text-slate-950 shadow-lg shadow-rose-500/20 transition">Export .GLB</button>
+    </div>
+  </header>
+
+  <div class="flex-1 flex relative overflow-hidden">
+
+    <!-- LEFT PANEL -->
+    <aside class="w-80 md:w-96 border-r border-slate-800/80 bg-slate-950/95 flex flex-col z-10 shrink-0">
+      <div class="grid grid-cols-5 border-b border-slate-800 bg-slate-900/60 p-1 gap-1 text-[11px] font-medium">
+        <button data-tab="tab-trap" class="tab-btn py-2 rounded bg-slate-800 text-rose-400 shadow-sm transition">Trap Type</button>
+        <button data-tab="tab-blades" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Blades</button>
+        <button data-tab="tab-timing" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Timing</button>
+        <button data-tab="tab-trigger" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Trigger</button>
+        <button data-tab="tab-finish" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Materials</button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-4 space-y-5">
+
+        <!-- TAB 1: TRAP MECHANISM & CORRIDOR BAY -->
+        <div id="tab-trap" class="tab-content space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Hazard Mechanism & Corridor</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Primary Trap Architecture</label>
+                <select id="param-trapFamily" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="pendulum-scythe">Overhead Swinging Pendulum Scythes</option>
+                  <option value="floor-spikes">Retractable Floor Pressure Spike Grid</option>
+                  <option value="spinning-rollers">Spinning Bladed Corridor Pillar Rollers</option>
+                  <option value="ceiling-crusher">Piston Ceiling Spiked Crusher Block</option>
+                  <option value="wall-flamers">Wall-Mounted Dragon Flame Nozzle Bank</option>
+                </select>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Corridor Bay Length (Z)</label>
+                  <span id="val-corridorLength" class="font-mono-tech text-rose-400">6.50 m</span>
+                </div>
+                <input id="param-corridorLength" type="range" min="3.00" max="12.00" step="0.50" value="6.50">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Corridor Clear Width (X)</label>
+                  <span id="val-corridorWidth" class="font-mono-tech text-rose-400">3.40 m</span>
+                </div>
+                <input id="param-corridorWidth" type="range" min="2.00" max="6.00" step="0.20" value="3.40">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">CeilingGantry Height (Y)</label>
+                  <span id="val-ceilingHeight" class="font-mono-tech text-rose-400">3.80 m</span>
+                </div>
+                <input id="param-ceilingHeight" type="range" min="2.60" max="5.50" step="0.20" value="3.80">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: BLADE, SPIKE & ORDNANCE GEOMETRY -->
+        <div id="tab-blades" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Lethal Element Geometry</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Hazard Unit / Row Count</label>
+                  <span id="val-unitCount" class="font-mono-tech text-rose-400">3 units</span>
+                </div>
+                <input id="param-unitCount" type="range" min="1" max="6" step="1" value="3">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Blade Span / Spike Length</label>
+                  <span id="val-bladeSize" class="font-mono-tech text-rose-400">1.35 m</span>
+                </div>
+                <input id="param-bladeSize" type="range" min="0.60" max="2.20" step="0.05" value="1.35">
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Blade / Spike Edge Profile</label>
+                <select id="param-bladeProfile" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="crescent-axe">Double-Bitted Crescent Executioner Axe</option>
+                  <option value="serrated-saw">Serrated Circular Buzzsaw Disc</option>
+                  <option value="barbed-spear">Four-Fluted Barbed Iron Harpoon Spikes</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: KINEMATIC TIMING & PHASE OFFSET -->
+        <div id="tab-timing" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Kinematics, Speed & Phase</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Cycle Speed Multiplier</label>
+                  <span id="val-trapSpeed" class="font-mono-tech text-rose-400">1.4x</span>
+                </div>
+                <input id="param-trapSpeed" type="range" min="0.2" max="3.5" step="0.1" value="1.4">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Pendulum Max Swing Arc</label>
+                  <span id="val-swingArc" class="font-mono-tech text-rose-400">55°</span>
+                </div>
+                <input id="param-swingArc" type="range" min="20" max="75" step="5" value="55">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Staggered Phase Offset</label>
+                  <span id="val-phaseOffset" class="font-mono-tech text-amber-400">90°</span>
+                </div>
+                <input id="param-phaseOffset" type="range" min="0" max="180" step="15" value="90">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: .VRM PRESSURE PLATE & TRIPWIRE -->
+        <div id="tab-trigger" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">.VRM Floor Trigger Plate</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Interactive Floor Pressure Plate</span>
+                  <span class="text-[11px] text-slate-400">Click plate in 3D to fire/arm trap</span>
+                </div>
+                <input id="param-showPressurePlate" type="checkbox" checked class="w-4 h-4 accent-rose-500 rounded cursor-pointer">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-emerald-300 block">Show .VRM 1.70m Challenger Avatar</span>
+                  <span class="text-[11px] text-slate-400">Verify dodge window & blade clearance</span>
+                </div>
+                <input id="param-showVrmAvatar" type="checkbox" checked class="w-4 h-4 accent-emerald-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 5: MATERIALS & PBR BUMP/CRACKS -->
+        <div id="tab-finish" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Materials & PBR Relief</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Dungeon Stone & Blade Metal</label>
+                <select id="param-materialFinish" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="obsidian-steel">Black Basalt & Honed Executioner Steel</option>
+                  <option value="dwarven-brass">Carved Granite & Gilded Orichalcum</option>
+                  <option value="rusted-iron">Blood-Stained Iron & Catacomb Slate</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Hazard Rune / Flame Glow</label>
+                <select id="param-glowColor" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="crimson">100F Blood-Rune Crimson</option>
+                  <option value="amber">Hellfire Jet Amber</option>
+                  <option value="emerald">Venom / Acid Fel Emerald</option>
+                  <option value="arcane-purple">Void Curse Violet</option>
+                </select>
+              </div>
+
+              <div class="pt-2 border-t border-slate-800">
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-emerald-300 font-medium">PBR Crack & Scar Density</label>
+                  <span id="val-crackDensity" class="font-mono-tech text-emerald-400">50%</span>
+                </div>
+                <input id="param-crackDensity" type="range" min="0" max="100" step="5" value="50">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-emerald-300 font-medium">Normal / Bump Relief Depth</label>
+                  <span id="val-bumpScale" class="font-mono-tech text-emerald-400">0.09</span>
+                </div>
+                <input id="param-bumpScale" type="range" min="0.00" max="0.25" step="0.01" value="0.09">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-200">3D Dimension Callouts</span>
+                <input id="param-showDimensions" type="checkbox" checked class="w-4 h-4 accent-rose-500 rounded cursor-pointer">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-200">Wireframe Overlay Pass</span>
+                <input id="param-wireframe" type="checkbox" class="w-4 h-4 accent-rose-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- TELEMETRY FOOTER -->
+      <div class="p-3.5 border-t border-slate-800 bg-slate-900/90 space-y-2">
+        <div class="flex items-center justify-between text-[11px] text-slate-400">
+          <span class="uppercase font-semibold tracking-wider">Hazard Telemetry</span>
+          <span id="stat-triangles" class="font-mono-tech text-slate-300">0 tris</span>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">Gauntlet</span>
+            <span id="stat-span" class="font-mono-tech text-xs font-semibold text-rose-400">6.5×3.4m</span>
+          </div>
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">Units</span>
+            <span id="stat-units" class="font-mono-tech text-xs font-semibold text-amber-400">3×1.35m</span>
+          </div>
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">Cycle Speed</span>
+            <span id="stat-speed" class="font-mono-tech text-xs font-semibold text-emerald-400">1.4x</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- VIEWPORT -->
+    <main class="flex-1 relative bg-gradient-to-b from-[#16090e] via-[#090a11] to-[#050609] overflow-hidden">
+      <div id="canvas-mount" class="w-full h-full"></div>
+
+      <div id="labels-container" class="absolute inset-0 pointer-events-none overflow-hidden">
+        <div id="label-length" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/90 border border-rose-500/50 text-[11px] font-mono-tech text-rose-300 shadow-lg">L: 6.50m</div>
+        <div id="label-width" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/90 border border-rose-500/50 text-[11px] font-mono-tech text-rose-300 shadow-lg">W: 3.40m</div>
+        <div id="label-height" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/90 border border-rose-500/50 text-[11px] font-mono-tech text-rose-300 shadow-lg">H: 3.80m</div>
+      </div>
+
+      <!-- CAMERA PRESETS -->
+      <div class="absolute top-4 left-4 glass-panel rounded-xl p-1.5 flex items-center gap-1 shadow-xl">
+        <span class="text-[10px] font-mono-tech uppercase text-slate-400 px-2">Camera:</span>
+        <button data-cam="iso" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-rose-500/20 text-rose-300 border border-rose-500/30 transition">3/4 Gauntlet</button>
+        <button data-cam="runner" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">.VRM Runner POV</button>
+        <button data-cam="plate" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">Pressure Plate</button>
+        <button data-cam="side" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">Timing Side View</button>
+      </div>
+
+      <!-- TRAP CONTROLLER -->
+      <div class="absolute top-4 right-4 w-60 glass-panel rounded-2xl p-3.5 shadow-2xl flex flex-col gap-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-300">Trap Mechanism Control</span>
+          <span class="w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_8px_#f43f5e]"></span>
+        </div>
+
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 flex items-center justify-between">
+          <div>
+            <span class="text-[10px] text-slate-400 uppercase block">Hazard Status</span>
+            <span id="sim-status-text" class="text-[11px] font-mono-tech text-rose-400">ARMED • CYCLING</span>
+          </div>
+          <span id="sim-speed-readout" class="font-mono-tech text-sm font-bold text-amber-400">1.4x</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-1.5">
+          <button id="btnToggleTrapActive" class="py-1.5 px-2 rounded-lg text-xs font-semibold bg-rose-500/25 hover:bg-rose-500/35 text-rose-200 border border-rose-500/40 transition">
+            ⚡ Pause / Arm
+          </button>
+          <button id="btnStepPressurePlate" class="py-1.5 px-2 rounded-lg text-xs font-medium bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/35 transition">
+            🦶 Trigger Plate
+          </button>
+        </div>
+      </div>
+
+      <!-- BOTTOM-LEFT HINT -->
+      <div class="absolute bottom-4 left-4 glass-panel rounded-lg px-3 py-1.5 text-[11px] text-slate-400 flex items-center gap-3 pointer-events-none">
+        <span><strong class="text-slate-200">LMB:</strong> Orbit / Click 3D Pressure Plate or Blades to Trigger</span>
+        <span>•</span>
+        <span><strong class="text-slate-200">RMB:</strong> Pan</span>
+      </div>
+
+      <!-- TOAST -->
+      <div id="toast-notification" class="pointer-events-none opacity-0 transition-opacity duration-300 absolute bottom-4 right-4 glass-panel border-rose-500/40 bg-slate-900/95 text-rose-200 px-4 py-2.5 rounded-xl text-xs font-medium shadow-2xl">
+        <span id="toast-text">Trap updated!</span>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+    import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+    import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+    import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+    import { OBJExporter } from 'three/addons/exporters/OBJExporter.js';
+
+    const state = {
+      trapFamily: 'pendulum-scythe',
+      corridorLength: 6.50,
+      corridorWidth: 3.40,
+      ceilingHeight: 3.80,
+
+      unitCount: 3,
+      bladeSize: 1.35,
+      bladeProfile: 'crescent-axe',
+
+      trapSpeed: 1.4,
+      swingArc: 55,
+      phaseOffset: 90,
+
+      showPressurePlate: true,
+      showVrmAvatar: true,
+
+      materialFinish: 'obsidian-steel',
+      glowColor: 'crimson',
+      crackDensity: 50,
+      bumpScale: 0.09,
+      showDimensions: true,
+      wireframe: false,
+
+      trapActive: true,
+      plateDepressed: 0
+    };
+
+    const PRESETS = {
+      pendulum: {
+        trapFamily: 'pendulum-scythe', corridorLength: 6.50, corridorWidth: 3.40, ceilingHeight: 3.80,
+        unitCount: 3, bladeSize: 1.35, bladeProfile: 'crescent-axe', trapSpeed: 1.4, swingArc: 55, phaseOffset: 90,
+        materialFinish: 'obsidian-steel', glowColor: 'crimson'
+      },
+      spikes: {
+        trapFamily: 'floor-spikes', corridorLength: 5.50, corridorWidth: 3.40, ceilingHeight: 3.40,
+        unitCount: 4, bladeSize: 1.25, bladeProfile: 'barbed-spear', trapSpeed: 1.8, swingArc: 55, phaseOffset: 60,
+        materialFinish: 'rusted-iron', glowColor: 'emerald'
+      },
+      rollers: {
+        trapFamily: 'spinning-rollers', corridorLength: 7.00, corridorWidth: 3.80, ceilingHeight: 3.60,
+        unitCount: 3, bladeSize: 1.40, bladeProfile: 'serrated-saw', trapSpeed: 2.0, swingArc: 55, phaseOffset: 45,
+        materialFinish: 'dwarven-brass', glowColor: 'amber'
+      },
+      crusher: {
+        trapFamily: 'ceiling-crusher', corridorLength: 6.00, corridorWidth: 3.20, ceilingHeight: 4.00,
+        unitCount: 2, bladeSize: 1.50, bladeProfile: 'barbed-spear', trapSpeed: 1.5, swingArc: 55, phaseOffset: 120,
+        materialFinish: 'obsidian-steel', glowColor: 'arcane-purple'
+      },
+      flamethrower: {
+        trapFamily: 'wall-flamers', corridorLength: 6.50, corridorWidth: 3.40, ceilingHeight: 3.60,
+        unitCount: 4, bladeSize: 1.60, bladeProfile: 'crescent-axe', trapSpeed: 1.6, swingArc: 55, phaseOffset: 45,
+        materialFinish: 'dwarven-brass', glowColor: 'amber'
+      }
+    };
+
+    const GLOW_MAP = {
+      'crimson': 0xf43f5e,
+      'amber': 0xf59e0b,
+      'emerald': 0x10b981,
+      'arcane-purple': 0xc084fc
+    };
+
+    const pbrMapCache = {};
+
+    // Helper: Compute 3x3 Sobel Tangent-Space Normal Map Texture from a Height Canvas
+    function computeSobelNormalTexture(heightCanvas, bevelStrength = 3.4) {
+      const w = heightCanvas.width;
+      const h = heightCanvas.height;
+      const hCtx = heightCanvas.getContext('2d');
+      const src = hCtx.getImageData(0, 0, w, h).data;
+
+      const normCanvas = document.createElement('canvas');
+      normCanvas.width = w;
+      normCanvas.height = h;
+      const nCtx = normCanvas.getContext('2d');
+      const dstImg = nCtx.createImageData(w, h);
+      const dst = dstImg.data;
+
+      const sample = (x, y) => {
+        const cx = (x + w) % w;
+        const cy = (y + h) % h;
+        return src[(cy * w + cx) * 4] / 255.0;
+      };
+
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const tl = sample(x - 1, y - 1), t = sample(x, y - 1), tr = sample(x + 1, y - 1);
+          const l  = sample(x - 1, y),                           r  = sample(x + 1, y);
+          const bl = sample(x - 1, y + 1), b = sample(x, y + 1), br = sample(x + 1, y + 1);
+
+          const dX = (tr + 2 * r + br) - (tl + 2 * l + bl);
+          const dY = (bl + 2 * b + br) - (tl + 2 * t + tr);
+          let vx = -dX * bevelStrength;
+          let vy = -dY * bevelStrength;
+          let vz = 1.0;
+          const inv = 1.0 / (Math.sqrt(vx * vx + vy * vy + vz * vz) || 1.0);
+          const idx = (y * w + x) * 4;
+          dst[idx]     = Math.floor((vx * inv * 0.5 + 0.5) * 255);
+          dst[idx + 1] = Math.floor((vy * inv * 0.5 + 0.5) * 255);
+          dst[idx + 2] = Math.floor((vz * inv * 0.5 + 0.5) * 255);
+          dst[idx + 3] = 255;
+        }
+      }
+      nCtx.putImageData(dstImg, 0, 0);
+      return { normCanvas, normalTex: new THREE.CanvasTexture(normCanvas) };
+    }
+
+    // ULTRA-CRISP BEZIER VECTOR INDUSTRIAL NAMEPLATE GENERATOR ('manthrax/JSlug' pattern, 1024x256 + Normal Bevel)
+    const stampedPlateCache = {};
+    function createStampedPlateTexture(text, subtext, accentHex = '#38bdf8') {
+      const key = `${text}_${subtext}_${accentHex}`;
+      if (stampedPlateCache[key]) return stampedPlateCache[key];
+
+      const W = 1024, H = 256;
+      const c = document.createElement('canvas');
+      c.width = W; c.height = H;
+      const ctx = c.getContext('2d');
+
+      const hc = document.createElement('canvas');
+      hc.width = W; hc.height = H;
+      const hCtx = hc.getContext('2d');
+      hCtx.fillStyle = 'rgb(128,128,128)';
+      hCtx.fillRect(0, 0, W, H);
+
+      // 1. Brushed Anodized Metallic Plate Background
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+      bgGrad.addColorStop(0.0, '#1e293b');
+      bgGrad.addColorStop(0.5, '#0f172a');
+      bgGrad.addColorStop(1.0, '#090d16');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, W, H);
+
+      for (let y = 0; y < H; y += 3) {
+        ctx.fillStyle = y % 6 === 0 ? 'rgba(255,255,255,0.025)' : 'rgba(0,0,0,0.04)';
+        ctx.fillRect(0, y, W, 1.5);
+      }
+
+      // 2. Cubic Bezier Chamfered Industrial Frame Border
+      const drawBezierFrame = (targetCtx, strokeCol, lineW, inset = 14, ch = 28) => {
+        targetCtx.strokeStyle = strokeCol;
+        targetCtx.lineWidth = lineW;
+        targetCtx.lineJoin = 'round';
+        targetCtx.beginPath();
+        targetCtx.moveTo(inset + ch, inset);
+        targetCtx.lineTo(W - inset - ch, inset);
+        targetCtx.bezierCurveTo(W - inset, inset, W - inset, inset, W - inset, inset + ch);
+        targetCtx.lineTo(W - inset, H - inset - ch);
+        targetCtx.bezierCurveTo(W - inset, H - inset, W - inset, H - inset, W - inset - ch, H - inset);
+        targetCtx.lineTo(inset + ch, H - inset);
+        targetCtx.bezierCurveTo(inset, H - inset, inset, H - inset, inset, H - inset - ch);
+        targetCtx.lineTo(inset, inset + ch);
+        targetCtx.bezierCurveTo(inset, inset, inset, inset, inset + ch, inset);
+        targetCtx.closePath();
+        targetCtx.stroke();
+      };
+
+      drawBezierFrame(hCtx, 'rgb(45,45,45)', 22, 16, 28);
+      drawBezierFrame(hCtx, 'rgb(240,240,240)', 10, 16, 28);
+      drawBezierFrame(ctx, '#475569', 12, 16, 28);
+      drawBezierFrame(ctx, accentHex, 5, 22, 24);
+
+      // 3. Stamped Hex Corner Rivets
+      for (const [rx, ry] of [[52, 52], [W - 52, 52], [52, H - 52], [W - 52, H - 52]]) {
+        hCtx.fillStyle = 'rgb(40,40,40)';
+        hCtx.beginPath(); hCtx.arc(rx, ry, 20, 0, Math.PI * 2); hCtx.fill();
+        hCtx.fillStyle = 'rgb(245,245,245)';
+        hCtx.beginPath(); hCtx.arc(rx, ry, 15, 0, Math.PI * 2); hCtx.fill();
+
+        const rGrad = ctx.createRadialGradient(rx - 4, ry - 4, 2, rx, ry, 16);
+        rGrad.addColorStop(0.0, '#f8fafc');
+        rGrad.addColorStop(0.6, '#94a3b8');
+        rGrad.addColorStop(1.0, '#1e293b');
+        ctx.fillStyle = rGrad;
+        ctx.beginPath(); ctx.arc(rx, ry, 15, 0, Math.PI * 2); ctx.fill();
+      }
+
+      // 4. Stamped Bezier Vector Typography Pass
+      const renderStampedVectorText = (str, yPos, fontSize, fillHex, isMain) => {
+        const fontSpec = `900 ${fontSize}px "JetBrains Mono", "Inter", monospace`;
+        ctx.font = fontSpec;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+
+        hCtx.font = fontSpec;
+        hCtx.textAlign = 'center';
+        hCtx.textBaseline = 'middle';
+        hCtx.lineJoin = 'round';
+        hCtx.lineCap = 'round';
+
+        hCtx.strokeStyle = 'rgb(38,38,38)';
+        hCtx.lineWidth = isMain ? 18 : 12;
+        hCtx.strokeText(str, W / 2, yPos);
+
+        hCtx.strokeStyle = 'rgb(205,205,205)';
+        hCtx.lineWidth = isMain ? 9 : 6;
+        hCtx.strokeText(str, W / 2, yPos);
+
+        hCtx.fillStyle = 'rgb(255,255,255)';
+        hCtx.fillText(str, W / 2, yPos);
+
+        ctx.strokeStyle = '#020617';
+        ctx.lineWidth = isMain ? 12 : 8;
+        ctx.strokeText(str, W / 2 + 2.5, yPos + 2.5);
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+        ctx.lineWidth = isMain ? 4 : 2.5;
+        ctx.strokeText(str, W / 2 - 1.5, yPos - 1.5);
+
+        ctx.fillStyle = fillHex;
+        ctx.fillText(str, W / 2, yPos);
+      };
+
+      renderStampedVectorText(text, 102, 74, '#f8fafc', true);
+      renderStampedVectorText(subtext, 188, 44, accentHex, false);
+
+      const colorTex = new THREE.CanvasTexture(c);
+      colorTex.anisotropy = 8;
+      const { normalTex } = computeSobelNormalTexture(hc, 3.6);
+      normalTex.anisotropy = 8;
+      const bumpTex = new THREE.CanvasTexture(hc);
+      bumpTex.anisotropy = 8;
+
+      colorTex.normalMap = normalTex;
+      colorTex.bumpMap = bumpTex;
+      colorTex.createMaterial = () => new THREE.MeshStandardMaterial({
+        map: colorTex,
+        normalMap: normalTex,
+        normalScale: new THREE.Vector2(1.85, 1.85),
+        bumpMap: bumpTex,
+        bumpScale: 0.035,
+        metalness: 0.86,
+        roughness: 0.24,
+        envMapIntensity: 1.65
+      });
+
+      stampedPlateCache[key] = colorTex;
+      return colorTex;
+    }
+
+    // mrdoob/harmony Proximity-History Stress-Fracture, Cross-Hatch & Weld-Bead Pass in generatePBRMaps
+    function generatePBRMaps(kind, crackPct) {
+      const key = `${kind}_${Math.round(crackPct)}`;
+      if (pbrMapCache[key]) return pbrMapCache[key];
+      const size = 256;
+      const bumpCanvas = document.createElement('canvas');
+      bumpCanvas.width = size; bumpCanvas.height = size;
+      const bCtx = bumpCanvas.getContext('2d');
+      bCtx.fillStyle = 'rgb(175,175,175)';
+      bCtx.fillRect(0, 0, size, size);
+
+      let seed = 911 + kind.charCodeAt(0) * 37;
+      const rand = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+      const crackFactor = Math.max(0.05, crackPct / 100);
+
+      // Base surface micro-grain
+      for (let i = 0; i < 2200; i++) {
+        const v = Math.floor(145 + rand() * 68);
+        bCtx.fillStyle = `rgb(${v},${v},${v})`;
+        bCtx.fillRect(rand() * size, rand() * size, 2, 2);
+      }
+
+      // Plate seams + Raised TIG/MIG Stacked-Dime Weld Beads along seams
+      bCtx.strokeStyle = 'rgb(42,42,42)';
+      bCtx.lineWidth = 3;
+      for (let y = 0; y < size; y += 64) {
+        bCtx.beginPath(); bCtx.moveTo(0, y); bCtx.lineTo(size, y); bCtx.stroke();
+        for (let wx = 4; wx < size - 4; wx += 5) {
+          bCtx.fillStyle = 'rgba(238,238,238,0.58)';
+          bCtx.beginPath(); bCtx.arc(wx, y, 2.5, 0, Math.PI * 2); bCtx.fill();
+        }
+      }
+
+      // Cross-Hatched Machining Micro-Scratches (+32 deg / -58 deg)
+      bCtx.lineCap = 'round';
+      const scratchCount = Math.floor(16 + crackFactor * 38);
+      for (let i = 0; i < scratchCount; i++) {
+        const sx = rand() * size, sy = rand() * size;
+        const ang = (i % 2 === 0 ? 0.56 : -1.01) + (rand() - 0.5) * 0.18;
+        const len = 10 + rand() * 24;
+        const ex = sx + Math.cos(ang) * len;
+        const ey = sy + Math.sin(ang) * len;
+        bCtx.strokeStyle = `rgba(22,22,22,${0.20 + crackFactor * 0.25})`;
+        bCtx.lineWidth = 0.8;
+        bCtx.beginPath(); bCtx.moveTo(sx, sy); bCtx.lineTo(ex, ey); bCtx.stroke();
+      }
+
+      // mrdoob/harmony Proximity-History Branching Stress-Fracture Web
+      const harmonyHistory = [];
+      const maxDist = 24;
+      const maxDistSq = maxDist * maxDist;
+      const walkerCount = Math.floor(3 + crackFactor * 10);
+      const stepsPerWalker = Math.floor(14 + crackFactor * 24);
+
+      for (let w = 0; w < walkerCount; w++) {
+        let cx = rand() * size, cy = rand() * size;
+        let dir = rand() * Math.PI * 2;
+        for (let s = 0; s < stepsPerWalker; s++) {
+          dir += (rand() - 0.5) * 1.15;
+          const stepLen = 4.5 + rand() * 7.5;
+          const nx = Math.max(2, Math.min(size - 2, cx + Math.cos(dir) * stepLen));
+          const ny = Math.max(2, Math.min(size - 2, cy + Math.sin(dir) * stepLen));
+          const ctrlX = (cx + nx) * 0.5 + (rand() - 0.5) * 4.5;
+          const ctrlY = (cy + ny) * 0.5 + (rand() - 0.5) * 4.5;
+
+          bCtx.strokeStyle = `rgba(12,12,12,${0.45 + crackFactor * 0.45})`;
+          bCtx.lineWidth = 1.2 + (1 - s / stepsPerWalker) * 0.85;
+          bCtx.beginPath();
+          bCtx.moveTo(cx, cy);
+          bCtx.quadraticCurveTo(ctrlX, ctrlY, nx, ny);
+          bCtx.stroke();
+
+          for (let h = 0; h < harmonyHistory.length; h++) {
+            const hp = harmonyHistory[h];
+            const dx = nx - hp.x, dy = ny - hp.y;
+            const dSq = dx * dx + dy * dy;
+            if (dSq > 5 && dSq < maxDistSq) {
+              const proxAlpha = (1.0 - dSq / maxDistSq) * 0.38 * crackFactor;
+              bCtx.strokeStyle = `rgba(18,18,18,${proxAlpha.toFixed(3)})`;
+              bCtx.lineWidth = 0.65;
+              bCtx.beginPath();
+              bCtx.moveTo(nx, ny);
+              bCtx.lineTo(hp.x, hp.y);
+              bCtx.stroke();
+            }
+          }
+          harmonyHistory.push({ x: nx, y: ny });
+          cx = nx; cy = ny;
+        }
+      }
+
+      const { normCanvas, normalTex } = computeSobelNormalTexture(bumpCanvas, 3.4);
+      const bumpTex = new THREE.CanvasTexture(bumpCanvas);
+      bumpTex.wrapS = THREE.RepeatWrapping; bumpTex.wrapT = THREE.RepeatWrapping; bumpTex.repeat.set(2, 2);
+      normalTex.wrapS = THREE.RepeatWrapping; normalTex.wrapT = THREE.RepeatWrapping; normalTex.repeat.set(2, 2);
+      // v6.0 Specular Micro-Roughness & Cavity Occlusion Map (shiny raised welds/rivets, matte cracks)
+      const roughCanvas = document.createElement('canvas');
+      roughCanvas.width = size; roughCanvas.height = size;
+      const rCtx = roughCanvas.getContext('2d');
+      const bPixels = bumpCanvas.getContext('2d').getImageData(0, 0, size, size).data;
+      const rImg = rCtx.createImageData(size, size);
+      const rData = rImg.data;
+      for (let i = 0; i < size * size; i++) {
+        const hVal = bPixels[i * 4] / 255.0;
+        // Invert height: raised weld beads & rivets (h>0.72) -> smooth shiny (low roughness ~55), cracks (h<0.45) -> matte oxidized (~238)
+        const rough = Math.max(38, Math.min(246, Math.round((1.08 - hVal * 0.86) * 235)));
+        rData[i * 4] = rough;
+        rData[i * 4 + 1] = rough;
+        rData[i * 4 + 2] = rough;
+        rData[i * 4 + 3] = 255;
+      }
+      rCtx.putImageData(rImg, 0, 0);
+      const roughnessTex = new THREE.CanvasTexture(roughCanvas);
+      roughnessTex.wrapS = THREE.RepeatWrapping; roughnessTex.wrapT = THREE.RepeatWrapping; roughnessTex.repeat.set(2, 2);
+      const entry = { bumpCanvas, normCanvas, roughCanvas, bumpTex, normalTex, roughnessTex };
+      pbrMapCache[key] = entry;
+      return entry;
+    }
+
+    function exportPBRTexturePack(prefix, kind, crackPct) {
+      const maps = generatePBRMaps(kind, crackPct);
+      maps.bumpCanvas.toBlob((b) => b && downloadBlob(b, `${prefix}_bump_cracks.png`));
+      setTimeout(() => maps.normCanvas.toBlob((b) => b && downloadBlob(b, `${prefix}_normal_rgb.png`)), 220);
+      setTimeout(() => maps.roughCanvas && maps.roughCanvas.toBlob((b) => b && downloadBlob(b, `${prefix}_roughness_cavity.png`)), 440);
+    }
+
+    const mount = document.getElementById('canvas-mount');
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x07060b, 0.015);
+
+    const camera = new THREE.PerspectiveCamera(44, mount.clientWidth / mount.clientHeight, 0.1, 150);
+    camera.position.set(6.2, 4.2, 6.8);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
+    renderer.setSize(mount.clientWidth, mount.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
+    mount.appendChild(renderer.domElement);
+    const pmremGen = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmremGen.fromScene(new RoomEnvironment(), 0.04).texture;
+
+    // v6.0 Selective High-Threshold HDR Post-Processing (EffectComposer + UnrealBloomPass + OutputPass)
+    let bloomEnabled = true;
+    const initW = Math.max(1, mount.clientWidth || window.innerWidth);
+    const initH = Math.max(1, mount.clientHeight || window.innerHeight);
+    const composer = new EffectComposer(renderer);
+    composer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    composer.setSize(initW, initH);
+    composer.addPass(new RenderPass(scene, camera));
+    const unrealBloomPass = new UnrealBloomPass(new THREE.Vector2(initW, initH), 0.42, 0.55, 0.85);
+    composer.addPass(unrealBloomPass);
+    composer.addPass(new OutputPass());
+
+    // v6.0 Studio Shadow-Catcher Deck & Soft Radial Contact AO Grounding (in scene, outside assetRoot)
+    const studioFloor = new THREE.Mesh(
+      new THREE.CircleGeometry(28, 64),
+      new THREE.MeshStandardMaterial({ color: 0x060911, roughness: 0.76, metalness: 0.28, envMapIntensity: 0.6 })
+    );
+    studioFloor.rotation.x = -Math.PI / 2;
+    studioFloor.position.y = -0.014;
+    studioFloor.receiveShadow = true;
+    scene.add(studioFloor);
+
+    const aoCanvas = document.createElement('canvas');
+    aoCanvas.width = 256; aoCanvas.height = 256;
+    const aoCtx = aoCanvas.getContext('2d');
+    const aoGrad = aoCtx.createRadialGradient(128, 128, 10, 128, 128, 124);
+    aoGrad.addColorStop(0.0, 'rgba(0,0,0,0.82)');
+    aoGrad.addColorStop(0.55, 'rgba(0,0,0,0.42)');
+    aoGrad.addColorStop(1.0, 'rgba(0,0,0,0.0)');
+    aoCtx.fillStyle = aoGrad;
+    aoCtx.fillRect(0, 0, 256, 256);
+    const contactAoPlane = new THREE.Mesh(
+      new THREE.PlaneGeometry(9.5, 9.5),
+      new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(aoCanvas), transparent: true, depthWrite: false, opacity: 0.88 })
+    );
+    contactAoPlane.rotation.x = -Math.PI / 2;
+    contactAoPlane.position.y = 0.003;
+    scene.add(contactAoPlane);
+
+    // v6.0 Subtle Atmospheric Floating Ember / Mana Mote Field (in scene, outside assetRoot so GLB export stays clean)
+    const MOTE_COUNT = 56;
+    const motePositions = new Float32Array(MOTE_COUNT * 3);
+    for (let mi = 0; mi < MOTE_COUNT; mi++) {
+      motePositions[mi * 3]     = (Math.sin(mi * 73.1) * 0.5) * 10.0;
+      motePositions[mi * 3 + 1] = 0.25 + ((mi * 0.618034) % 1.0) * 5.0;
+      motePositions[mi * 3 + 2] = (Math.cos(mi * 41.7) * 0.5) * 10.0;
+    }
+    const moteGeo = new THREE.BufferGeometry();
+    moteGeo.setAttribute('position', new THREE.BufferAttribute(motePositions, 3));
+    const moteMat = new THREE.PointsMaterial({
+      color: 0xf43f5e,
+      size: 0.055,
+      transparent: true,
+      opacity: 0.58,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+    const atmosphericMotes = new THREE.Points(moteGeo, moteMat);
+    atmosphericMotes.name = 'Viewport_Atmospheric_Motes';
+    scene.add(atmosphericMotes);
+
+    const btnToggleBloomEl = document.getElementById('btnToggleBloom');
+    if (btnToggleBloomEl) {
+      btnToggleBloomEl.addEventListener('click', () => {
+        bloomEnabled = !bloomEnabled;
+        unrealBloomPass.enabled = bloomEnabled;
+        btnToggleBloomEl.textContent = bloomEnabled ? '✨ Bloom: ON' : '✨ Bloom: OFF';
+        btnToggleBloomEl.className = bloomEnabled
+          ? 'px-2.5 py-1.5 rounded-lg text-xs font-medium bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 font-mono-tech border border-cyan-500/40 transition'
+          : 'px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-400 font-mono-tech border border-slate-700 transition';
+      });
+    }
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.target.set(0, 1.6, 0);
+
+    scene.add(new THREE.HemisphereLight(0xfecdd3, 0x090d16, 0.9));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 2.0);
+    dirLight.position.set(10, 18, 12);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.set(2048, 2048);
+    dirLight.shadow.bias = -0.0005;
+    dirLight.shadow.normalBias = 0.02;
+    dirLight.shadow.camera.near = 0.5;
+    dirLight.shadow.camera.far = 85;
+    dirLight.shadow.camera.left = -14.0;
+    dirLight.shadow.camera.right = 14.0;
+    dirLight.shadow.camera.top = 14.0;
+    dirLight.shadow.camera.bottom = -14.0;
+    scene.add(dirLight);
+
+    const gridHelper = new THREE.GridHelper(32, 32, 0xf43f5e, 0x1e293b);
+    gridHelper.position.y = 0;
+    scene.add(gridHelper);
+
+    const assetRoot = new THREE.Group();
+    assetRoot.name = 'Parametric_Dungeon_Trap_Asset';
+    scene.add(assetRoot);
+
+    const animatedTrapUnits = [];
+    const clickableTrapMeshes = [];
+
+    function getMaterials() {
+      const wf = state.wireframe;
+      const finishMap = {
+        'obsidian-steel': { stone: 0x1e222d, blade: 0xcbd5e1, trim: 0x64748b },
+        'dwarven-brass':  { stone: 0x282c37, blade: 0xe2e8f0, trim: 0xd4af37 },
+        'rusted-iron':    { stone: 0x1c1917, blade: 0x78716c, trim: 0x991b1b }
+      };
+      const f = finishMap[state.materialFinish] || finishMap['obsidian-steel'];
+      const stonePbr = generatePBRMaps('stone', state.crackDensity);
+      const armorPbr = generatePBRMaps('armor', state.crackDensity);
+      const glowHex = GLOW_MAP[state.glowColor] || 0xf43f5e;
+
+      const nScale = new THREE.Vector2(state.bumpScale * 2.5, state.bumpScale * 2.5);
+      return {
+        stone: new THREE.MeshStandardMaterial({
+          color: f.stone, roughness: 0.62, metalness: 0.25,
+          bumpMap: stonePbr.bumpTex, bumpScale: state.bumpScale, normalMap: stonePbr.normalTex, roughnessMap: stonePbr.roughnessTex, normalScale: nScale, envMapIntensity: 1.35, wireframe: wf
+        }),
+        bladeSteel: new THREE.MeshStandardMaterial({
+          color: f.blade, roughness: 0.14, metalness: 0.96,
+          bumpMap: armorPbr.bumpTex, bumpScale: state.bumpScale * 0.5, normalMap: armorPbr.normalTex, roughnessMap: armorPbr.roughnessTex, normalScale: nScale, envMapIntensity: 1.85, wireframe: wf
+        }),
+        trim: new THREE.MeshStandardMaterial({
+          color: f.trim, roughness: 0.22, metalness: 0.90,
+          bumpMap: armorPbr.bumpTex, bumpScale: state.bumpScale * 0.4, normalMap: armorPbr.normalTex, roughnessMap: armorPbr.roughnessTex, normalScale: nScale, envMapIntensity: 1.65, wireframe: wf
+        }),
+        glow: new THREE.MeshStandardMaterial({
+          color: glowHex, emissive: glowHex, emissiveIntensity: 2.6, wireframe: wf
+        }),
+        vrmAvatar: new THREE.MeshStandardMaterial({
+          color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.35, roughness: 0.3, wireframe: wf
+        })
+      };
+    }
+
+    function clearGroup(group) {
+      while (group.children.length > 0) {
+        const c = group.children[0];
+        group.remove(c);
+        if (c.geometry) c.geometry.dispose();
+      }
+    }
+
+    function buildTrapScene() {
+      clearGroup(assetRoot);
+      animatedTrapUnits.length = 0;
+      clickableTrapMeshes.length = 0;
+
+      const mats = getMaterials();
+      const L = state.corridorLength;
+      const W = state.corridorWidth;
+      const H = state.ceilingHeight;
+      const count = state.unitCount;
+      const bSize = state.bladeSize;
+
+      // 1. Dungeon Corridor Floor Slab & Side Wall Plinths
+      const floor = new THREE.Mesh(new THREE.BoxGeometry(W + 1.2, 0.24, L), mats.stone);
+      floor.position.set(0, 0.12, 0);
+      floor.receiveShadow = true;
+      assetRoot.add(floor);
+
+      for (const s of [-1, 1]) {
+        const curb = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.55, L), mats.stone);
+        curb.position.set(s * (W / 2 + 0.35), 0.275, 0);
+        assetRoot.add(curb);
+      }
+
+      // Interactive .VRM Floor Pressure Plate at Corridor Entrance (+Z)
+      if (state.showPressurePlate) {
+        const plateZ = L / 2 - 0.85;
+        const plateBezel = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.06, 1.15), mats.trim);
+        plateBezel.position.set(0, 0.25, plateZ);
+        const platePad = new THREE.Mesh(new THREE.BoxGeometry(1.18, 0.08, 0.98), mats.glow);
+        platePad.position.set(0, 0.28 - state.plateDepressed * 0.05, plateZ);
+        platePad.userData.isTriggerPlate = true;
+        clickableTrapMeshes.push(platePad, plateBezel);
+        assetRoot.add(plateBezel, platePad);
+      }
+
+      if (state.showVrmAvatar) {
+        const av = new THREE.Group();
+        const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.18, 0.58, 10, 14), mats.vrmAvatar);
+        torso.position.y = 1.05;
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 16), mats.vrmAvatar);
+        head.position.y = 1.56;
+        av.add(torso, head);
+        av.position.set(0, 0.24, L / 2 + 0.45);
+        assetRoot.add(av);
+      }
+
+      // 2. Build Selected Hazard Mechanism Array
+      const usableZ = L - 2.2;
+      for (let i = 0; i < count; i++) {
+        const uz = count === 1 ? 0 : -usableZ / 2 + (i / (count - 1)) * usableZ;
+        const phaseRad = THREE.MathUtils.degToRad(i * state.phaseOffset);
+
+        if (state.trapFamily === 'pendulum-scythe') {
+          // Overhead Gantry Arch + Swinging Pendulum Scythe
+          for (const s of [-1, 1]) {
+            const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.38, H, 0.38), mats.stone);
+            pillar.position.set(s * (W / 2 + 0.35), H / 2, uz);
+            assetRoot.add(pillar);
+          }
+          const topBeam = new THREE.Mesh(new THREE.BoxGeometry(W + 1.1, 0.42, 0.52), mats.stone);
+          topBeam.position.set(0, H + 0.1, uz);
+          const gearHub = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.58, 24), mats.trim);
+          gearHub.rotation.x = Math.PI / 2;
+          gearHub.position.set(0, H - 0.05, uz);
+          assetRoot.add(topBeam, gearHub);
+
+          const pivotGroup = new THREE.Group();
+          pivotGroup.position.set(0, H - 0.05, uz);
+
+          // Clockwork Anchor Escapement Ratchet Wheel Teeth & Pallet Fork on Pivot Hub
+          for (let gt = 0; gt < 12; gt++) {
+            const gang = (gt / 12) * Math.PI * 2;
+            const gTooth = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.14, 0.16), mats.bladeSteel);
+            gTooth.position.set(Math.cos(gang) * 0.38, Math.sin(gang) * 0.38, 0.22);
+            gTooth.rotation.z = gang;
+            pivotGroup.add(gTooth);
+          }
+
+          const armLen = H - 1.35;
+          const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, armLen, 12), mats.trim);
+          rod.position.y = -armLen / 2;
+          const spineCollar = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.22, 0.16), mats.trim);
+          spineCollar.position.y = -armLen + 0.12;
+          pivotGroup.add(rod, spineCollar);
+
+          let bladeMesh;
+          if (state.bladeProfile === 'serrated-saw') {
+            bladeMesh = new THREE.Mesh(new THREE.CylinderGeometry(bSize * 0.65, bSize * 0.65, 0.08, 24), mats.bladeSteel);
+            bladeMesh.rotation.x = Math.PI / 2;
+          } else {
+            bladeMesh = new THREE.Mesh(new THREE.TorusGeometry(bSize * 0.65, 0.16, 8, 24, Math.PI * 0.85), mats.bladeSteel);
+            bladeMesh.rotation.z = -Math.PI * 0.92;
+            bladeMesh.scale.set(1.0, 0.55, 0.25);
+          }
+          bladeMesh.position.y = -armLen;
+          bladeMesh.userData.isTriggerPlate = true;
+          clickableTrapMeshes.push(bladeMesh);
+          pivotGroup.add(bladeMesh);
+
+          assetRoot.add(pivotGroup);
+          animatedTrapUnits.push({ type: 'pendulum', group: pivotGroup, phase: phaseRad });
+        } else if (state.trapFamily === 'floor-spikes') {
+          // Floor Beveled Socket Grid + Spring-Loaded Impaling Spike Bank
+          const bankGroup = new THREE.Group();
+          bankGroup.position.set(0, 0.24, uz);
+
+          // Perforated Cast-Iron Grate Plate & Sub-Floor Pneumatic Actuator Manifold
+          const gratePlate = new THREE.Mesh(new THREE.BoxGeometry(W * 0.88, 0.04, 0.46), mats.trim);
+          gratePlate.position.set(0, 0.25, uz);
+          const manifoldPipe = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, W * 0.92, 12), mats.bladeSteel);
+          manifoldPipe.rotation.z = Math.PI / 2;
+          manifoldPipe.position.set(0, 0.28, uz - 0.22);
+          assetRoot.add(gratePlate, manifoldPipe);
+
+          const cols = 5;
+          for (let c = 0; c < cols; c++) {
+            const sx = (c - (cols - 1) / 2) * (W * 0.18);
+            const socket = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.16, 0.08, 16), mats.trim);
+            socket.position.set(sx, 0.02, 0);
+            assetRoot.add(socket.clone().translateZ(uz).translateY(0.24));
+
+            const spike = new THREE.Mesh(new THREE.ConeGeometry(0.09, bSize, 12), mats.bladeSteel);
+            spike.position.set(sx, bSize / 2, 0);
+            spike.userData.isTriggerPlate = true;
+            clickableTrapMeshes.push(spike);
+            bankGroup.add(spike);
+          }
+          assetRoot.add(bankGroup);
+          animatedTrapUnits.push({ type: 'spikes', group: bankGroup, phase: phaseRad, maxH: bSize });
+        } else if (state.trapFamily === 'spinning-rollers') {
+          // Left & Right Spinning Bladed Pillar Rollers
+          for (const s of [-1, 1]) {
+            const rollerGroup = new THREE.Group();
+            rollerGroup.position.set(s * (W * 0.34), 1.45, uz);
+
+            const drum = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 2.4, 20), mats.trim);
+            rollerGroup.add(drum);
+
+            for (let r = -2; r <= 2; r++) {
+              const saw = new THREE.Mesh(new THREE.CylinderGeometry(bSize * 0.55, bSize * 0.55, 0.05, 16), mats.bladeSteel);
+              saw.position.y = r * 0.45;
+              rollerGroup.add(saw);
+            }
+            assetRoot.add(rollerGroup);
+            animatedTrapUnits.push({ type: 'roller', group: rollerGroup, dir: s, phase: phaseRad });
+          }
+        } else if (state.trapFamily === 'ceiling-crusher') {
+          // Overhead Piston Ceiling Spiked Crusher Block
+          for (const s of [-1, 1]) {
+            const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.42, H, 0.42), mats.stone);
+            pillar.position.set(s * (W / 2 + 0.35), H / 2, uz);
+            assetRoot.add(pillar);
+          }
+          const crusherGroup = new THREE.Group();
+          crusherGroup.position.set(0, H - 0.8, uz);
+
+          const block = new THREE.Mesh(new THREE.BoxGeometry(W * 0.88, 0.75, 1.15), mats.stone);
+          const piston = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, H, 16), mats.trim);
+          piston.position.y = H / 2;
+          crusherGroup.add(block, piston);
+
+          for (let c = -2; c <= 2; c++) {
+            const tooth = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.45, 8), mats.bladeSteel);
+            tooth.rotation.x = Math.PI;
+            tooth.position.set(c * (W * 0.17), -0.60, 0);
+            crusherGroup.add(tooth);
+          }
+          assetRoot.add(crusherGroup);
+          animatedTrapUnits.push({ type: 'crusher', group: crusherGroup, phase: phaseRad, topY: H - 0.65 });
+        } else {
+          // Wall-Mounted Dragon Flame / Dart Nozzle Bank + Jet Plume
+          for (const s of [-1, 1]) {
+            const wallTurret = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.30, 0.38, 12), mats.trim);
+            wallTurret.rotation.z = Math.PI / 2;
+            wallTurret.position.set(s * (W / 2 + 0.15), 1.25, uz);
+            assetRoot.add(wallTurret);
+
+            const jetCone = new THREE.Mesh(new THREE.ConeGeometry(0.32, bSize * 1.1, 14), mats.glow);
+            jetCone.rotation.z = s * (Math.PI / 2);
+            jetCone.position.set(s * (W / 2 - bSize * 0.55), 1.25, uz);
+            assetRoot.add(jetCone);
+            animatedTrapUnits.push({ type: 'flamer', group: jetCone, phase: phaseRad });
+          }
+        }
+      }
+
+
+      // Wall-Mounted Mechanical Disarm Lever Box + Catenary Armored Tripwire Conduit
+      const leverBoxPos = new THREE.Vector3(W / 2 + 0.35, 1.15, L / 2 - 0.85);
+      const disarmBox = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.42, 0.28), mats.trim);
+      disarmBox.position.copy(leverBoxPos);
+      disarmBox.userData.isTriggerPlate = true;
+      clickableTrapMeshes.push(disarmBox);
+      assetRoot.add(disarmBox);
+
+      const disarmHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.38, 12), mats.bladeSteel);
+      disarmHandle.position.set(leverBoxPos.x - 0.12, leverBoxPos.y, leverBoxPos.z);
+      disarmHandle.rotation.z = state.armed ? 0.55 : -0.55;
+      disarmHandle.userData.isTriggerPlate = true;
+      clickableTrapMeshes.push(disarmHandle);
+      assetRoot.add(disarmHandle);
+
+      if (state.showPressurePlate) {
+        const tripCurve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(0.65, 0.26, L / 2 - 0.85),
+          new THREE.Vector3(W * 0.35, 0.16, L / 2 - 0.85),
+          new THREE.Vector3(W / 2 + 0.12, 0.45, L / 2 - 0.85),
+          new THREE.Vector3(leverBoxPos.x, leverBoxPos.y - 0.18, leverBoxPos.z)
+        ]);
+        const tripConduit = new THREE.Mesh(new THREE.TubeGeometry(tripCurve, 24, 0.024, 10, false), mats.trim);
+        assetRoot.add(tripConduit);
+      }
+
+      // v5.2 Bezeled Stamped Bezier Vector Industrial Nameplate ('manthrax/JSlug' pattern)
+      const plaqueTex = createStampedPlateTexture(
+        state.armed ? 'HAZARD_ARMED' : 'TRAP_DISARMED',
+        `${state.trapFamily.toUpperCase()} • ${count}X`,
+        state.armed ? '#f43f5e' : '#10b981'
+      );
+      const plaqueGroup = new THREE.Group();
+      plaqueGroup.name = 'Stamped_Bezier_Nameplate';
+      const plaqueBezel = new THREE.Mesh(new THREE.BoxGeometry(0.60, 0.17, 0.04), mats.trim);
+      const plaqueMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.56, 0.14), plaqueTex.createMaterial());
+      plaqueMesh.position.z = 0.022;
+      plaqueGroup.add(plaqueBezel, plaqueMesh);
+      plaqueGroup.position.set(W / 2 + 0.35, 0.42, L / 2 + 0.02);
+      assetRoot.add(plaqueGroup);
+      updateTelemetry();
+    }
+
+    function updateTelemetry() {
+      document.getElementById('stat-span').textContent = `${state.corridorLength.toFixed(1)}×${state.corridorWidth.toFixed(1)}m`;
+      document.getElementById('stat-units').textContent = `${state.unitCount}×${state.bladeSize.toFixed(2)}m`;
+      document.getElementById('stat-speed').textContent = `${state.trapSpeed.toFixed(1)}x`;
+      document.getElementById('sim-speed-readout').textContent = `${state.trapSpeed.toFixed(1)}x`;
+
+      let tris = 0;
+      assetRoot.traverse((obj) => {
+        if (obj.isMesh && obj.geometry) {
+          const g = obj.geometry;
+          tris += g.index ? g.index.count / 3 : g.attributes.position.count / 3;
+        }
+      });
+      document.getElementById('stat-triangles').textContent = `${Math.round(tris).toLocaleString()} tris`;
+
+      document.getElementById('label-length').textContent = `L: ${state.corridorLength.toFixed(2)}m`;
+      document.getElementById('label-width').textContent = `W: ${state.corridorWidth.toFixed(2)}m`;
+      document.getElementById('label-height').textContent = `H: ${state.ceilingHeight.toFixed(2)}m`;
+    }
+
+    function updateLabelsOverlay() {
+      const container = document.getElementById('labels-container');
+      if (!state.showDimensions) {
+        container.style.opacity = '0';
+        return;
+      }
+      container.style.opacity = '1';
+
+      const pts = [
+        { id: 'label-length', pos: new THREE.Vector3(state.corridorWidth / 2 + 0.9, 0.3, 0) },
+        { id: 'label-width', pos: new THREE.Vector3(0, 0.3, state.corridorLength / 2 + 0.9) },
+        { id: 'label-height', pos: new THREE.Vector3(-state.corridorWidth / 2 - 0.9, state.ceilingHeight / 2, 0) }
+      ];
+      const rect = mount.getBoundingClientRect();
+      for (const item of pts) {
+        const v = item.pos.clone().project(camera);
+        const el = document.getElementById(item.id);
+        if (v.z > 1) {
+          el.style.opacity = '0';
+        } else {
+          el.style.opacity = '1';
+          el.style.left = `${(v.x * 0.5 + 0.5) * rect.width}px`;
+          el.style.top = `${(-(v.y * 0.5) + 0.5) * rect.height}px`;
+        }
+      }
+    }
+
+    function syncUI() {
+      const sliders = [
+        ['corridorLength', ' m', 2],
+        ['corridorWidth', ' m', 2],
+        ['ceilingHeight', ' m', 2],
+        ['unitCount', ' units', 0],
+        ['bladeSize', ' m', 2],
+        ['trapSpeed', 'x', 1],
+        ['swingArc', '°', 0],
+        ['phaseOffset', '°', 0],
+        ['crackDensity', '%', 0],
+        ['bumpScale', '', 2]
+      ];
+      for (const [k, unit, dec] of sliders) {
+        const input = document.getElementById(`param-${k}`);
+        const label = document.getElementById(`val-${k}`);
+        if (input) input.value = state[k];
+        if (label) label.textContent = Number(state[k]).toFixed(dec) + unit;
+      }
+      ['trapFamily', 'bladeProfile', 'materialFinish', 'glowColor'].forEach((k) => {
+        const el = document.getElementById(`param-${k}`);
+        if (el) el.value = state[k];
+      });
+      ['showPressurePlate', 'showVrmAvatar', 'showDimensions', 'wireframe'].forEach((k) => {
+        const el = document.getElementById(`param-${k}`);
+        if (el) el.checked = Boolean(state[k]);
+      });
+    }
+
+    ['corridorLength', 'corridorWidth', 'ceilingHeight', 'unitCount', 'bladeSize', 'trapSpeed', 'swingArc', 'phaseOffset', 'crackDensity', 'bumpScale'].forEach((k) => {
+      document.getElementById(`param-${k}`).addEventListener('input', (e) => {
+        state[k] = parseFloat(e.target.value);
+        syncUI();
+        buildTrapScene();
+      });
+    });
+
+    ['trapFamily', 'bladeProfile', 'materialFinish', 'glowColor'].forEach((k) => {
+      document.getElementById(`param-${k}`).addEventListener('change', (e) => {
+        state[k] = e.target.value;
+        syncUI();
+        buildTrapScene();
+      });
+    });
+
+    ['showPressurePlate', 'showVrmAvatar', 'showDimensions', 'wireframe'].forEach((k) => {
+      document.getElementById(`param-${k}`).addEventListener('change', (e) => {
+        state[k] = e.target.checked;
+        buildTrapScene();
+      });
+    });
+
+    document.querySelectorAll('.tab-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach((b) => {
+          b.className = 'tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition';
+        });
+        btn.className = 'tab-btn py-2 rounded bg-slate-800 text-rose-400 shadow-sm transition';
+        document.querySelectorAll('.tab-content').forEach((p) => {
+          p.classList.toggle('hidden', p.id !== btn.dataset.tab);
+        });
+      });
+    });
+
+    document.querySelectorAll('.preset-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const p = PRESETS[btn.dataset.preset];
+        if (!p) return;
+        Object.assign(state, p);
+        syncUI();
+        buildTrapScene();
+        document.querySelectorAll('.preset-btn').forEach((b) => {
+          b.className = 'preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition';
+        });
+        btn.className = 'preset-btn px-2.5 py-1 rounded text-xs font-medium bg-rose-500/20 text-rose-300 border border-rose-500/40 transition';
+        showToast(`Loaded ${btn.textContent} hazard preset`);
+      });
+    });
+
+    document.getElementById('btnRandomize').addEventListener('click', () => {
+      const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+      state.trapFamily = pick(['pendulum-scythe', 'floor-spikes', 'spinning-rollers', 'ceiling-crusher', 'wall-flamers']);
+      state.bladeProfile = pick(['crescent-axe', 'serrated-saw', 'barbed-spear']);
+      state.materialFinish = pick(['obsidian-steel', 'dwarven-brass', 'rusted-iron']);
+      state.glowColor = pick(['crimson', 'amber', 'emerald', 'arcane-purple']);
+      state.unitCount = Math.floor(2 + Math.random() * 4);
+      syncUI();
+      buildTrapScene();
+      showToast('Randomized 100F Dungeon Trap Gauntlet');
+    });
+
+    let camTarget = null;
+    let orbitTarget = null;
+    document.querySelectorAll('.cam-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const mode = btn.dataset.cam;
+        if (mode === 'iso') {
+          camTarget = new THREE.Vector3(6.2, 4.2, 6.8);
+          orbitTarget = new THREE.Vector3(0, 1.6, 0);
+        } else if (mode === 'runner') {
+          camTarget = new THREE.Vector3(0, 1.75, state.corridorLength / 2 + 2.4);
+          orbitTarget = new THREE.Vector3(0, 1.5, -state.corridorLength / 2);
+        } else if (mode === 'plate') {
+          camTarget = new THREE.Vector3(1.6, 1.5, state.corridorLength / 2 + 0.8);
+          orbitTarget = new THREE.Vector3(0, 0.3, state.corridorLength / 2 - 0.85);
+        } else if (mode === 'side') {
+          camTarget = new THREE.Vector3(9.2, 2.0, 0);
+          orbitTarget = new THREE.Vector3(0, 1.8, 0);
+        }
+        document.querySelectorAll('.cam-btn').forEach((b) => {
+          b.className = b === btn
+            ? 'cam-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-rose-500/20 text-rose-300 border border-rose-500/30 transition'
+            : 'cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition';
+        });
+      });
+    });
+    controls.addEventListener('start', () => { camTarget = null; orbitTarget = null; });
+
+    document.getElementById('btnToggleTrapActive').addEventListener('click', () => {
+      state.trapActive = !state.trapActive;
+      document.getElementById('sim-status-text').textContent = state.trapActive
+        ? 'ARMED • CYCLING'
+        : 'DISARMED • SAFE';
+      showToast(state.trapActive ? 'Armed Dungeon Trap Cycle' : 'Disarmed Trap Gauntlet');
+    });
+
+    document.getElementById('btnStepPressurePlate').addEventListener('click', () => {
+      state.plateDepressed = 1.0;
+      state.trapActive = true;
+      document.getElementById('sim-status-text').textContent = 'PLATE TRIGGERED!';
+      buildTrapScene();
+      showToast('Stepped on .VRM Floor Pressure Plate — Trap Sprung!');
+    });
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    let downPos = { x: 0, y: 0 };
+    renderer.domElement.addEventListener('pointerdown', (e) => { downPos = { x: e.clientX, y: e.clientY }; });
+    window.addEventListener('pointerup', (e) => {
+      if (Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > 5) return;
+      const rect = renderer.domElement.getBoundingClientRect();
+      if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) return;
+      pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(clickableTrapMeshes, false);
+      if (hits.length > 0) {
+        state.trapActive = !state.trapActive;
+        state.plateDepressed = state.trapActive ? 1.0 : 0.0;
+        buildTrapScene();
+        showToast(state.trapActive ? 'Triggered Floor Pressure Plate — Hazard Active!' : 'Disarmed Hazard Mechanism');
+      }
+    });
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast-notification');
+      document.getElementById('toast-text').textContent = msg;
+      toast.style.opacity = '1';
+      setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('btnExportPBR').addEventListener('click', () => {
+      exportPBRTexturePack('trapcad', 'stone', state.crackDensity);
+      showToast('Exported Seamless PBR Bump/Crack Height & Normal Maps (.PNG)!');
+    });
+
+    document.getElementById('btnExportJSON').addEventListener('click', () => {
+      downloadBlob(new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }), `dungeon-trap-recipe-${state.trapFamily}.json`);
+      showToast('Exported Parametric Dungeon Trap Recipe (.JSON)');
+    });
+
+    document.getElementById('btnExportGLB').addEventListener('click', () => {
+      const exporter = new GLTFExporter();
+      exporter.parse(assetRoot, (res) => {
+        downloadBlob(new Blob([res], { type: 'application/octet-stream' }), `parametric-trap-${state.trapFamily}.glb`);
+        showToast(`Exported 3D ${state.trapFamily} (.GLB)!`);
+      }, (err) => console.error(err), { binary: true });
+    });
+
+    document.getElementById('btnExportOBJ').addEventListener('click', () => {
+      const exporter = new OBJExporter();
+      downloadBlob(new Blob([exporter.parse(assetRoot)], { type: 'text/plain' }), `parametric-trap-${state.trapFamily}.obj`);
+      showToast('Exported Wavefront 3D Mesh (.OBJ)');
+    });
+
+    const clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = Math.min(clock.getDelta(), 0.1);
+      const elapsed = clock.getElapsedTime() * state.trapSpeed;
+
+      if (camTarget && orbitTarget) {
+        camera.position.lerp(camTarget, dt * 5);
+        controls.target.lerp(orbitTarget, dt * 5);
+        if (camera.position.distanceTo(camTarget) < 0.06) {
+          camTarget = null;
+          orbitTarget = null;
+        }
+      }
+
+      if (state.trapActive) {
+        const maxSwingRad = THREE.MathUtils.degToRad(state.swingArc);
+        for (const item of animatedTrapUnits) {
+          if (item.type === 'pendulum') {
+            item.group.rotation.z = Math.sin(elapsed * 2.2 + item.phase) * maxSwingRad;
+          } else if (item.type === 'spikes') {
+            const cycle = Math.max(-0.95, Math.sin(elapsed * 3.0 + item.phase));
+            item.group.position.y = 0.24 + (cycle < 0 ? cycle * item.maxH : 0);
+          } else if (item.type === 'roller') {
+            item.group.rotation.y += dt * 4.5 * item.dir * state.trapSpeed;
+          } else if (item.type === 'crusher') {
+            const dropFrac = Math.pow(Math.max(0, Math.sin(elapsed * 2.0 + item.phase)), 2);
+            item.group.position.y = THREE.MathUtils.lerp(item.topY, 0.85, dropFrac);
+          } else if (item.type === 'flamer') {
+            const pulse = 0.5 + 0.5 * Math.sin(elapsed * 4.0 + item.phase);
+            item.group.scale.set(1.0, Math.max(0.05, pulse), 1.0);
+          }
+        }
+      }
+
+      controls.update();
+      updateLabelsOverlay();
+      const mPos = atmosphericMotes.geometry.attributes.position;
+      for (let mi = 0; mi < MOTE_COUNT; mi++) {
+        let my = mPos.getY(mi) + 0.0045;
+        if (my > 5.0) my = 0.15;
+        mPos.setY(mi, my);
+      }
+      mPos.needsUpdate = true;
+      if (bloomEnabled) composer.render();
+      else renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+      const rw = Math.max(1, mount.clientWidth);
+      const rh = Math.max(1, mount.clientHeight);
+      camera.aspect = rw / rh;
+      camera.updateProjectionMatrix();
+      renderer.setSize(rw, rh);
+      composer.setSize(rw, rh);
+    });
+
+    window.__STUDIO_E2E__ = {
+      studioCode: 'TRAPCAD',
+      version: '6.0',
+      scene, camera, renderer, composer, unrealBloomPass, assetRoot,
+      getBloomEnabled: () => bloomEnabled
+    };
+
+    syncUI();
+    buildTrapScene();
+    animate();
+  </script>
+</body>
+</html>

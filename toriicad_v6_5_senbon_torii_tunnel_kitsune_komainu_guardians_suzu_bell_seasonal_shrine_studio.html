@@ -1,0 +1,3046 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TORIICAD v6.5 — Senbon-Torii Tunnel, Kitsune/Komainu Guardians, Suzu Bell & Seasonal Shrine Studio</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <style>
+    * { box-sizing: border-box; user-select: none; }
+    header svg { width: 20px; height: 20px; }
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #09080c;
+      color: #e2e8f0;
+    }
+    .font-mono-tech { font-family: 'JetBrains Mono', monospace; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.4); }
+    ::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.6); border-radius: 3px; }
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: #1e293b;
+      border-radius: 999px;
+      outline: none;
+      border: 1px solid #334155;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #f43f5e;
+      cursor: pointer;
+      border: 2px solid #0f172a;
+      box-shadow: 0 0 8px rgba(244, 63, 94, 0.65);
+      transition: transform 0.1s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(51, 65, 85, 0.65);
+    }
+    .dimension-badge {
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.2s ease;
+    }
+  </style>
+</head>
+<body class="h-screen w-screen flex flex-col bg-[#09080c] text-slate-100">
+
+  <!-- TOP HEADER BAR -->
+  <header class="h-14 border-b border-slate-800/80 bg-slate-950/90 px-3.5 flex items-center justify-between z-20 shrink-0 gap-2">
+    <div class="flex items-center gap-2.5 shrink-0">
+      <div class="w-8 h-8 rounded-lg bg-rose-500/15 border border-rose-400/35 flex items-center justify-center text-rose-400 shadow-inner shrink-0">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6c5 1.5 13 1.5 18 0M4 10h16M7 6v15M17 6v15M12 6v4"></path>
+        </svg>
+      </div>
+      <div>
+        <div class="flex items-center gap-1.5">
+          <h1 class="font-semibold text-sm tracking-tight text-white">TORII<span class="text-rose-400">CAD</span></h1>
+          <span class="text-[10px] font-mono-tech uppercase px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-300 border border-rose-500/30">v6.5</span>
+        </div>
+        <p class="text-[10px] text-slate-400 hidden 2xl:block">Procedural Shinto Torii & Shimenawa Studio</p>
+      </div>
+    </div>
+
+    <!-- ARCHETYPE PRESETS -->
+    <div class="hidden xl:flex items-center gap-1 bg-slate-900/90 p-1 rounded-lg border border-slate-800 shrink-0">
+      <button data-preset="myojin" class="preset-btn px-2 py-1 rounded text-[11px] font-medium bg-rose-500/20 text-rose-300 border border-rose-500/40 transition">Myōjin</button>
+      <button data-preset="senbon" class="preset-btn px-2 py-1 rounded text-[11px] font-medium text-orange-300 hover:bg-orange-950/40 border border-orange-500/30 transition">Senbon Tunnel</button>
+      <button data-preset="shinmei" class="preset-btn px-2 py-1 rounded text-[11px] font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Shinmei</button>
+      <button data-preset="ryobu" class="preset-btn px-2 py-1 rounded text-[11px] font-medium text-sky-300 hover:bg-sky-950/40 border border-sky-500/30 transition">Ryōbu Water</button>
+      <button data-preset="miwa" class="preset-btn px-2 py-1 rounded text-[11px] font-medium text-amber-300 hover:bg-amber-950/40 border border-amber-500/30 transition">Miwa Triple</button>
+      <button data-preset="cyber" class="preset-btn px-2 py-1 rounded text-[11px] font-medium text-cyan-300 hover:bg-cyan-950/40 border border-cyan-500/30 transition">ELYSIUM Astral</button>
+    </div>
+
+    <!-- EXPORT ACTIONS -->
+    <div class="flex items-center gap-1.5 shrink-0">
+      <button id="btnToggleBloom" type="button" class="px-2 py-1.5 rounded-lg text-[11px] font-medium bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 font-mono-tech border border-cyan-500/40 transition" title="Toggle Selective ACES Filmic HDR UnrealBloom Post-Processing">✨ Bloom: ON</button>
+      <button id="btnRandomize" type="button" class="px-2 py-1.5 rounded-lg text-[11px] font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">Randomize</button>
+      <button id="btnExportPBR" type="button" class="px-2 py-1.5 rounded-lg text-[11px] font-medium bg-slate-800 hover:bg-slate-700 text-emerald-300 font-mono-tech border border-emerald-500/30 transition" title="Download Seamless Bump/Crack, RGB Normal & Micro-Roughness Maps (.PNG)">PBR .PNGs</button>
+      <button id="btnExportJSON" type="button" class="px-2 py-1.5 rounded-lg text-[11px] font-medium bg-slate-800 hover:bg-slate-700 text-amber-400 font-mono-tech border border-slate-700 transition">.JSON</button>
+      <button id="btnExportOBJ" type="button" class="px-2 py-1.5 rounded-lg text-[11px] font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">.OBJ</button>
+      <button id="btnExportGLB" type="button" class="px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-rose-500 hover:bg-rose-400 text-slate-950 shadow-lg shadow-rose-500/20 transition">Export .GLB</button>
+    </div>
+  </header>
+
+  <div class="flex-1 flex flex-col md:flex-row relative overflow-hidden">
+
+    <!-- LEFT CONTROL PANEL -->
+    <aside class="w-full md:w-80 lg:w-96 max-h-[44vh] md:max-h-none border-b md:border-b-0 md:border-r border-slate-800/80 bg-slate-950/95 flex flex-col z-10 shrink-0">
+      <!-- Mobile/Compact Preset Selector -->
+      <div class="xl:hidden px-3 pt-2.5 pb-1 flex items-center gap-1.5 overflow-x-auto border-b border-slate-800/60">
+        <button data-preset="myojin" class="preset-btn shrink-0 px-2 py-1 rounded text-[11px] font-medium bg-rose-500/20 text-rose-300 border border-rose-500/40">Myōjin</button>
+        <button data-preset="senbon" class="preset-btn shrink-0 px-2 py-1 rounded text-[11px] font-medium text-orange-300 bg-slate-900 border border-slate-800">Senbon</button>
+        <button data-preset="shinmei" class="preset-btn shrink-0 px-2 py-1 rounded text-[11px] font-medium text-slate-300 bg-slate-900 border border-slate-800">Shinmei</button>
+        <button data-preset="ryobu" class="preset-btn shrink-0 px-2 py-1 rounded text-[11px] font-medium text-sky-300 bg-slate-900 border border-slate-800">Ryōbu</button>
+        <button data-preset="miwa" class="preset-btn shrink-0 px-2 py-1 rounded text-[11px] font-medium text-amber-300 bg-slate-900 border border-slate-800">Miwa</button>
+        <button data-preset="cyber" class="preset-btn shrink-0 px-2 py-1 rounded text-[11px] font-medium text-cyan-300 bg-slate-900 border border-slate-800">ELYSIUM</button>
+      </div>
+
+      <!-- 5 TABS -->
+      <div class="grid grid-cols-5 border-b border-slate-800 bg-slate-900/60 p-1 gap-1 text-[11px] font-medium shrink-0">
+        <button data-tab="tab-arch" type="button" class="tab-btn py-2 rounded bg-slate-800 text-rose-400 shadow-sm transition">Frame</button>
+        <button data-tab="tab-lintels" type="button" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Lintels</button>
+        <button data-tab="tab-sacred" type="button" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Sacred</button>
+        <button data-tab="tab-precinct" type="button" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Precinct</button>
+        <button data-tab="tab-finish" type="button" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Materials</button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-4 space-y-5">
+
+        <!-- TAB 1: ARCHITECTURE & HASHIRA PILLARS -->
+        <div id="tab-arch" class="tab-content space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Torii Lineage & Hashira (柱)</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Traditional Torii Classification</label>
+                <select id="param-toriiStyle" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="myojin">Myōjin Torii (明神鳥居 — Curved Kasagi & Shimaki)</option>
+                  <option value="shinmei">Shinmei / Ise Torii (神明鳥居 — Straight Austere Logs)</option>
+                  <option value="inari">Inari / Daiwa Torii (稲荷鳥居 — Pillar Capital Rings)</option>
+                  <option value="ryobu">Ryōbu Four-Legged Torii (両部鳥居 — Water Outriggers)</option>
+                  <option value="miwa">Miwa Triple-Arched Torii (三輪鳥居 — Mitsu-Torii)</option>
+                </select>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Pillar Span Width (Ma-watari)</label>
+                  <span id="val-spanWidth" class="font-mono-tech text-rose-400">3.80 m</span>
+                </div>
+                <input id="param-spanWidth" type="range" min="2.20" max="7.00" step="0.10" value="3.80">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Clearance Pillar Height (Hashira)</label>
+                  <span id="val-pillarHeight" class="font-mono-tech text-rose-400">4.40 m</span>
+                </div>
+                <input id="param-pillarHeight" type="range" min="2.60" max="7.50" step="0.10" value="4.40">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Hashira Base Radius</label>
+                  <span id="val-pillarRadius" class="font-mono-tech text-rose-400">0.24 m</span>
+                </div>
+                <input id="param-pillarRadius" type="range" min="0.14" max="0.42" step="0.01" value="0.24">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Uchikorobi Inward Tilt (内転び)</label>
+                  <span id="val-korobiTilt" class="font-mono-tech text-rose-400">2.2°</span>
+                </div>
+                <input id="param-korobiTilt" type="range" min="0.0" max="5.0" step="0.2" value="2.2">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-emerald-300 block">Show .VRM 1.70m Scale Avatar</span>
+                  <span class="text-[11px] text-slate-400">Verify shrine walkthrough & nuki headroom</span>
+                </div>
+                <input id="param-showVrmAvatar" type="checkbox" checked class="w-4 h-4 accent-emerald-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-orange-300/90 mb-3">Senbon-Torii Tunnel Array (千本鳥居)</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-orange-500/25">
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Colonnade Gate Count</label>
+                  <span id="val-tunnelCount" class="font-mono-tech text-orange-400">1 gate</span>
+                </div>
+                <input id="param-tunnelCount" type="range" min="1" max="24" step="1" value="1">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Gate-to-Gate Spacing</label>
+                  <span id="val-tunnelSpacing" class="font-mono-tech text-orange-400">1.35 m</span>
+                </div>
+                <input id="param-tunnelSpacing" type="range" min="0.80" max="2.80" step="0.05" value="1.35">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Mountain Path Curve</label>
+                  <span id="val-tunnelCurveDeg" class="font-mono-tech text-orange-400">28°</span>
+                </div>
+                <input id="param-tunnelCurveDeg" type="range" min="-55" max="55" step="1" value="28">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Stepped Mountain Climb</label>
+                  <span id="val-tunnelSlope" class="font-mono-tech text-orange-400">1.60 m</span>
+                </div>
+                <input id="param-tunnelSlope" type="range" min="0.00" max="4.50" step="0.10" value="1.60">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: KASAGI, SHIMAKI & NUKI JOINERY -->
+        <div id="tab-lintels" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Kasagi (笠木), Shimaki & Nuki Joinery</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Sorimashi Upward Curve (反り増し)</label>
+                  <span id="val-sorimashiCurve" class="font-mono-tech text-rose-400">0.36 m</span>
+                </div>
+                <input id="param-sorimashiCurve" type="range" min="0.00" max="0.85" step="0.02" value="0.36">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Kasagi Eave Overhang</label>
+                  <span id="val-lintelOverhang" class="font-mono-tech text-rose-400">0.95 m</span>
+                </div>
+                <input id="param-lintelOverhang" type="range" min="0.40" max="1.80" step="0.05" value="0.95">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Nuki Tie-Beam Protrusion (貫)</label>
+                  <span id="val-nukiProtrusion" class="font-mono-tech text-rose-400">0.38 m</span>
+                </div>
+                <input id="param-nukiProtrusion" type="range" min="0.00" max="0.75" step="0.02" value="0.38">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Kusabi Mortise Wedges (楔)</span>
+                  <span class="text-[11px] text-slate-400">Tapered timber wedges locking the nuki</span>
+                </div>
+                <input id="param-showKusabi" type="checkbox" checked class="w-4 h-4 accent-rose-500 rounded cursor-pointer">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Nemaki Sleeves & Kamebara Stones</span>
+                  <span class="text-[11px] text-slate-400">Black root sleeves & carved granite plinths</span>
+                </div>
+                <input id="param-showNemaki" type="checkbox" checked class="w-4 h-4 accent-rose-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: SHIMENAWA ROPE, SHIDE & SHINGAKU PLAQUE -->
+        <div id="tab-sacred" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Shimenawa (注連縄), Shide & Shingaku</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-amber-300 block">Braided Shimenawa Sacred Rope</span>
+                  <span class="text-[11px] text-slate-400">Tapered multi-strand twisted straw/hemp rope</span>
+                </div>
+                <input id="param-showShimenawa" type="checkbox" checked class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Shimenawa Center Swell Radius</label>
+                  <span id="val-shimenawaThickness" class="font-mono-tech text-rose-400">0.15 m</span>
+                </div>
+                <input id="param-shimenawaThickness" type="range" min="0.06" max="0.28" step="0.01" value="0.15">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Zigzag Washi Shide Streamers (紙垂)</label>
+                  <span id="val-shideCount" class="font-mono-tech text-rose-400">5 shide</span>
+                </div>
+                <input id="param-shideCount" type="range" min="0" max="9" step="1" value="5">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Gakuzuka Strut & Shingaku Tablet</span>
+                  <span class="text-[11px] text-slate-400">Framed gilded shrine calligraphy plaque</span>
+                </div>
+                <input id="param-showGakuzuka" type="checkbox" checked class="w-4 h-4 accent-rose-500 rounded cursor-pointer">
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Shingaku Plaque Inscription</label>
+                <input id="param-plaqueTitle" type="text" maxlength="16" value="神域 ELYSIUM" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-amber-300 font-medium focus:outline-none focus:border-rose-500">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-amber-300 block">Hanging Brass Suzu Bell & Rope (鈴緒)</span>
+                  <span class="text-[11px] text-slate-400">Braided red/white suzu-o rope (click in 3D to swing!)</span>
+                </div>
+                <input id="param-showSuzuBell" type="checkbox" checked class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Suzu-o Pull-Rope Length</label>
+                  <span id="val-suzuRopeLength" class="font-mono-tech text-rose-400">1.55 m</span>
+                </div>
+                <input id="param-suzuRopeLength" type="range" min="0.85" max="2.30" step="0.05" value="1.55">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: SHRINE PRECINCT, LANTERNS & WIND -->
+        <div id="tab-precinct" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Sandō Approach, Tōrō Lanterns & Wind</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Shrine Ground / Water Base</label>
+                <select id="param-basePlatform" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="stone-sandou">Flagstone Sandō Path & Moss Curb</option>
+                  <option value="tidal-water">Reflective Tidal Lagoon (Itsukushima)</option>
+                  <option value="minimal-plinth">Clean Modular Game-Prop Plinths Only</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Entrance Guardian Statues (狛犬・狐)</label>
+                <select id="param-guardianStyle" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="kitsune">Inari Kitsune Foxes (狐 — Key & Hōju Spirit Jewel + Red Bibs)</option>
+                  <option value="komainu">Komainu Lion-Dogs (狛犬 — Agyō & Ungyō Temple Pair)</option>
+                  <option value="none">None (No Flanking Guardians)</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Flanking Shrine Lanterns (灯籠)</label>
+                <select id="param-lanternStyle" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="ishi-doro">Carved Granite Ishi-Dōrō Stone Lanterns</option>
+                  <option value="cyber-brazier">Arcane Levitating Sanctuary Braziers</option>
+                  <option value="none">None (Pure Torii Gate Only)</option>
+                </select>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Lantern & Rune Emission</label>
+                  <span id="val-lanternGlow" class="font-mono-tech text-rose-400">110%</span>
+                </div>
+                <input id="param-lanternGlow" type="range" min="0" max="180" step="5" value="110">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Mountain Wind Sway (Shide & Petals)</label>
+                  <span id="val-breezeStrength" class="font-mono-tech text-rose-400">45%</span>
+                </div>
+                <input id="param-breezeStrength" type="range" min="0" max="100" step="5" value="45">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 5: MATERIALS & 3-CHANNEL PBR -->
+        <div id="tab-finish" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Lacquer, Timber & 3-Channel PBR</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Surface Material Palette</label>
+                <select id="param-materialPalette" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="vermilion-lacquer">Shinto Vermilion Lacquer & Sumi Black</option>
+                  <option value="hinoki-cypress">Unpainted Sacred Hinoki Cypress Wood</option>
+                  <option value="weathered-granite">Moss-Weathered Ashlar Shrine Granite</option>
+                  <option value="aged-bronze">Patina Temple Bronze & Gilded Brass</option>
+                  <option value="elysium-obsidian">ELYSIUM Carbon Obsidian & Orichalcum</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Seasonal Shrine Atmosphere</label>
+                <select id="param-seasonMode" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="sakura-spring">Spring Sakura Petals & Fresh Moss</option>
+                  <option value="winter-snow">Winter Snow Caps & Falling Snowflakes</option>
+                  <option value="ancient-moss">Ancient Forest Lichen & Heavy Moss Creep</option>
+                  <option value="autumn-momiji">Autumn Momiji Maple Drift</option>
+                  <option value="clear">Clear Crisp Shrine Night</option>
+                </select>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Snow Cap / Moss Creep Coverage</label>
+                  <span id="val-weatheringAmount" class="font-mono-tech text-rose-400">45%</span>
+                </div>
+                <input id="param-weatheringAmount" type="range" min="0" max="100" step="5" value="45">
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Spirit & Lantern Glow Hue</label>
+                <select id="param-glowTheme" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="warm-lantern">Warm Washi Candlelight Amber</option>
+                  <option value="kitsune-gold">Sacred Kitsune Celestial Gold</option>
+                  <option value="spirit-cyan">Kodama / Astral Spirit Cyan</option>
+                  <option value="sakura-crimson">Crimson Blood-Moon Blossom</option>
+                </select>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Wood Grain & Stone Weathering</label>
+                  <span id="val-crackDensity" class="font-mono-tech text-rose-400">38%</span>
+                </div>
+                <input id="param-crackDensity" type="range" min="0" max="100" step="2" value="38">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">PBR Bump / Normal Relief Depth</label>
+                  <span id="val-bumpScale" class="font-mono-tech text-rose-400">0.04</span>
+                </div>
+                <input id="param-bumpScale" type="range" min="0.00" max="0.12" step="0.01" value="0.04">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-300">Show 3D Dimension Callouts</span>
+                <input id="param-showDimensions" type="checkbox" checked class="w-4 h-4 accent-rose-500 rounded cursor-pointer">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-300">Wireframe Mesh Inspection</span>
+                <input id="param-wireframe" type="checkbox" class="w-4 h-4 accent-rose-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ARCHITECTURAL TELEMETRY READOUT -->
+        <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800/90 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Joinery & .VRM Spec</span>
+            <span id="stat-lineageBadge" class="text-[10px] font-mono-tech px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-300 border border-rose-500/30">MYŌJIN FAMILY</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-xs pt-1">
+            <div class="bg-slate-950/70 p-2 rounded-lg border border-slate-800/70">
+              <span class="text-[10px] text-slate-400 block">Nuki Headroom</span>
+              <span id="stat-headroom" class="font-mono-tech text-emerald-400 font-semibold">3.42 m (PASS)</span>
+            </div>
+            <div class="bg-slate-950/70 p-2 rounded-lg border border-slate-800/70">
+              <span class="text-[10px] text-slate-400 block">Kasagi Total Span</span>
+              <span id="stat-kasagiSpan" class="font-mono-tech text-slate-200 font-semibold">5.70 m</span>
+            </div>
+            <div class="bg-slate-950/70 p-2 rounded-lg border border-slate-800/70">
+              <span class="text-[10px] text-slate-400 block">Active 3D Meshes</span>
+              <span id="stat-meshCount" class="font-mono-tech text-rose-300 font-semibold">0</span>
+            </div>
+            <div class="bg-slate-950/70 p-2 rounded-lg border border-slate-800/70">
+              <span class="text-[10px] text-slate-400 block">Triangles</span>
+              <span id="stat-triCount" class="font-mono-tech text-amber-300 font-semibold">0</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- MAIN 3D VIEWPORT -->
+    <main class="flex-1 relative bg-[#09080c] overflow-hidden">
+      <div id="viewport-mount" class="w-full h-full"></div>
+
+      <!-- 3D FLOATING DIMENSION CALLOUTS -->
+      <div id="dimensions-overlay" style="opacity:0" class="absolute inset-0 pointer-events-none overflow-hidden">
+        <div id="label-span" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/85 border border-rose-500/40 text-[11px] font-mono-tech text-rose-300 shadow-lg">Span: 3.80 m</div>
+        <div id="label-height" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/85 border border-amber-500/40 text-[11px] font-mono-tech text-amber-300 shadow-lg">Height: 4.40 m</div>
+        <div id="label-nuki" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/85 border border-emerald-500/40 text-[11px] font-mono-tech text-emerald-300 shadow-lg">Nuki Clear: 3.42 m</div>
+      </div>
+
+      <!-- CAMERA & INTERACTION HUD -->
+      <div class="absolute bottom-4 left-4 right-4 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+        <div class="glass-panel px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 pointer-events-auto shadow-xl">
+          <span class="text-[11px] text-slate-400 px-1.5 hidden sm:inline">Camera:</span>
+          <button data-cam="iso" type="button" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-rose-500/20 text-rose-300 border border-rose-500/30 transition">Shrine 3/4</button>
+          <button data-cam="walkthrough" type="button" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">.VRM Walkthrough</button>
+          <button data-cam="tunnel" type="button" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">Tunnel Vista</button>
+          <button data-cam="lintel" type="button" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">Kasagi & Plaque</button>
+        </div>
+
+        <div class="glass-panel px-3 py-1.5 rounded-xl flex items-center gap-2.5 pointer-events-auto shadow-xl">
+          <span class="text-[11px] text-slate-400 hidden lg:inline">Click Shingaku plaque or lanterns in 3D to chime</span>
+          <button id="btnBlessingPulse" type="button" class="px-3 py-1 rounded-lg text-xs font-semibold bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-400 hover:to-amber-400 text-slate-950 shadow-md transition">⛩️ Ring Shrine Blessing</button>
+        </div>
+      </div>
+
+      <!-- TOAST NOTIFICATION -->
+      <div id="toast-notification" class="pointer-events-none opacity-0 transition-opacity duration-300 absolute top-4 right-4 glass-panel px-3.5 py-2 rounded-xl border border-rose-500/40 shadow-2xl flex items-center gap-2 z-30">
+        <span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span>
+        <span id="toast-text" class="text-xs font-medium text-slate-100">Ready</span>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+    import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+    import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+    import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+    import { OBJExporter } from 'three/addons/exporters/OBJExporter.js';
+
+    // =========================================================================
+    // 1. PARAMETRIC STATE & GROUNDED TORII PRESETS
+    // =========================================================================
+    const state = {
+      version: '6.5',
+      toriiStyle: 'myojin',
+      spanWidth: 3.80,
+      pillarHeight: 4.40,
+      pillarRadius: 0.24,
+      korobiTilt: 2.2,
+      showVrmAvatar: true,
+      tunnelCount: 1,
+      tunnelSpacing: 1.35,
+      tunnelCurveDeg: 28,
+      tunnelSlope: 1.60,
+      sorimashiCurve: 0.36,
+      lintelOverhang: 0.95,
+      nukiProtrusion: 0.38,
+      showKusabi: true,
+      showNemaki: true,
+      showShimenawa: true,
+      shimenawaThickness: 0.15,
+      shideCount: 5,
+      showGakuzuka: true,
+      plaqueTitle: '神域 ELYSIUM',
+      showSuzuBell: true,
+      suzuRopeLength: 1.55,
+      basePlatform: 'stone-sandou',
+      guardianStyle: 'kitsune',
+      lanternStyle: 'ishi-doro',
+      lanternGlow: 110,
+      breezeStrength: 45,
+      materialPalette: 'vermilion-lacquer',
+      seasonMode: 'sakura-spring',
+      weatheringAmount: 45,
+      glowTheme: 'warm-lantern',
+      crackDensity: 38,
+      bumpScale: 0.04,
+      showDimensions: true,
+      wireframe: false
+    };
+
+    const PRESETS = {
+      senbon: {
+        toriiStyle: 'myojin',
+        spanWidth: 3.10,
+        pillarHeight: 3.85,
+        pillarRadius: 0.20,
+        korobiTilt: 2.0,
+        tunnelCount: 12,
+        tunnelSpacing: 1.25,
+        tunnelCurveDeg: 32,
+        tunnelSlope: 2.10,
+        sorimashiCurve: 0.30,
+        lintelOverhang: 0.78,
+        nukiProtrusion: 0.32,
+        showKusabi: true,
+        showNemaki: true,
+        showShimenawa: true,
+        shimenawaThickness: 0.13,
+        shideCount: 5,
+        showGakuzuka: true,
+        plaqueTitle: '伏見稲荷',
+        showSuzuBell: true,
+        suzuRopeLength: 1.25,
+        basePlatform: 'stone-sandou',
+        guardianStyle: 'kitsune',
+        lanternStyle: 'ishi-doro',
+        lanternGlow: 125,
+        breezeStrength: 50,
+        materialPalette: 'vermilion-lacquer',
+        seasonMode: 'sakura-spring',
+        weatheringAmount: 45,
+        glowTheme: 'warm-lantern'
+      },
+      myojin: {
+        tunnelCount: 1,
+        showSuzuBell: true,
+        suzuRopeLength: 1.55,
+        guardianStyle: 'kitsune',
+        seasonMode: 'sakura-spring',
+        weatheringAmount: 40,
+        toriiStyle: 'myojin',
+        spanWidth: 3.80,
+        pillarHeight: 4.40,
+        pillarRadius: 0.24,
+        korobiTilt: 2.2,
+        sorimashiCurve: 0.36,
+        lintelOverhang: 0.95,
+        nukiProtrusion: 0.38,
+        showKusabi: true,
+        showNemaki: true,
+        showShimenawa: true,
+        shimenawaThickness: 0.15,
+        shideCount: 5,
+        showGakuzuka: true,
+        plaqueTitle: '稲荷大神',
+        basePlatform: 'stone-sandou',
+        lanternStyle: 'ishi-doro',
+        lanternGlow: 110,
+        breezeStrength: 45,
+        materialPalette: 'vermilion-lacquer',
+        glowTheme: 'warm-lantern'
+      },
+      shinmei: {
+        tunnelCount: 1, showSuzuBell: true, suzuRopeLength: 1.45, guardianStyle: 'komainu', seasonMode: 'ancient-moss', weatheringAmount: 55,
+        toriiStyle: 'shinmei',
+        spanWidth: 3.60,
+        pillarHeight: 4.20,
+        pillarRadius: 0.23,
+        korobiTilt: 0.0,
+        sorimashiCurve: 0.00,
+        lintelOverhang: 0.80,
+        nukiProtrusion: 0.32,
+        showKusabi: false,
+        showNemaki: false,
+        showShimenawa: true,
+        shimenawaThickness: 0.13,
+        shideCount: 5,
+        showGakuzuka: false,
+        plaqueTitle: '皇大神宮',
+        basePlatform: 'stone-sandou',
+        lanternStyle: 'ishi-doro',
+        lanternGlow: 90,
+        breezeStrength: 35,
+        materialPalette: 'hinoki-cypress',
+        glowTheme: 'kitsune-gold'
+      },
+      ryobu: {
+        tunnelCount: 1, showSuzuBell: false, suzuRopeLength: 1.50, guardianStyle: 'komainu', seasonMode: 'winter-snow', weatheringAmount: 65,
+        toriiStyle: 'ryobu',
+        spanWidth: 4.30,
+        pillarHeight: 5.10,
+        pillarRadius: 0.28,
+        korobiTilt: 2.0,
+        sorimashiCurve: 0.48,
+        lintelOverhang: 1.25,
+        nukiProtrusion: 0.46,
+        showKusabi: true,
+        showNemaki: true,
+        showShimenawa: false,
+        shimenawaThickness: 0.16,
+        shideCount: 5,
+        showGakuzuka: true,
+        plaqueTitle: '伊都岐島',
+        basePlatform: 'tidal-water',
+        lanternStyle: 'ishi-doro',
+        lanternGlow: 125,
+        breezeStrength: 55,
+        materialPalette: 'vermilion-lacquer',
+        glowTheme: 'warm-lantern'
+      },
+      miwa: {
+        tunnelCount: 1, showSuzuBell: true, suzuRopeLength: 1.55, guardianStyle: 'komainu', seasonMode: 'autumn-momiji', weatheringAmount: 50,
+        toriiStyle: 'miwa',
+        spanWidth: 3.70,
+        pillarHeight: 4.50,
+        pillarRadius: 0.22,
+        korobiTilt: 1.4,
+        sorimashiCurve: 0.32,
+        lintelOverhang: 0.88,
+        nukiProtrusion: 0.34,
+        showKusabi: true,
+        showNemaki: true,
+        showShimenawa: true,
+        shimenawaThickness: 0.16,
+        shideCount: 7,
+        showGakuzuka: false,
+        plaqueTitle: '大神神社',
+        basePlatform: 'stone-sandou',
+        lanternStyle: 'ishi-doro',
+        lanternGlow: 115,
+        breezeStrength: 40,
+        materialPalette: 'hinoki-cypress',
+        glowTheme: 'kitsune-gold'
+      },
+      cyber: {
+        tunnelCount: 5, tunnelSpacing: 1.85, tunnelCurveDeg: 18, tunnelSlope: 0.90, showSuzuBell: true, suzuRopeLength: 1.50, guardianStyle: 'kitsune', seasonMode: 'sakura-spring', weatheringAmount: 25,
+        toriiStyle: 'inari',
+        spanWidth: 4.10,
+        pillarHeight: 4.80,
+        pillarRadius: 0.25,
+        korobiTilt: 2.4,
+        sorimashiCurve: 0.44,
+        lintelOverhang: 1.10,
+        nukiProtrusion: 0.42,
+        showKusabi: true,
+        showNemaki: true,
+        showShimenawa: true,
+        shimenawaThickness: 0.16,
+        shideCount: 5,
+        showGakuzuka: true,
+        plaqueTitle: '神域 ELYSIUM',
+        basePlatform: 'tidal-water',
+        lanternStyle: 'cyber-brazier',
+        lanternGlow: 155,
+        breezeStrength: 60,
+        materialPalette: 'elysium-obsidian',
+        glowTheme: 'spirit-cyan'
+      }
+    };
+
+    const PALETTES = {
+      'vermilion-lacquer': {
+        main: 0xd7281e,       // Shinto Shu-iro vermilion
+        mainRough: 0.30,
+        mainMetal: 0.08,
+        cap: 0x16171d,        // Sumi black kasagi & nemaki
+        capRough: 0.36,
+        capMetal: 0.14,
+        stone: 0x7b808a,
+        accentMetal: 0xd4a537 // Gilded temple brass kanagu
+      },
+      'hinoki-cypress': {
+        main: 0xc89d6c,       // Natural Japanese hinoki timber
+        mainRough: 0.62,
+        mainMetal: 0.02,
+        cap: 0x5c4632,        // Bark/copper-shingled ridge
+        capRough: 0.55,
+        capMetal: 0.12,
+        stone: 0x85898e,
+        accentMetal: 0xb08a48
+      },
+      'weathered-granite': {
+        main: 0x8d939b,       // Carved ishi-torii ashlar granite
+        mainRough: 0.78,
+        mainMetal: 0.04,
+        cap: 0x676d75,
+        capRough: 0.80,
+        capMetal: 0.05,
+        stone: 0x5d646b,
+        accentMetal: 0x8b9687
+      },
+      'aged-bronze': {
+        main: 0x456b60,       // Verdigris temple bronze
+        mainRough: 0.42,
+        mainMetal: 0.72,
+        cap: 0x263834,
+        capRough: 0.38,
+        capMetal: 0.78,
+        stone: 0x6f747c,
+        accentMetal: 0xe0b347
+      },
+      'elysium-obsidian': {
+        main: 0x181b26,       // Carbon obsidian armor
+        mainRough: 0.24,
+        mainMetal: 0.65,
+        cap: 0x991b1b,        // Crimson lacquer ridge
+        capRough: 0.28,
+        capMetal: 0.45,
+        stone: 0x272c3a,
+        accentMetal: 0xf5bd42
+      }
+    };
+
+    const GLOW_THEMES = {
+      'warm-lantern': { hex: 0xffa94d, motes: 0xffcf87 },
+      'kitsune-gold': { hex: 0xffd43b, motes: 0xffe885 },
+      'spirit-cyan': { hex: 0x38bdf8, motes: 0x7dd3fc },
+      'sakura-crimson': { hex: 0xfb7185, motes: 0xfda4af }
+    };
+
+    // =========================================================================
+    // 2. THREE.JS r160 SCENE, PMREM, COMPOSER & SELECTIVE UNREALBLOOM
+    // =========================================================================
+    const mount = document.getElementById('viewport-mount');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x09080c);
+    scene.fog = new THREE.FogExp2(0x09080c, 0.022);
+
+    const initW = Math.max(1, mount.clientWidth || 960);
+    const initH = Math.max(1, mount.clientHeight || 640);
+
+    const camera = new THREE.PerspectiveCamera(44, initW / initH, 0.1, 160);
+    camera.position.set(5.4, 3.3, 6.8);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setSize(initW, initH);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.08;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    mount.appendChild(renderer.domElement);
+
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+    const composer = new EffectComposer(renderer);
+    composer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    composer.setSize(initW, initH);
+    const renderPass = new RenderPass(scene, camera);
+    const unrealBloomPass = new UnrealBloomPass(new THREE.Vector2(initW, initH), 0.42, 0.55, 0.85);
+    const outputPass = new OutputPass();
+    composer.addPass(renderPass);
+    composer.addPass(unrealBloomPass);
+    composer.addPass(outputPass);
+
+    let bloomEnabled = true;
+    const btnToggleBloom = document.getElementById('btnToggleBloom');
+    btnToggleBloom.addEventListener('click', () => {
+      bloomEnabled = !bloomEnabled;
+      unrealBloomPass.enabled = bloomEnabled;
+      btnToggleBloom.textContent = bloomEnabled ? '✨ Bloom: ON' : '✨ Bloom: OFF';
+      btnToggleBloom.className = bloomEnabled
+        ? 'px-2 py-1.5 rounded-lg text-[11px] font-medium bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 font-mono-tech border border-cyan-500/40 transition'
+        : 'px-2 py-1.5 rounded-lg text-[11px] font-medium bg-slate-800 hover:bg-slate-700 text-slate-400 font-mono-tech border border-slate-700 transition';
+    });
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.055;
+    controls.target.set(0, 2.2, 0);
+    controls.minDistance = 1.6;
+    controls.maxDistance = 28;
+    controls.maxPolarAngle = Math.PI * 0.495;
+
+    // Studio Lighting Rig
+    const hemiLight = new THREE.HemisphereLight(0xdbeafe, 0x1e1b2e, 0.65);
+    scene.add(hemiLight);
+
+    const sunLight = new THREE.DirectionalLight(0xfff3db, 2.3);
+    sunLight.position.set(7.5, 12.0, 8.5);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.set(2048, 2048);
+    sunLight.shadow.camera.near = 0.5;
+    sunLight.shadow.camera.far = 36;
+    const dCam = 9.5;
+    sunLight.shadow.camera.left = -dCam;
+    sunLight.shadow.camera.right = dCam;
+    sunLight.shadow.camera.top = dCam;
+    sunLight.shadow.camera.bottom = -dCam;
+    sunLight.shadow.bias = -0.0004;
+    scene.add(sunLight);
+
+    const rimLight = new THREE.DirectionalLight(0x60a5fa, 0.85);
+    rimLight.position.set(-7.0, 5.5, -6.5);
+    scene.add(rimLight);
+
+    const shrinePointLight = new THREE.PointLight(0xffa94d, 1.8, 12);
+    shrinePointLight.position.set(0, 3.2, 0.8);
+    scene.add(shrinePointLight);
+
+    // Studio Shadow-Catcher Floor + Soft Radial Contact AO (kept outside assetRoot)
+    const studioEnvGroup = new THREE.Group();
+    studioEnvGroup.name = 'StudioEnvironmentFloor';
+    scene.add(studioEnvGroup);
+
+    function createContactAOTexture() {
+      const c = document.createElement('canvas');
+      c.width = 256;
+      c.height = 256;
+      const ctx = c.getContext('2d');
+      const g = ctx.createRadialGradient(128, 128, 12, 128, 128, 124);
+      g.addColorStop(0, 'rgba(0,0,0,0.68)');
+      g.addColorStop(0.55, 'rgba(0,0,0,0.26)');
+      g.addColorStop(1, 'rgba(0,0,0,0.0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, 256, 256);
+      const tex = new THREE.CanvasTexture(c);
+      tex.needsUpdate = true;
+      return tex;
+    }
+
+    const studioFloor = new THREE.Mesh(
+      new THREE.CircleGeometry(15, 64),
+      new THREE.MeshStandardMaterial({ color: 0x0d0e15, roughness: 0.92, metalness: 0.05 })
+    );
+    studioFloor.rotation.x = -Math.PI / 2;
+    studioFloor.position.y = -0.006;
+    studioFloor.receiveShadow = true;
+    studioEnvGroup.add(studioFloor);
+
+    const contactAOMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(9.5, 5.2),
+      new THREE.MeshBasicMaterial({ map: createContactAOTexture(), transparent: true, depthWrite: false })
+    );
+    contactAOMesh.rotation.x = -Math.PI / 2;
+    contactAOMesh.position.y = -0.002;
+    studioEnvGroup.add(contactAOMesh);
+
+    const gridHelper = new THREE.GridHelper(18, 36, 0x334155, 0x1e293b);
+    gridHelper.position.y = -0.004;
+    gridHelper.material.opacity = 0.28;
+    gridHelper.material.transparent = true;
+    studioEnvGroup.add(gridHelper);
+
+    // Floating Sakura / Spirit Motes (outside assetRoot so GLB/OBJ stay clean)
+    const MOTE_COUNT = 64;
+    const motePositions = new Float32Array(MOTE_COUNT * 3);
+    for (let i = 0; i < MOTE_COUNT; i++) {
+      motePositions[i * 3] = (Math.random() - 0.5) * 11.0;
+      motePositions[i * 3 + 1] = Math.random() * 6.2 + 0.2;
+      motePositions[i * 3 + 2] = (Math.random() - 0.5) * 8.0;
+    }
+    const moteGeo = new THREE.BufferGeometry();
+    moteGeo.setAttribute('position', new THREE.BufferAttribute(motePositions, 3));
+    const moteMat = new THREE.PointsMaterial({
+      color: 0xffcf87,
+      size: 0.065,
+      transparent: true,
+      opacity: 0.72,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+    const atmosphericMotes = new THREE.Points(moteGeo, moteMat);
+    scene.add(atmosphericMotes);
+
+    // =========================================================================
+    // 3. 3-CHANNEL PROCEDURAL PBR SYNTHESIZER (BUMP + NORMAL + ROUGHNESS CAVITY)
+    // =========================================================================
+    let currentPBR = { bumpCanvas: null, normalCanvas: null, roughCanvas: null, bumpTex: null, normalTex: null, roughnessTex: null };
+
+    function seededRand(seed) {
+      let s = seed % 2147483647;
+      if (s <= 0) s += 2147483646;
+      return () => {
+        s = (s * 16807) % 2147483647;
+        return (s - 1) / 2147483646;
+      };
+    }
+
+    function generatePBRMaps(crackDensity = 38) {
+      const size = 256;
+      const rand = seededRand(4099 + Math.round(crackDensity * 13));
+
+      const bumpCanvas = document.createElement('canvas');
+      bumpCanvas.width = size;
+      bumpCanvas.height = size;
+      const bCtx = bumpCanvas.getContext('2d');
+
+      // Base timber / stone micro-grain
+      bCtx.fillStyle = '#848484';
+      bCtx.fillRect(0, 0, size, size);
+
+      // Vertical timber cathedral grain & subtle growth rings
+      for (let x = 0; x < size; x += 2) {
+        const wave = Math.sin(x * 0.16) * 12 + (rand() - 0.5) * 14;
+        const v = Math.max(45, Math.min(215, Math.round(132 + wave)));
+        bCtx.fillStyle = `rgb(${v},${v},${v})`;
+        bCtx.fillRect(x, 0, 2, size);
+      }
+
+      // Joinery seam bands & subtle chisel/adzed tool marks
+      const seamRows = [64, 192];
+      for (const sy of seamRows) {
+        bCtx.fillStyle = 'rgba(42,42,42,0.55)';
+        bCtx.fillRect(0, sy - 1, size, 2);
+        bCtx.fillStyle = 'rgba(215,215,215,0.35)';
+        bCtx.fillRect(0, sy + 1, size, 1);
+      }
+
+      // Harmony weathering fractures / lacquer checks
+      const fractureCount = Math.round((crackDensity / 100) * 26);
+      bCtx.strokeStyle = 'rgba(24,24,24,0.78)';
+      for (let i = 0; i < fractureCount; i++) {
+        let cx = rand() * size;
+        let cy = rand() * size;
+        bCtx.lineWidth = 0.8 + rand() * 1.3;
+        bCtx.beginPath();
+        bCtx.moveTo(cx, cy);
+        const steps = 4 + Math.floor(rand() * 5);
+        for (let st = 0; st < steps; st++) {
+          cx += (rand() - 0.5) * 20;
+          cy += 8 + rand() * 18;
+          bCtx.lineTo(cx, cy);
+        }
+        bCtx.stroke();
+      }
+
+      const bData = bCtx.getImageData(0, 0, size, size).data;
+
+      // Normal map via Sobel filter + Micro-roughness cavity map
+      const normalCanvas = document.createElement('canvas');
+      normalCanvas.width = size;
+      normalCanvas.height = size;
+      const nCtx = normalCanvas.getContext('2d');
+      const nImg = nCtx.createImageData(size, size);
+
+      const roughCanvas = document.createElement('canvas');
+      roughCanvas.width = size;
+      roughCanvas.height = size;
+      const rCtx = roughCanvas.getContext('2d');
+      const rImg = rCtx.createImageData(size, size);
+
+      const hAt = (x, y) => {
+        const wx = (x + size) % size;
+        const wy = (y + size) % size;
+        return bData[(wy * size + wx) * 4] / 255;
+      };
+
+      const strength = 2.6;
+      for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+          const tl = hAt(x - 1, y - 1), t = hAt(x, y - 1), tr = hAt(x + 1, y - 1);
+          const l = hAt(x - 1, y), c = hAt(x, y), r = hAt(x + 1, y);
+          const bl = hAt(x - 1, y + 1), b = hAt(x, y + 1), br = hAt(x + 1, y + 1);
+
+          const dx = (tr + 2 * r + br) - (tl + 2 * l + bl);
+          const dy = (bl + 2 * b + br) - (tl + 2 * t + tr);
+          let nx = -dx * strength;
+          let ny = -dy * strength;
+          let nz = 1.0;
+          const inv = 1 / Math.hypot(nx, ny, nz);
+          nx *= inv; ny *= inv; nz *= inv;
+
+          const idx = (y * size + x) * 4;
+          nImg.data[idx] = Math.round((nx * 0.5 + 0.5) * 255);
+          nImg.data[idx + 1] = Math.round((ny * 0.5 + 0.5) * 255);
+          nImg.data[idx + 2] = Math.round((nz * 0.5 + 0.5) * 255);
+          nImg.data[idx + 3] = 255;
+
+          // Raised lacquer/ridges -> smoother low roughness; deep cracks -> oxidized matte high roughness
+          const roughVal = Math.max(38, Math.min(242, Math.round((1.0 - c * 0.68) * 235)));
+          rImg.data[idx] = roughVal;
+          rImg.data[idx + 1] = roughVal;
+          rImg.data[idx + 2] = roughVal;
+          rImg.data[idx + 3] = 255;
+        }
+      }
+      nCtx.putImageData(nImg, 0, 0);
+      rCtx.putImageData(rImg, 0, 0);
+
+      if (currentPBR.bumpTex) currentPBR.bumpTex.dispose();
+      if (currentPBR.normalTex) currentPBR.normalTex.dispose();
+      if (currentPBR.roughnessTex) currentPBR.roughnessTex.dispose();
+
+      const bumpTex = new THREE.CanvasTexture(bumpCanvas);
+      const normalTex = new THREE.CanvasTexture(normalCanvas);
+      const roughnessTex = new THREE.CanvasTexture(roughCanvas);
+      [bumpTex, normalTex, roughnessTex].forEach((t) => {
+        t.wrapS = THREE.RepeatWrapping;
+        t.wrapT = THREE.RepeatWrapping;
+        t.repeat.set(2, 2);
+        t.needsUpdate = true;
+      });
+
+      currentPBR = { bumpCanvas, normalCanvas, roughCanvas, bumpTex, normalTex, roughnessTex };
+      return currentPBR;
+    }
+
+    function createShingakuPlaqueTexture(titleText, accentHex) {
+      const c = document.createElement('canvas');
+      c.width = 512;
+      c.height = 768;
+      const ctx = c.getContext('2d');
+
+      // Deep sumi urushi lacquer background
+      const bg = ctx.createLinearGradient(0, 0, 512, 768);
+      bg.addColorStop(0, '#0d0d14');
+      bg.addColorStop(0.5, '#181522');
+      bg.addColorStop(1, '#09090e');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, 512, 768);
+
+      // Ornate inner gold pinstripe border
+      const goldCss = '#' + new THREE.Color(accentHex).getHexString();
+      ctx.strokeStyle = goldCss;
+      ctx.lineWidth = 14;
+      ctx.strokeRect(28, 28, 456, 712);
+      ctx.lineWidth = 4;
+      ctx.strokeRect(48, 48, 416, 672);
+
+      // Corner Bezier cloud flourishes
+      const corners = [[68, 68, 1, 1], [444, 68, -1, 1], [68, 700, 1, -1], [444, 700, -1, -1]];
+      ctx.strokeStyle = goldCss;
+      ctx.lineWidth = 5;
+      for (const [cx, cy, sx, sy] of corners) {
+        ctx.beginPath();
+        ctx.moveTo(cx, cy + sy * 34);
+        ctx.quadraticCurveTo(cx, cy, cx + sx * 34, cy);
+        ctx.stroke();
+      }
+
+      // Render vertical or stacked calligraphy inscription
+      const clean = (titleText || '神域').trim();
+      ctx.fillStyle = goldCss;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.shadowColor = 'rgba(255, 210, 90, 0.55)';
+      ctx.shadowBlur = 14;
+
+      const chars = Array.from(clean.replace(/\s+/g, ''));
+      if (chars.length <= 5) {
+        const step = 540 / Math.max(1, chars.length);
+        ctx.font = '700 96px "Inter", serif';
+        chars.forEach((ch, idx) => {
+          const y = 135 + step * (idx + 0.5);
+          ctx.fillText(ch, 256, y);
+        });
+      } else {
+        // Split space-delimited or two-column inscription cleanly
+        const parts = clean.split(/\s+/);
+        if (parts.length >= 2) {
+          const topChars = Array.from(parts[0]);
+          const subText = parts.slice(1).join(' ');
+          const step = 410 / Math.max(1, topChars.length);
+          ctx.font = '700 88px "Inter", serif';
+          topChars.forEach((ch, idx) => {
+            ctx.fillText(ch, 256, 115 + step * (idx + 0.5));
+          });
+          ctx.font = '700 44px "JetBrains Mono", monospace';
+          ctx.fillText(subText.slice(0, 12), 256, 625);
+        } else {
+          ctx.font = '700 54px "Inter", sans-serif';
+          ctx.fillText(clean.slice(0, 8), 256, 340);
+          if (clean.length > 8) ctx.fillText(clean.slice(8, 16), 256, 430);
+        }
+      }
+
+      // Bottom JSlug Meraki Maker Stamp
+      ctx.shadowBlur = 0;
+      ctx.font = '600 20px "JetBrains Mono", monospace';
+      ctx.fillStyle = 'rgba(226, 190, 110, 0.72)';
+      ctx.fillText('∞ ASSET-FORGE v6.5', 256, 690);
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.needsUpdate = true;
+      return tex;
+    }
+
+    // =========================================================================
+    // 4. PROCEDURAL TORII ARCHITECTURE & JOINERY BUILDERS
+    // =========================================================================
+    const assetRoot = new THREE.Group();
+    assetRoot.name = 'ToriiGateAssetRoot';
+    scene.add(assetRoot);
+
+    const vrmScaleGroup = new THREE.Group();
+    vrmScaleGroup.name = 'VRMScaleReferenceAvatar';
+    scene.add(vrmScaleGroup);
+
+    let swayNodes = [];
+    let clickableShrineMeshes = [];
+    let blessingPulseTimer = 0;
+
+    function disposeGroup(group) {
+      group.traverse((obj) => {
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) {
+          const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+          for (const m of mats) {
+            if (m.map && m.map !== currentPBR.bumpTex && m.map !== currentPBR.normalTex && m.map !== currentPBR.roughnessTex) {
+              m.map.dispose();
+            }
+            m.dispose();
+          }
+        }
+      });
+      group.clear();
+    }
+
+    // Build curved or straight lintel beam (Kasagi or Shimaki) using swept cross-section
+    function createCurvedLintelGeometry(totalLength, widthY, depthZ, sorimashiLift, profileType = 'pentagonal') {
+      const segsX = 36;
+      // Cross-section vertices in YZ plane (closed ring)
+      let ringYZ = [];
+      const hw = depthZ * 0.5;
+      const hh = widthY * 0.5;
+      if (profileType === 'pentagonal') {
+        // Classic Myojin / Ise kasagi pentagonal watershed ridge + flared soffit
+        ringYZ = [
+          [0, hh * 1.22],             // Top watershed ridge peak
+          [hw * 1.08, hh * 0.42],     // Front upper eave bevel
+          [hw * 0.92, -hh],           // Front soffit corner
+          [-hw * 0.92, -hh],          // Back soffit corner
+          [-hw * 1.08, hh * 0.42]     // Back upper eave bevel
+        ];
+      } else if (profileType === 'cylindrical') {
+        // Classic Shinmei log kasagi
+        const r = Math.max(widthY, depthZ) * 0.52;
+        for (let k = 0; k < 12; k++) {
+          const ang = (k / 12) * Math.PI * 2;
+          ringYZ.push([Math.cos(ang) * r, Math.sin(ang) * r]);
+        }
+      } else {
+        // Rectangular beveled shimaki
+        ringYZ = [
+          [hw, hh],
+          [hw * 0.94, -hh],
+          [-hw * 0.94, -hh],
+          [-hw, hh]
+        ];
+      }
+
+      const ringLen = ringYZ.length;
+      const positions = [];
+      const uvs = [];
+      const indices = [];
+
+      // Sorimashi curve: flat across central third, graceful upward sweep toward wingtips
+      const halfL = totalLength * 0.5;
+      const curveY = (uNorm) => {
+        const ax = Math.abs(uNorm); // 0 at center -> 1 at tips
+        return sorimashiLift * Math.pow(ax, 2.35);
+      };
+      const slopeAt = (uNorm) => {
+        const eps = 0.005;
+        const y1 = curveY(Math.max(-1, uNorm - eps));
+        const y2 = curveY(Math.min(1, uNorm + eps));
+        return Math.atan2(y2 - y1, (2 * eps) * halfL);
+      };
+
+      for (let i = 0; i <= segsX; i++) {
+        const t = i / segsX;
+        const uNorm = t * 2 - 1; // -1 .. +1
+        // Hachiman / Myojin subtle diagonal outward splay at wingtips
+        const tipSplay = sorimashiLift > 0.02 ? Math.sign(uNorm) * Math.pow(Math.abs(uNorm), 3) * (widthY * 0.35) : 0;
+        const xBase = uNorm * halfL + tipSplay;
+        const yBase = curveY(uNorm);
+        const theta = slopeAt(uNorm);
+        const cosT = Math.cos(theta);
+        const sinT = Math.sin(theta);
+        // Slight thickness swell at tips (classic Ise / Myojin visual balance)
+        const tipScale = 1.0 + Math.pow(Math.abs(uNorm), 2) * 0.08;
+
+        for (let j = 0; j < ringLen; j++) {
+          const rz = ringYZ[j][0] * tipScale;
+          const ry = ringYZ[j][1] * tipScale;
+          const wx = xBase - ry * sinT;
+          const wy = yBase + ry * cosT;
+          const wz = rz;
+          positions.push(wx, wy, wz);
+          uvs.push(t * 4, j / ringLen);
+        }
+      }
+
+      for (let i = 0; i < segsX; i++) {
+        for (let j = 0; j < ringLen; j++) {
+          const jNext = (j + 1) % ringLen;
+          const a = i * ringLen + j;
+          const b = (i + 1) * ringLen + j;
+          const c = (i + 1) * ringLen + jNext;
+          const d = i * ringLen + jNext;
+          indices.push(a, b, c, a, c, d);
+        }
+      }
+
+      // End caps (left i=0 and right i=segsX)
+      const leftCenterIdx = positions.length / 3;
+      positions.push(-halfL, curveY(-1), 0);
+      uvs.push(0, 0.5);
+      for (let j = 0; j < ringLen; j++) {
+        const jNext = (j + 1) % ringLen;
+        indices.push(leftCenterIdx, jNext, j);
+      }
+
+      const rightCenterIdx = positions.length / 3;
+      const rightStart = segsX * ringLen;
+      positions.push(halfL, curveY(1), 0);
+      uvs.push(1, 0.5);
+      for (let j = 0; j < ringLen; j++) {
+        const jNext = (j + 1) % ringLen;
+        indices.push(rightCenterIdx, rightStart + j, rightStart + jNext);
+      }
+
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+      geo.setIndex(indices);
+      geo.computeVertexNormals();
+      return geo;
+    }
+
+    // Build 4-fold zigzag Washi Shide lightning streamer
+    function buildShideStreamer(scale, washiMat, goldMat) {
+      const shideGroup = new THREE.Group();
+      const segW = 0.075 * scale;
+      const segH = 0.125 * scale;
+      const segT = 0.008 * scale;
+      const folds = [
+        { x: 0.0, y: -0.06 * scale, rz: 0.22 },
+        { x: 0.042 * scale, y: -0.15 * scale, rz: -0.32 },
+        { x: -0.015 * scale, y: -0.25 * scale, rz: 0.26 },
+        { x: 0.038 * scale, y: -0.35 * scale, rz: -0.28 }
+      ];
+      folds.forEach((f, idx) => {
+        const w = segW * (1 + idx * 0.10);
+        const flap = new THREE.Mesh(new THREE.BoxGeometry(w, segH, segT), washiMat);
+        flap.position.set(f.x, f.y, (idx % 2 === 0 ? 1 : -1) * 0.004);
+        flap.rotation.z = f.rz;
+        flap.castShadow = true;
+        shideGroup.add(flap);
+      });
+      // Hemp tie collar at top
+      const tie = new THREE.Mesh(new THREE.CylinderGeometry(0.018 * scale, 0.018 * scale, 0.035 * scale, 8), goldMat);
+      tie.position.y = -0.01;
+      shideGroup.add(tie);
+      return shideGroup;
+    }
+
+    // Build single complete Torii arch assembly (reusable for main gate & Miwa side wings)
+    function buildToriiArchUnit(opts, mats) {
+      const {
+        style, spanW, heightH, radiusR, tiltDeg, sorimashi, overhang, nukiExt,
+        showKusabi, showNemaki, includeGakuzuka, plaqueTitle, isSubWing
+      } = opts;
+
+      const unit = new THREE.Group();
+      const isShinmei = style === 'shinmei';
+      const hasShimaki = !isShinmei;
+      const hasDaiwa = style === 'inari' || style === 'ryobu';
+      const tiltRad = THREE.MathUtils.degToRad(isShinmei ? 0 : tiltDeg);
+
+      const halfSpan = spanW * 0.5;
+      const topR = radiusR * 0.90;
+      // Inward horizontal shift at top of pillar from korobi tilt
+      const topDx = Math.sin(tiltRad) * heightH;
+      const nukiY = heightH * 0.785;
+      const nukiDx = Math.sin(tiltRad) * nukiY;
+
+      // 1. HASHIRA PILLARS (Left & Right) + NEMAKI + KAMEBARA
+      for (const side of [-1, 1]) {
+        const baseX = side * halfSpan;
+        const pillarPivot = new THREE.Group();
+        pillarPivot.position.set(baseX, 0, 0);
+        pillarPivot.rotation.z = side * tiltRad; // Lean inward toward X=0
+
+        const mainCyl = new THREE.Mesh(
+          new THREE.CylinderGeometry(topR, radiusR, heightH, 28),
+          mats.primary
+        );
+        mainCyl.position.y = heightH * 0.5;
+        mainCyl.castShadow = true;
+        mainCyl.receiveShadow = true;
+        pillarPivot.add(mainCyl);
+
+        // Daiwa (台輪) decorative capital ring at top of Hashira (Inari / Ryobu)
+        if (hasDaiwa) {
+          const daiwaRing = new THREE.Mesh(
+            new THREE.CylinderGeometry(topR * 1.32, topR * 1.28, radiusR * 0.52, 24),
+            mats.cap
+          );
+          daiwaRing.position.y = heightH - radiusR * 0.28;
+          daiwaRing.castShadow = true;
+          pillarPivot.add(daiwaRing);
+
+          const brassTrim = new THREE.Mesh(
+            new THREE.TorusGeometry(topR * 1.30, radiusR * 0.06, 10, 28),
+            mats.brass
+          );
+          brassTrim.rotation.x = Math.PI / 2;
+          brassTrim.position.y = heightH - radiusR * 0.54;
+          pillarPivot.add(brassTrim);
+        }
+
+        // Nemaki (根巻) black protective root sleeve + Kamebara (亀腹) carved stone plinth
+        if (showNemaki) {
+          const nemakiH = Math.min(heightH * 0.20, radiusR * 3.6);
+          const sleeve = new THREE.Mesh(
+            new THREE.CylinderGeometry(radiusR * 1.12, radiusR * 1.18, nemakiH, 24),
+            mats.cap
+          );
+          sleeve.position.y = nemakiH * 0.5 + 0.14;
+          sleeve.castShadow = true;
+          sleeve.receiveShadow = true;
+          pillarPivot.add(sleeve);
+
+          // Upper & lower brass kanagu collar bands on Nemaki
+          for (const bandFrac of [0.16, 0.88]) {
+            const band = new THREE.Mesh(
+              new THREE.CylinderGeometry(radiusR * 1.16, radiusR * 1.16, 0.035, 24),
+              mats.brass
+            );
+            band.position.y = 0.14 + nemakiH * bandFrac;
+            pillarPivot.add(band);
+          }
+
+          // Kamebara (turtle-belly rounded granite base stone) directly on ground (un-tilted)
+          const kamebara = new THREE.Mesh(
+            new THREE.CylinderGeometry(radiusR * 1.55, radiusR * 1.82, 0.22, 16),
+            mats.stone
+          );
+          kamebara.position.set(baseX, 0.11, 0);
+          kamebara.castShadow = true;
+          kamebara.receiveShadow = true;
+          unit.add(kamebara);
+        }
+
+        unit.add(pillarPivot);
+
+        // RYŌBU FOUR-LEGGED OUTRIGGER POSTS (Hikaebashira 控柱)
+        if (style === 'ryobu' && !isSubWing) {
+          const chigoH = heightH * 0.44;
+          const chigoOffsetZ = radiusR * 3.5;
+          const chigoW = radiusR * 0.72;
+
+          for (const zDir of [-1, 1]) {
+            const post = new THREE.Mesh(
+              new THREE.BoxGeometry(chigoW, chigoH, chigoW),
+              mats.primary
+            );
+            post.position.set(baseX, chigoH * 0.5 + 0.08, zDir * chigoOffsetZ);
+            post.castShadow = true;
+            post.receiveShadow = true;
+            unit.add(post);
+
+            const postSleeve = new THREE.Mesh(
+              new THREE.BoxGeometry(chigoW * 1.14, chigoH * 0.24, chigoW * 1.14),
+              mats.cap
+            );
+            postSleeve.position.set(baseX, chigoH * 0.12 + 0.08, zDir * chigoOffsetZ);
+            unit.add(postSleeve);
+
+            const postStone = new THREE.Mesh(
+              new THREE.CylinderGeometry(chigoW * 0.85, chigoW * 1.05, 0.16, 8),
+              mats.stone
+            );
+            postStone.position.set(baseX, 0.08, zDir * chigoOffsetZ);
+            unit.add(postStone);
+
+            // Mini protective gabled rooflet atop each Hikaebashira
+            const capRoof = new THREE.Mesh(
+              new THREE.ConeGeometry(chigoW * 1.05, 0.22, 4),
+              mats.cap
+            );
+            capRoof.rotation.y = Math.PI * 0.25;
+            capRoof.position.set(baseX, chigoH + 0.18, zDir * chigoOffsetZ);
+            capRoof.castShadow = true;
+            unit.add(capRoof);
+          }
+
+          // Upper & lower Ryōbu outrigger cross-ties (Hikae-nuki) piercing main Hashira along Z
+          const railLenZ = chigoOffsetZ * 2 + chigoW * 2.1;
+          for (const rFrac of [0.42, 0.78]) {
+            const zRail = new THREE.Mesh(
+              new THREE.BoxGeometry(chigoW * 0.62, chigoW * 0.68, railLenZ),
+              mats.primary
+            );
+            zRail.position.set(baseX - side * Math.sin(tiltRad) * (chigoH * rFrac), chigoH * rFrac, 0);
+            zRail.castShadow = true;
+            unit.add(zRail);
+          }
+        }
+      }
+
+      // 2. NUKI (貫) PENETRATING HORIZONTAL TIE-BEAM & KUSABI (楔) WEDGES
+      const effectiveNukiSpan = (halfSpan - nukiDx) * 2 + radiusR * 2 + nukiExt * 2;
+      const nukiH = radiusR * 0.86;
+      const nukiD = radiusR * 0.56;
+
+      let nukiMesh;
+      if (isShinmei && nukiExt < 0.05) {
+        nukiMesh = new THREE.Mesh(
+          new THREE.CylinderGeometry(nukiH * 0.45, nukiH * 0.45, effectiveNukiSpan, 20),
+          mats.primary
+        );
+        nukiMesh.rotation.z = Math.PI / 2;
+      } else {
+        nukiMesh = new THREE.Mesh(
+          new THREE.BoxGeometry(effectiveNukiSpan, nukiH, nukiD),
+          mats.primary
+        );
+      }
+      nukiMesh.position.set(0, nukiY, 0);
+      nukiMesh.castShadow = true;
+      nukiMesh.receiveShadow = true;
+      unit.add(nukiMesh);
+
+      // Brass end-caps on protruding Nuki tips for ornate palettes
+      if (nukiExt > 0.08 && !isShinmei) {
+        for (const side of [-1, 1]) {
+          const capBox = new THREE.Mesh(
+            new THREE.BoxGeometry(0.045, nukiH * 1.05, nukiD * 1.06),
+            mats.brass
+          );
+          capBox.position.set(side * (effectiveNukiSpan * 0.5 - 0.02), nukiY, 0);
+          unit.add(capBox);
+        }
+      }
+
+      // Kusabi (楔) trapezoidal mortise wedges locking Nuki on inner & outer faces of both Hashira
+      if (showKusabi) {
+        for (const side of [-1, 1]) {
+          const pxAtNuki = side * (halfSpan - nukiDx);
+          for (const io of [-1, 1]) {
+            const wedge = new THREE.Mesh(
+              new THREE.BoxGeometry(radiusR * 0.34, nukiH * 1.36, nukiD * 1.24),
+              mats.cap
+            );
+            wedge.position.set(pxAtNuki + io * (radiusR * 0.96), nukiY + 0.015, 0);
+            wedge.rotation.z = -io * side * 0.14;
+            wedge.castShadow = true;
+            unit.add(wedge);
+          }
+        }
+      }
+
+      // 3. SHIMAKI (島木) SECONDARY LINTEL & KASAGI (笠木) TOP LINTEL
+      const topSpanBetweenCenters = (halfSpan - topDx) * 2;
+      const kasagiTotalLen = topSpanBetweenCenters + overhang * 2;
+      const shimakiTotalLen = topSpanBetweenCenters + overhang * 1.72;
+      const effSorimashi = isShinmei ? 0.0 : sorimashi;
+
+      let kasagiBaseY = heightH + radiusR * 0.42;
+      if (hasShimaki) {
+        const shimakiH = radiusR * 0.88;
+        const shimakiD = radiusR * 1.32;
+        const shimakiGeo = createCurvedLintelGeometry(shimakiTotalLen, shimakiH, shimakiD, effSorimashi * 0.88, 'rectangular');
+        const shimakiMesh = new THREE.Mesh(shimakiGeo, mats.primary);
+        shimakiMesh.position.set(0, heightH + shimakiH * 0.42, 0);
+        shimakiMesh.castShadow = true;
+        shimakiMesh.receiveShadow = true;
+        unit.add(shimakiMesh);
+        kasagiBaseY = heightH + shimakiH * 0.88 + radiusR * 0.52;
+      }
+
+      const kasagiH = radiusR * 1.06;
+      const kasagiD = radiusR * 1.66;
+      const kasagiProfile = isShinmei ? 'cylindrical' : 'pentagonal';
+      const kasagiGeo = createCurvedLintelGeometry(
+        kasagiTotalLen,
+        kasagiH,
+        kasagiD,
+        effSorimashi,
+        kasagiProfile
+      );
+      const kasagiMesh = new THREE.Mesh(kasagiGeo, isShinmei ? mats.primary : mats.cap);
+      kasagiMesh.position.set(0, kasagiBaseY, 0);
+      kasagiMesh.castShadow = true;
+      kasagiMesh.receiveShadow = true;
+      unit.add(kasagiMesh);
+
+      // Decorative gilded kanagu rafters / end-caps on Kasagi tips for Inari / Cyber / Ryobu
+      if (!isShinmei) {
+        for (const side of [-1, 1]) {
+          const tipX = side * (kasagiTotalLen * 0.5);
+          const tipY = kasagiBaseY + effSorimashi;
+          const ornament = new THREE.Mesh(
+            new THREE.BoxGeometry(0.06, kasagiH * 0.92, kasagiD * 0.92),
+            mats.brass
+          );
+          ornament.position.set(tipX, tipY, 0);
+          ornament.rotation.z = side * (effSorimashi * 0.42);
+          unit.add(ornament);
+        }
+      }
+
+      // 4. GAKUZUKA (額束) CENTRAL STRUT & SHINGAKU (神額) CALLIGRAPHY TABLET
+      const lintelBottomY = hasShimaki ? heightH : heightH + radiusR * 0.1;
+      const strutGapH = Math.max(0.22, lintelBottomY - nukiY);
+
+      if (!isShinmei && (includeGakuzuka || hasShimaki)) {
+        // Central Gakuzuka vertical strut
+        const gakuzuka = new THREE.Mesh(
+          new THREE.BoxGeometry(radiusR * 0.72, strutGapH + 0.08, radiusR * 0.58),
+          mats.primary
+        );
+        gakuzuka.position.set(0, nukiY + strutGapH * 0.5, 0);
+        gakuzuka.castShadow = true;
+        unit.add(gakuzuka);
+
+        if (includeGakuzuka && !isSubWing) {
+          const plaqueH = Math.min(1.18, strutGapH * 1.26);
+          const plaqueW = plaqueH * 0.68;
+          const plaqueGroup = new THREE.Group();
+          plaqueGroup.position.set(0, nukiY + strutGapH * 0.52, radiusR * 0.42);
+          plaqueGroup.rotation.x = 0.09; // Authentic slight downward viewer tilt
+
+          // Lacquered frame backing
+          const backing = new THREE.Mesh(
+            new THREE.BoxGeometry(plaqueW + 0.10, plaqueH + 0.10, 0.065),
+            mats.cap
+          );
+          backing.castShadow = true;
+          plaqueGroup.add(backing);
+
+          // Gilded brass outer trim moulding
+          const goldRim = new THREE.Mesh(
+            new THREE.BoxGeometry(plaqueW + 0.13, plaqueH + 0.13, 0.04),
+            mats.brass
+          );
+          goldRim.position.z = -0.008;
+          plaqueGroup.add(goldRim);
+
+          // Inscribed calligraphy face
+          const faceTex = createShingakuPlaqueTexture(plaqueTitle, PALETTES[state.materialPalette].accentMetal);
+          const faceMat = new THREE.MeshStandardMaterial({
+            map: faceTex,
+            roughness: 0.25,
+            metalness: 0.35,
+            emissive: new THREE.Color(GLOW_THEMES[state.glowTheme].hex),
+            emissiveMap: faceTex,
+            emissiveIntensity: state.materialPalette === 'elysium-obsidian' ? 0.55 : 0.18,
+            wireframe: state.wireframe
+          });
+          const facePlane = new THREE.Mesh(new THREE.PlaneGeometry(plaqueW, plaqueH), faceMat);
+          facePlane.position.z = 0.035;
+          plaqueGroup.add(facePlane);
+          clickableShrineMeshes.push(backing, facePlane);
+
+          unit.add(plaqueGroup);
+        }
+      }
+
+      return { unit, nukiY, kasagiTotalLen, topDx };
+    }
+
+    // Build tapered twisted Shimenawa sacred rope + zigzag Shide + straw tassels
+    function buildShimenawaAssembly(spanW, anchorY, maxRadius, shideCount, zOffset, mats) {
+      const group = new THREE.Group();
+      const ropeSpan = spanW * 0.94;
+      const sag = Math.min(0.28, spanW * 0.055);
+      const strands = 3;
+      const segs = 56;
+      const twists = 8.5;
+
+      for (let s = 0; s < strands; s++) {
+        const phase = (s / strands) * Math.PI * 2;
+        const pts = [];
+        for (let i = 0; i <= segs; i++) {
+          const t = i / segs;
+          const u = t * 2 - 1; // -1 .. +1
+          // Authentic Shimenawa profile: thickest at center, tapering toward ends
+          const swell = Math.max(0.28, Math.cos(u * Math.PI * 0.44));
+          const rHelix = maxRadius * 0.42 * swell;
+          const x = u * (ropeSpan * 0.5);
+          const baseSagY = anchorY - (1 - u * u) * sag;
+          const ang = t * Math.PI * 2 * twists + phase;
+          const y = baseSagY + Math.sin(ang) * rHelix;
+          const z = zOffset + Math.cos(ang) * rHelix;
+          pts.push(new THREE.Vector3(x, y, z));
+        }
+
+        // Build custom tapered strand mesh along curve
+        const curve = new THREE.CatmullRomCurve3(pts);
+        const rSegs = 8;
+        const pos = [];
+        const uvs = [];
+        const idx = [];
+        for (let i = 0; i <= segs; i++) {
+          const t = i / segs;
+          const u = t * 2 - 1;
+          const swell = Math.max(0.28, Math.cos(u * Math.PI * 0.44));
+          const rad = maxRadius * 0.56 * swell;
+          const pt = curve.getPoint(t);
+          const tan = curve.getTangent(t);
+          const up = new THREE.Vector3(0, 1, 0);
+          const binorm = new THREE.Vector3().crossVectors(tan, up).normalize();
+          const norm = new THREE.Vector3().crossVectors(binorm, tan).normalize();
+
+          for (let j = 0; j < rSegs; j++) {
+            const a = (j / rSegs) * Math.PI * 2;
+            const vx = pt.x + ( binorm.x * Math.cos(a) + norm.x * Math.sin(a) ) * rad;
+            const vy = pt.y + ( binorm.y * Math.cos(a) + norm.y * Math.sin(a) ) * rad;
+            const vz = pt.z + ( binorm.z * Math.cos(a) + norm.z * Math.sin(a) ) * rad;
+            pos.push(vx, vy, vz);
+            uvs.push(t * 6, j / rSegs);
+          }
+        }
+        for (let i = 0; i < segs; i++) {
+          for (let j = 0; j < rSegs; j++) {
+            const jn = (j + 1) % rSegs;
+            const a = i * rSegs + j;
+            const b = (i + 1) * rSegs + j;
+            const c = (i + 1) * rSegs + jn;
+            const d = i * rSegs + jn;
+            idx.push(a, b, c, a, c, d);
+          }
+        }
+        const strandGeo = new THREE.BufferGeometry();
+        strandGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+        strandGeo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+        strandGeo.setIndex(idx);
+        strandGeo.computeVertexNormals();
+
+        const strandMesh = new THREE.Mesh(strandGeo, mats.straw);
+        strandMesh.castShadow = true;
+        group.add(strandMesh);
+        clickableShrineMeshes.push(strandMesh);
+      }
+
+      // Tie knots wrapping around both Hashira
+      for (const side of [-1, 1]) {
+        const knot = new THREE.Mesh(
+          new THREE.TorusGeometry(state.pillarRadius * 1.06, maxRadius * 0.24, 10, 24),
+          mats.straw
+        );
+        knot.rotation.x = Math.PI / 2;
+        knot.position.set(side * (spanW * 0.5 - 0.05), anchorY, 0);
+        group.add(knot);
+      }
+
+      // Hanging Zigzag Washi Shide Streamers & Straw Tassels (Children of animated pivots)
+      if (shideCount > 0) {
+        for (let k = 0; k < shideCount; k++) {
+          const frac = shideCount === 1 ? 0 : ((k / (shideCount - 1)) * 2 - 1) * 0.72;
+          const sx = frac * (ropeSpan * 0.5);
+          const sy = anchorY - (1 - frac * frac) * sag - maxRadius * 0.45;
+          const scale = 1.05 - Math.abs(frac) * 0.22;
+
+          const shidePivot = buildShideStreamer(scale, mats.washi, mats.brass);
+          shidePivot.position.set(sx, sy, zOffset + maxRadius * 0.36);
+          group.add(shidePivot);
+          swayNodes.push({ mesh: shidePivot, phase: k * 1.15, amp: 1.0 });
+        }
+
+        // Vertical rice-straw tassels (Noko) between Shide streamers
+        const tasselCount = Math.max(2, shideCount - 1);
+        for (let t = 0; t < tasselCount; t++) {
+          const frac = (((t + 0.5) / tasselCount) * 2 - 1) * 0.68;
+          const tx = frac * (ropeSpan * 0.5);
+          const ty = anchorY - (1 - frac * frac) * sag - maxRadius * 0.35;
+          const tasselPivot = new THREE.Group();
+          tasselPivot.position.set(tx, ty, zOffset);
+          const tassel = new THREE.Mesh(
+            new THREE.ConeGeometry(maxRadius * 0.26, 0.32, 10),
+            mats.straw
+          );
+          tassel.position.y = -0.16;
+          tassel.rotation.x = Math.PI;
+          tassel.castShadow = true;
+          tasselPivot.add(tassel);
+          group.add(tasselPivot);
+          swayNodes.push({ mesh: tasselPivot, phase: t * 1.7 + 0.6, amp: 0.65 });
+        }
+      }
+
+      return group;
+    }
+
+    // Build Carved Granite Ishi-Dōrō or Levitating Cyber Sanctuary Brazier
+    function buildShrineLantern(style, xPos, zPos, mats) {
+      const lGroup = new THREE.Group();
+      lGroup.position.set(xPos, 0, zPos);
+
+      if (style === 'ishi-doro') {
+        // Kiso hexagonal base + Sao shaft + Chudai platform + Hibukuro firebox + Kasa umbrella roof + Hoju jewel
+        const base = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.46, 0.22, 6), mats.stone);
+        base.position.y = 0.11;
+        base.castShadow = true;
+        base.receiveShadow = true;
+        lGroup.add(base);
+
+        const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.18, 0.92, 12), mats.stone);
+        shaft.position.y = 0.68;
+        shaft.castShadow = true;
+        lGroup.add(shaft);
+
+        const chudai = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.24, 0.16, 6), mats.stone);
+        chudai.position.y = 1.22;
+        chudai.castShadow = true;
+        lGroup.add(chudai);
+
+        // Glowing Washi Hibukuro lantern chamber with lattice pillars
+        const core = new THREE.Mesh(new THREE.CylinderGeometry(0.20, 0.20, 0.34, 6), mats.lanternEmissive);
+        core.position.y = 1.47;
+        lGroup.add(core);
+        clickableShrineMeshes.push(core);
+
+        for (let k = 0; k < 6; k++) {
+          const a = (k / 6) * Math.PI * 2;
+          const mullion = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.36, 0.035), mats.stone);
+          mullion.position.set(Math.cos(a) * 0.23, 1.47, Math.sin(a) * 0.23);
+          lGroup.add(mullion);
+        }
+
+        const kasaRoof = new THREE.Mesh(new THREE.ConeGeometry(0.52, 0.28, 6), mats.stone);
+        kasaRoof.position.y = 1.78;
+        kasaRoof.castShadow = true;
+        lGroup.add(kasaRoof);
+
+        const hoju = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 12), mats.stone);
+        hoju.scale.set(1, 1.35, 1);
+        hoju.position.y = 1.98;
+        lGroup.add(hoju);
+      } else if (style === 'cyber-brazier') {
+        const ped = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.38, 0.85, 8), mats.cap);
+        ped.position.y = 0.425;
+        ped.castShadow = true;
+        lGroup.add(ped);
+
+        const trim = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.025, 10, 24), mats.brass);
+        trim.rotation.x = Math.PI / 2;
+        trim.position.y = 0.86;
+        lGroup.add(trim);
+
+        const floatGroup = new THREE.Group();
+        floatGroup.position.y = 1.48;
+        const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(0.24, 0), mats.lanternEmissive);
+        crystal.scale.set(0.85, 1.45, 0.85);
+        floatGroup.add(crystal);
+
+        const halo = new THREE.Mesh(new THREE.TorusGeometry(0.36, 0.018, 8, 28), mats.brass);
+        halo.rotation.x = 0.8;
+        floatGroup.add(halo);
+        lGroup.add(floatGroup);
+        clickableShrineMeshes.push(crystal);
+        swayNodes.push({ mesh: floatGroup, phase: xPos, amp: 1.0, isHoverCrystal: true, baseY: 1.48 });
+      }
+
+      return lGroup;
+    }
+
+    // Build JSlug Bezier Stamped Asset-Forge Maker Plaque on Base
+    function buildMakerStampPlaque(x, y, z, mats) {
+      const g = new THREE.Group();
+      g.position.set(x, y, z);
+      const plate = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.022, 0.18), mats.brass);
+      plate.castShadow = true;
+      g.add(plate);
+
+      const inset = new THREE.Mesh(new THREE.BoxGeometry(0.37, 0.025, 0.13), mats.cap);
+      g.add(inset);
+      return g;
+    }
+
+    // Build 1.70 m .VRM Walkthrough Scale Reference Avatar (outside assetRoot so exports stay pure)
+    function rebuildVrmAvatar() {
+      disposeGroup(vrmScaleGroup);
+      if (!state.showVrmAvatar) return;
+
+      const bodyMat = new THREE.MeshStandardMaterial({
+        color: 0x10b981,
+        roughness: 0.35,
+        metalness: 0.25,
+        transparent: true,
+        opacity: 0.62
+      });
+      const wireRingMat = new THREE.MeshBasicMaterial({ color: 0x34d399, wireframe: true });
+
+      // Legs + Torso + Shoulders + Head = exact 1.70 m total height
+      const legs = new THREE.Mesh(new THREE.CapsuleGeometry(0.11, 0.62, 6, 12), bodyMat);
+      legs.position.y = 0.42;
+      vrmScaleGroup.add(legs);
+
+      const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.145, 0.42, 6, 12), bodyMat);
+      torso.position.y = 1.08;
+      vrmScaleGroup.add(torso);
+
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.115, 16, 12), bodyMat);
+      head.position.y = 1.585; // Top of head = 1.70 m
+      vrmScaleGroup.add(head);
+
+      const footRing = new THREE.Mesh(new THREE.RingGeometry(0.24, 0.29, 24), wireRingMat);
+      footRing.rotation.x = -Math.PI / 2;
+      footRing.position.y = 0.005;
+      vrmScaleGroup.add(footRing);
+
+      vrmScaleGroup.position.set(0, state.basePlatform === 'stone-sandou' ? 0.12 : 0.04, 0.55);
+    }
+
+
+    let suzuSwingImpulse = 0;
+    let suzuPendulumPivot = null;
+
+    // Build Hanging Brass Suzu Bell (鈴) & Braided Red/White Suzu-o Cloth Pull-Rope (鈴緒)
+    function buildSuzuBellAndRope(anchorY, ropeLen, mats) {
+      const root = new THREE.Group();
+      root.position.set(0, anchorY, state.pillarRadius * 0.42);
+
+      // Top iron mounting bracket on Nuki soffit
+      const eyeMount = new THREE.Mesh(new THREE.TorusGeometry(0.055, 0.015, 8, 18), mats.cap);
+      eyeMount.position.y = -0.02;
+      root.add(eyeMount);
+
+      // Swinging pendulum group (swings physically when rung!)
+      const pendulum = new THREE.Group();
+      root.add(pendulum);
+      suzuPendulumPivot = pendulum;
+
+      // Hollow Slotted Brass Suzu Bell Sphere + Equatorial Ridge + Internal Clapper Pellet
+      const bellR = 0.165;
+      const bellY = -0.19;
+      const bellSphere = new THREE.Mesh(new THREE.SphereGeometry(bellR, 20, 16), mats.brass);
+      bellSphere.position.y = bellY;
+      bellSphere.castShadow = true;
+      pendulum.add(bellSphere);
+      clickableShrineMeshes.push(bellSphere);
+
+      const eqFlange = new THREE.Mesh(new THREE.TorusGeometry(bellR * 1.02, 0.022, 10, 24), mats.brass);
+      eqFlange.rotation.x = Math.PI / 2;
+      eqFlange.position.y = bellY;
+      pendulum.add(eqFlange);
+
+      // Dark resonant mouth slit across bottom of Suzu bell
+      const slit = new THREE.Mesh(new THREE.BoxGeometry(bellR * 1.55, 0.045, 0.048), mats.cap);
+      slit.position.y = bellY - bellR * 0.76;
+      pendulum.add(slit);
+
+      // Gilded Decorative Canopy Tassel Cap (Kiku-za) below bell
+      const capCone = new THREE.Mesh(new THREE.ConeGeometry(0.115, 0.12, 12), mats.brass);
+      capCone.position.y = bellY - bellR - 0.05;
+      pendulum.add(capCone);
+
+      // Braided 3-Strand Red, White & Gold Kohaku Suzu-o Pull-Rope
+      const startY = bellY - bellR - 0.10;
+      const effLen = Math.max(0.65, ropeLen);
+      const strandMats = [mats.vermilionCloth, mats.washi, mats.straw];
+      const segs = 28;
+      for (let st = 0; st < 3; st++) {
+        const phase = (st / 3) * Math.PI * 2;
+        const pts = [];
+        for (let i = 0; i <= segs; i++) {
+          const t = i / segs;
+          const swell = Math.sin(t * Math.PI) * 0.45 + 0.65;
+          const rad = 0.036 * swell;
+          const ang = t * Math.PI * 2 * 5.5 + phase;
+          pts.push(new THREE.Vector3(Math.cos(ang) * rad, startY - t * effLen, Math.sin(ang) * rad));
+        }
+        const curve = new THREE.CatmullRomCurve3(pts);
+        const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 28, 0.026, 8, false), strandMats[st]);
+        tube.castShadow = true;
+        pendulum.add(tube);
+        clickableShrineMeshes.push(tube);
+      }
+
+      // Bindings & Fringed Hemp Tassel Tail at bottom of Suzu-o
+      for (const frac of [0.12, 0.52, 0.88]) {
+        const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.052, 0.052, 0.03, 12), mats.brass);
+        collar.position.y = startY - effLen * frac;
+        pendulum.add(collar);
+      }
+      const endTassel = new THREE.Mesh(new THREE.ConeGeometry(0.068, 0.24, 12), mats.straw);
+      endTassel.position.y = startY - effLen - 0.10;
+      endTassel.rotation.x = Math.PI;
+      endTassel.castShadow = true;
+      pendulum.add(endTassel);
+      clickableShrineMeshes.push(endTassel);
+
+      return root;
+    }
+
+    // Build Carved Guardian Statues: Inari Kitsune Foxes (狐) or Komainu Lion-Dogs (狛犬)
+    function buildGuardianStatue(type, side, xPos, zPos, mats) {
+      const g = new THREE.Group();
+      g.position.set(xPos, 0, zPos);
+      // Slight inward guardian orientation toward approaching pilgrim on Sandō
+      g.rotation.y = -side * 0.28;
+
+      // Stepped Carved Granite Shrine Pedestal (Dai-ishi)
+      const pedLow = new THREE.Mesh(new THREE.BoxGeometry(0.76, 0.20, 0.92), mats.stone);
+      pedLow.position.y = 0.10;
+      pedLow.castShadow = true;
+      pedLow.receiveShadow = true;
+      g.add(pedLow);
+
+      const pedMid = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.34, 0.78), mats.stone);
+      pedMid.position.y = 0.37;
+      pedMid.castShadow = true;
+      pedMid.receiveShadow = true;
+      g.add(pedMid);
+
+      const pedTop = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.08, 0.84), mats.cap);
+      pedTop.position.y = 0.58;
+      pedTop.castShadow = true;
+      g.add(pedTop);
+
+      const deckY = 0.62;
+
+      if (type === 'kitsune') {
+        // Seated White/Stone Byakko Inari Fox Messenger with Red Votive Bib (Yodarekake)
+        const foxMat = state.materialPalette === 'elysium-obsidian' ? mats.cap : mats.kitsuneStone;
+
+        // Haunches & Seated Chest
+        const haunch = new THREE.Mesh(new THREE.SphereGeometry(0.20, 14, 12), foxMat);
+        haunch.scale.set(0.92, 1.15, 1.12);
+        haunch.position.set(0, deckY + 0.20, -0.08);
+        haunch.castShadow = true;
+        g.add(haunch);
+
+        const chest = new THREE.Mesh(new THREE.CylinderGeometry(0.135, 0.185, 0.46, 14), foxMat);
+        chest.position.set(0, deckY + 0.38, 0.04);
+        chest.rotation.x = -0.18;
+        chest.castShadow = true;
+        g.add(chest);
+
+        // Front Forelegs
+        for (const lx of [-0.085, 0.085]) {
+          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.045, 0.40, 10), foxMat);
+          leg.position.set(lx, deckY + 0.20, 0.17);
+          leg.castShadow = true;
+          g.add(leg);
+        }
+
+        // Sacred Red Votive Bib (Yodarekake 前垂れ) draped over chest
+        const bibCollar = new THREE.Mesh(new THREE.TorusGeometry(0.145, 0.022, 8, 20), mats.vermilionCloth);
+        bibCollar.rotation.x = Math.PI / 2 + 0.22;
+        bibCollar.position.set(0, deckY + 0.56, 0.09);
+        g.add(bibCollar);
+
+        const bibApron = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.26, 4), mats.vermilionCloth);
+        bibApron.rotation.x = Math.PI - 0.24;
+        bibApron.rotation.y = Math.PI / 4;
+        bibApron.scale.set(1.1, 1.0, 0.25);
+        bibApron.position.set(0, deckY + 0.44, 0.19);
+        g.add(bibApron);
+
+        // Sculpted Fox Head, Pointed Snout & Alert Pricked Ears
+        const skull = new THREE.Mesh(new THREE.SphereGeometry(0.135, 14, 12), foxMat);
+        skull.position.set(0, deckY + 0.68, 0.12);
+        skull.castShadow = true;
+        g.add(skull);
+        clickableShrineMeshes.push(skull);
+
+        const snout = new THREE.Mesh(new THREE.ConeGeometry(0.075, 0.22, 10), foxMat);
+        snout.rotation.x = Math.PI / 2 + 0.14;
+        snout.position.set(0, deckY + 0.65, 0.26);
+        g.add(snout);
+
+        for (const ex of [-0.075, 0.075]) {
+          const ear = new THREE.Mesh(new THREE.ConeGeometry(0.048, 0.16, 6), foxMat);
+          ear.position.set(ex, deckY + 0.84, 0.09);
+          ear.rotation.z = -Math.sign(ex) * 0.16;
+          g.add(ear);
+        }
+
+        // Glowing Fox Spirit Eyes
+        for (const ex of [-0.052, 0.052]) {
+          const eye = new THREE.Mesh(new THREE.SphereGeometry(0.016, 8, 8), mats.lanternEmissive);
+          eye.position.set(ex, deckY + 0.70, 0.23);
+          g.add(eye);
+        }
+
+        // Sweeping Upright Flame-Shaped Kitsune Tail with Jewel Tip
+        const tailLow = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.48, 12), foxMat);
+        tailLow.position.set(0, deckY + 0.46, -0.26);
+        tailLow.rotation.x = -0.28;
+        tailLow.castShadow = true;
+        g.add(tailLow);
+
+        // Symbolic Sacred Relic: Left Kitsune holds Granary Key / Scroll; Right holds Glowing Hōju Wish Jewel
+        if (side < 0) {
+          const keyShaft = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.026, 0.026), mats.brass);
+          keyShaft.position.set(0, deckY + 0.61, 0.34);
+          g.add(keyShaft);
+          const keyBit = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.06, 0.026), mats.brass);
+          keyBit.position.set(0.09, deckY + 0.58, 0.34);
+          g.add(keyBit);
+        } else {
+          const hojuOrb = new THREE.Mesh(new THREE.SphereGeometry(0.068, 14, 12), mats.lanternEmissive);
+          hojuOrb.position.set(0.0, deckY + 0.22, 0.28);
+          g.add(hojuOrb);
+          clickableShrineMeshes.push(hojuOrb);
+        }
+      } else if (type === 'komainu') {
+        // Muscular Seated Komainu Lion-Dogs (Agyō open-mouth on right, Ungyō closed-mouth w/ horn on left)
+        const body = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.44, 0.42), mats.stone);
+        body.position.set(0, deckY + 0.24, -0.02);
+        body.rotation.x = -0.15;
+        body.castShadow = true;
+        g.add(body);
+
+        const mane = new THREE.Mesh(new THREE.DodecahedronGeometry(0.22, 1), mats.stone);
+        mane.position.set(0, deckY + 0.54, 0.06);
+        mane.castShadow = true;
+        g.add(mane);
+        clickableShrineMeshes.push(mane);
+
+        const jaw = new THREE.Mesh(new THREE.BoxGeometry(0.20, side > 0 ? 0.14 : 0.09, 0.20), mats.stone);
+        jaw.position.set(0, deckY + 0.50, 0.20);
+        g.add(jaw);
+
+        for (const ex of [-0.065, 0.065]) {
+          const eye = new THREE.Mesh(new THREE.SphereGeometry(0.022, 8, 8), mats.brass);
+          eye.position.set(ex, deckY + 0.58, 0.25);
+          g.add(eye);
+        }
+
+        // Ungyō single guardian horn on left statue; Temari brocade ball under paw on right statue
+        if (side < 0) {
+          const horn = new THREE.Mesh(new THREE.ConeGeometry(0.035, 0.14, 8), mats.brass);
+          horn.position.set(0, deckY + 0.78, 0.08);
+          g.add(horn);
+        } else {
+          const temari = new THREE.Mesh(new THREE.SphereGeometry(0.085, 12, 12), mats.brass);
+          temari.position.set(0.11, deckY + 0.085, 0.24);
+          g.add(temari);
+        }
+
+        const curlTail = new THREE.Mesh(new THREE.DodecahedronGeometry(0.14, 0), mats.stone);
+        curlTail.scale.set(0.8, 1.4, 0.8);
+        curlTail.position.set(0, deckY + 0.42, -0.25);
+        g.add(curlTail);
+      }
+
+      // Seasonal Snow Cap on Pedestal if Winter mode active
+      if (state.seasonMode === 'winter-snow' && state.weatheringAmount > 10) {
+        const snowFrac = state.weatheringAmount / 100;
+        const pSnow = new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.035 * snowFrac + 0.015, 0.82), mats.seasonalLayer);
+        pSnow.position.y = 0.625;
+        g.add(pSnow);
+      }
+
+      return g;
+    }
+
+    // Build Seasonal Snow Cap along Kasagi Ridge OR Moss Creep Cushions around Pillar Bases
+    function buildSeasonalAccents(spanW, heightH, radiusR, overhang, sorimashi, tiltDeg, style, mats) {
+      const g = new THREE.Group();
+      const amt = state.weatheringAmount / 100;
+      if (amt <= 0.04 || state.seasonMode === 'clear') return g;
+
+      const isShinmei = style === 'shinmei';
+      const tiltRad = THREE.MathUtils.degToRad(isShinmei ? 0 : tiltDeg);
+      const topDx = Math.sin(tiltRad) * heightH;
+      const topSpan = (spanW * 0.5 - topDx) * 2;
+      const kasagiLen = topSpan + overhang * 2;
+      const effSori = isShinmei ? 0 : sorimashi;
+      const kasagiY = heightH + (isShinmei ? radiusR * 0.95 : radiusR * 1.88);
+
+      if (state.seasonMode === 'winter-snow') {
+        // Swept snow blanket along top watershed ridge of Kasagi
+        const snowH = (0.04 + amt * 0.09);
+        const snowGeo = createCurvedLintelGeometry(kasagiLen * 0.99, snowH, radiusR * 1.48, effSori, 'rectangular');
+        const snowCap = new THREE.Mesh(snowGeo, mats.seasonalLayer);
+        snowCap.position.set(0, kasagiY + snowH * 0.45, 0);
+        snowCap.receiveShadow = true;
+        g.add(snowCap);
+
+        // Snow cushions on Kamebara pillar bases
+        for (const side of [-1, 1]) {
+          const drift = new THREE.Mesh(
+            new THREE.CylinderGeometry(radiusR * 1.42, radiusR * 1.95, 0.08 * amt + 0.03, 16),
+            mats.seasonalLayer
+          );
+          drift.position.set(side * spanW * 0.5, 0.21, 0);
+          g.add(drift);
+        }
+      } else if (state.seasonMode === 'ancient-moss' || state.seasonMode === 'sakura-spring') {
+        const mossScale = state.seasonMode === 'ancient-moss' ? amt : amt * 0.55;
+        if (mossScale > 0.08) {
+          for (const side of [-1, 1]) {
+            for (let m = 0; m < 4; m++) {
+              const ang = (m / 4) * Math.PI * 2 + side * 0.5;
+              const tuft = new THREE.Mesh(
+                new THREE.DodecahedronGeometry(radiusR * (0.36 + 0.28 * mossScale), 1),
+                mats.seasonalLayer
+              );
+              tuft.scale.set(1.2, 0.55, 1.2);
+              tuft.position.set(
+                side * spanW * 0.5 + Math.cos(ang) * radiusR * 1.35,
+                0.20,
+                Math.sin(ang) * radiusR * 1.35
+              );
+              g.add(tuft);
+            }
+          }
+        }
+      }
+      return g;
+    }
+
+    // =========================================================================
+    // 5. MASTER SCENE ASSEMBLY & TELEMETRY SYNC
+    // =========================================================================
+    function buildToriiScene() {
+      disposeGroup(assetRoot);
+      swayNodes = [];
+      clickableShrineMeshes = [];
+
+      const pbr = generatePBRMaps(state.crackDensity);
+      const pal = PALETTES[state.materialPalette] || PALETTES['vermilion-lacquer'];
+      const glow = GLOW_THEMES[state.glowTheme] || GLOW_THEMES['warm-lantern'];
+      const glowBoost = (state.lanternGlow / 100) + (blessingPulseTimer > 0 ? 0.65 : 0);
+
+      shrinePointLight.color.setHex(glow.hex);
+      shrinePointLight.intensity = 1.35 * glowBoost;
+
+      // Update atmospheric particle color & size by Season Mode
+      const seasonParticleColors = {
+        'sakura-spring': 0xfda4af,  // Soft sakura blossom pink
+        'winter-snow': 0xf8fafc,    // Crisp white snow
+        'ancient-moss': 0x86efac,   // Forest kodama spores
+        'autumn-momiji': 0xfb923c,  // Crimson-amber maple leaves
+        'clear': glow.motes
+      };
+      moteMat.color.setHex(seasonParticleColors[state.seasonMode] || glow.motes);
+      moteMat.size = state.seasonMode === 'winter-snow' ? 0.075 : (state.seasonMode === 'sakura-spring' ? 0.085 : 0.065);
+      moteMat.opacity = state.seasonMode === 'clear' ? 0.45 : 0.82;
+
+      suzuPendulumPivot = null;
+
+      const mats = {
+        primary: new THREE.MeshStandardMaterial({
+          color: pal.main,
+          roughness: pal.mainRough,
+          metalness: pal.mainMetal,
+          bumpMap: pbr.bumpTex,
+          bumpScale: state.bumpScale,
+          normalMap: pbr.normalTex,
+          normalScale: new THREE.Vector2(0.55, 0.55),
+          roughnessMap: pbr.roughnessTex,
+          wireframe: state.wireframe
+        }),
+        cap: new THREE.MeshStandardMaterial({
+          color: pal.cap,
+          roughness: pal.capRough,
+          metalness: pal.capMetal,
+          bumpMap: pbr.bumpTex,
+          bumpScale: state.bumpScale * 0.8,
+          normalMap: pbr.normalTex,
+          roughnessMap: pbr.roughnessTex,
+          wireframe: state.wireframe
+        }),
+        stone: new THREE.MeshStandardMaterial({
+          color: pal.stone,
+          roughness: 0.84,
+          metalness: 0.05,
+          bumpMap: pbr.bumpTex,
+          bumpScale: state.bumpScale * 1.25,
+          normalMap: pbr.normalTex,
+          roughnessMap: pbr.roughnessTex,
+          wireframe: state.wireframe
+        }),
+        brass: new THREE.MeshStandardMaterial({
+          color: pal.accentMetal,
+          roughness: 0.24,
+          metalness: 0.88,
+          roughnessMap: pbr.roughnessTex,
+          wireframe: state.wireframe
+        }),
+        straw: new THREE.MeshStandardMaterial({
+          color: 0xd6b87c,
+          roughness: 0.88,
+          metalness: 0.02,
+          bumpMap: pbr.bumpTex,
+          bumpScale: 0.06,
+          normalMap: pbr.normalTex,
+          roughnessMap: pbr.roughnessTex,
+          wireframe: state.wireframe
+        }),
+        washi: new THREE.MeshStandardMaterial({
+          color: 0xf8fafc,
+          roughness: 0.55,
+          metalness: 0.0,
+          emissive: new THREE.Color(glow.hex),
+          emissiveIntensity: state.materialPalette === 'elysium-obsidian' ? 0.28 * glowBoost : 0.06 * glowBoost,
+          side: THREE.DoubleSide,
+          wireframe: state.wireframe
+        }),
+        lanternEmissive: new THREE.MeshStandardMaterial({
+          color: glow.hex,
+          emissive: new THREE.Color(glow.hex),
+          emissiveIntensity: 1.95 * glowBoost,
+          roughness: 0.2,
+          metalness: 0.05,
+          wireframe: state.wireframe
+        }),
+        vermilionCloth: new THREE.MeshStandardMaterial({
+          color: 0xdc2626,
+          roughness: 0.65,
+          metalness: 0.02,
+          wireframe: state.wireframe
+        }),
+        kitsuneStone: new THREE.MeshStandardMaterial({
+          color: 0xe5e7eb,
+          roughness: 0.58,
+          metalness: 0.04,
+          bumpMap: pbr.bumpTex,
+          bumpScale: state.bumpScale * 0.5,
+          roughnessMap: pbr.roughnessTex,
+          wireframe: state.wireframe
+        }),
+        seasonalLayer: new THREE.MeshStandardMaterial({
+          color: state.seasonMode === 'winter-snow' ? 0xf1f5f9 : 0x3f6212,
+          roughness: state.seasonMode === 'winter-snow' ? 0.42 : 0.92,
+          metalness: 0.02,
+          bumpMap: pbr.bumpTex,
+          bumpScale: 0.04,
+          wireframe: state.wireframe
+        })
+      };
+
+      // 1. PRECINCT BASE PLATFORM (Sandō Stones or Tidal Water Basin)
+      let gateBaseY = 0;
+      const totalFootprintW = state.toriiStyle === 'miwa' ? state.spanWidth * 2.35 : state.spanWidth + 2.8;
+
+      if (state.basePlatform === 'stone-sandou') {
+        const curb = new THREE.Mesh(
+          new THREE.BoxGeometry(totalFootprintW, 0.12, 3.8),
+          mats.stone
+        );
+        curb.position.y = 0.06;
+        curb.receiveShadow = true;
+        curb.castShadow = true;
+        assetRoot.add(curb);
+
+        // Stepped central flagstone Sandō paving slabs
+        const slabCount = 7;
+        for (let i = 0; i < slabCount; i++) {
+          const z = (i - (slabCount - 1) * 0.5) * 0.52;
+          const slab = new THREE.Mesh(
+            new THREE.BoxGeometry(Math.min(2.4, state.spanWidth * 0.62), 0.035, 0.46),
+            mats.cap
+          );
+          slab.position.set(0, 0.132, z);
+          slab.receiveShadow = true;
+          assetRoot.add(slab);
+        }
+        gateBaseY = 0.12;
+      } else if (state.basePlatform === 'tidal-water') {
+        const rim = new THREE.Mesh(
+          new THREE.CylinderGeometry(totalFootprintW * 0.58, totalFootprintW * 0.61, 0.14, 40),
+          mats.stone
+        );
+        rim.position.y = 0.07;
+        rim.receiveShadow = true;
+        assetRoot.add(rim);
+
+        const waterMat = new THREE.MeshPhysicalMaterial({
+          color: 0x0c2438,
+          roughness: 0.07,
+          metalness: 0.18,
+          reflectivity: 0.95,
+          clearcoat: 1.0,
+          clearcoatRoughness: 0.06,
+          normalMap: pbr.normalTex,
+          normalScale: new THREE.Vector2(0.12, 0.12),
+          wireframe: state.wireframe
+        });
+        const water = new THREE.Mesh(
+          new THREE.CylinderGeometry(totalFootprintW * 0.55, totalFootprintW * 0.55, 0.04, 40),
+          waterMat
+        );
+        water.position.y = 0.13;
+        water.receiveShadow = true;
+        assetRoot.add(water);
+        gateBaseY = 0.12;
+      }
+
+      // 2. MAIN CENTRAL TORII ARCH
+      const toriiElevationGroup = new THREE.Group();
+      toriiElevationGroup.position.y = gateBaseY;
+      assetRoot.add(toriiElevationGroup);
+
+      const mainBuilt = buildToriiArchUnit({
+        style: state.toriiStyle,
+        spanW: state.spanWidth,
+        heightH: state.pillarHeight,
+        radiusR: state.pillarRadius,
+        tiltDeg: state.korobiTilt,
+        sorimashi: state.sorimashiCurve,
+        overhang: state.lintelOverhang,
+        nukiExt: state.nukiProtrusion,
+        showKusabi: state.showKusabi,
+        showNemaki: state.showNemaki,
+        includeGakuzuka: state.showGakuzuka,
+        plaqueTitle: state.plaqueTitle,
+        isSubWing: false
+      }, mats);
+      toriiElevationGroup.add(mainBuilt.unit);
+
+      // 3. MIWA TRIPLE-ARCHED SIDE WINGS (三輪鳥居 Mitsu-Torii)
+      if (state.toriiStyle === 'miwa') {
+        const wingSpan = state.spanWidth * 0.58;
+        const wingHeight = state.pillarHeight * 0.72;
+        const wingRadius = state.pillarRadius * 0.78;
+
+        for (const side of [-1, 1]) {
+          // Outer wing centers so inner wing post merges cleanly with main Hashira
+          const wingCenterX = side * (state.spanWidth * 0.5 + wingSpan * 0.5);
+          const wingBuilt = buildToriiArchUnit({
+            style: 'myojin',
+            spanW: wingSpan,
+            heightH: wingHeight,
+            radiusR: wingRadius,
+            tiltDeg: state.korobiTilt * 0.5,
+            sorimashi: state.sorimashiCurve * 0.68,
+            overhang: state.lintelOverhang * 0.62,
+            nukiExt: state.nukiProtrusion * 0.65,
+            showKusabi: state.showKusabi,
+            showNemaki: state.showNemaki,
+            includeGakuzuka: false,
+            plaqueTitle: '',
+            isSubWing: true
+          }, mats);
+          wingBuilt.unit.position.x = wingCenterX;
+          toriiElevationGroup.add(wingBuilt.unit);
+
+          // Traditional Miwa sacred lattice side-fence (Mizugaki) inside side arches
+          const fenceH = wingHeight * 0.42;
+          const slatCount = 7;
+          for (let s = 1; s < slatCount; s++) {
+            const fx = wingCenterX - wingSpan * 0.5 + (s / slatCount) * wingSpan;
+            const slat = new THREE.Mesh(new THREE.BoxGeometry(0.04, fenceH, 0.04), mats.primary);
+            slat.position.set(fx, fenceH * 0.5 + 0.12, 0);
+            toriiElevationGroup.add(slat);
+          }
+          const topRail = new THREE.Mesh(new THREE.BoxGeometry(wingSpan, 0.06, 0.07), mats.cap);
+          topRail.position.set(wingCenterX, fenceH + 0.12, 0);
+          toriiElevationGroup.add(topRail);
+
+          if (state.showShimenawa) {
+            const wingRope = buildShimenawaAssembly(
+              wingSpan,
+              wingBuilt.nukiY - wingRadius * 0.45,
+              state.shimenawaThickness * 0.68,
+              Math.max(2, Math.floor(state.shideCount * 0.6)),
+              wingRadius * 0.65,
+              mats
+            );
+            wingRope.position.x = wingCenterX;
+            toriiElevationGroup.add(wingRope);
+          }
+        }
+      }
+
+      // 4. MAIN SHIMENAWA SACRED ROPE & ZIGZAG SHIDE STREAMERS
+      if (state.showShimenawa) {
+        const mainRope = buildShimenawaAssembly(
+          state.spanWidth - mainBuilt.topDx * 1.4,
+          mainBuilt.nukiY - state.pillarRadius * 0.52,
+          state.shimenawaThickness,
+          state.shideCount,
+          state.pillarRadius * 0.78,
+          mats
+        );
+        toriiElevationGroup.add(mainRope);
+      }
+
+      // 4B. HANGING BRASS SUZU BELL & BRAIDED SUZU-O PULL-ROPE
+      if (state.showSuzuBell) {
+        const suzu = buildSuzuBellAndRope(
+          mainBuilt.nukiY - state.pillarRadius * 0.44,
+          state.suzuRopeLength,
+          mats
+        );
+        toriiElevationGroup.add(suzu);
+      }
+
+      // 4C. SEASONAL SNOW CAPS OR MOSS CREEP ON FRONT GATE
+      toriiElevationGroup.add(
+        buildSeasonalAccents(
+          state.spanWidth,
+          state.pillarHeight,
+          state.pillarRadius,
+          state.lintelOverhang,
+          state.sorimashiCurve,
+          state.korobiTilt,
+          state.toriiStyle,
+          mats
+        )
+      );
+
+      // 4D. SENBON-TORII CURVED STEPPED COLONNADE TUNNEL (千本鳥居)
+      const gateCount = Math.max(1, Math.round(state.tunnelCount));
+      if (gateCount > 1) {
+        const totalTurnRad = THREE.MathUtils.degToRad(state.tunnelCurveDeg);
+        let curX = 0;
+        let curZ = 0;
+        let prevX = 0;
+        let prevZ = 0;
+        let prevY = gateBaseY;
+
+        for (let gi = 1; gi < gateCount; gi++) {
+          const frac = gi / Math.max(1, gateCount - 1);
+          const yaw = -frac * totalTurnRad;
+          curX += -Math.sin(yaw) * state.tunnelSpacing;
+          curZ += -Math.cos(yaw) * state.tunnelSpacing;
+          const stepY = gateBaseY + frac * state.tunnelSlope;
+
+          // Stepped mountain stone stair tread connecting previous gate to this gate
+          if (state.basePlatform !== 'minimal-plinth') {
+            const midX = (prevX + curX) * 0.5;
+            const midZ = (prevZ + curZ) * 0.5;
+            const midY = (prevY + stepY) * 0.5;
+            const stairStep = new THREE.Mesh(
+              new THREE.BoxGeometry(state.spanWidth * 0.86, Math.max(0.14, (stepY - prevY) + 0.12), state.tunnelSpacing * 1.08),
+              mats.stone
+            );
+            stairStep.position.set(midX, midY - 0.05, midZ);
+            stairStep.rotation.y = yaw;
+            stairStep.receiveShadow = true;
+            stairStep.castShadow = true;
+            assetRoot.add(stairStep);
+          }
+
+          // Build lightweight colonnade gate unit along the curved mountain path
+          const tunnelNode = new THREE.Group();
+          tunnelNode.position.set(curX, stepY, curZ);
+          tunnelNode.rotation.y = yaw;
+
+          const subGate = buildToriiArchUnit({
+            style: state.toriiStyle === 'miwa' ? 'myojin' : state.toriiStyle,
+            spanW: state.spanWidth * 0.94,
+            heightH: state.pillarHeight * 0.94,
+            radiusR: state.pillarRadius * 0.90,
+            tiltDeg: state.korobiTilt,
+            sorimashi: state.sorimashiCurve * 0.92,
+            overhang: state.lintelOverhang * 0.88,
+            nukiExt: state.nukiProtrusion * 0.88,
+            showKusabi: state.showKusabi && (gi % 2 === 0 || gateCount <= 10),
+            showNemaki: state.showNemaki,
+            includeGakuzuka: false,
+            plaqueTitle: '',
+            isSubWing: true
+          }, mats);
+          tunnelNode.add(subGate.unit);
+
+          if (state.seasonMode === 'winter-snow' && state.weatheringAmount > 10) {
+            tunnelNode.add(
+              buildSeasonalAccents(
+                state.spanWidth * 0.94,
+                state.pillarHeight * 0.94,
+                state.pillarRadius * 0.90,
+                state.lintelOverhang * 0.88,
+                state.sorimashiCurve * 0.92,
+                state.korobiTilt,
+                state.toriiStyle === 'miwa' ? 'myojin' : state.toriiStyle,
+                mats
+              )
+            );
+          }
+
+          assetRoot.add(tunnelNode);
+          prevX = curX;
+          prevZ = curZ;
+          prevY = stepY;
+        }
+      }
+
+      // 5. ELYSIUM ASTRAL RUNE STRIPS (Subtle emissive inlays on Obsidian palette)
+      if (state.materialPalette === 'elysium-obsidian') {
+        for (const side of [-1, 1]) {
+          const strip = new THREE.Mesh(
+            new THREE.BoxGeometry(0.035, state.pillarHeight * 0.62, 0.035),
+            mats.lanternEmissive
+          );
+          strip.position.set(
+            side * (state.spanWidth * 0.5 - Math.sin(THREE.MathUtils.degToRad(state.korobiTilt)) * state.pillarHeight * 0.45),
+            state.pillarHeight * 0.46,
+            state.pillarRadius * 0.98
+          );
+          strip.rotation.z = side * THREE.MathUtils.degToRad(state.korobiTilt);
+          toriiElevationGroup.add(strip);
+        }
+      }
+
+      // 6. FLANKING TŌRŌ STONE LANTERNS OR CYBER BRAZIERS
+      if (state.lanternStyle !== 'none') {
+        const lanternX = state.spanWidth * 0.5 + 0.85;
+        const lanternZ = 1.25;
+        for (const side of [-1, 1]) {
+          const lnt = buildShrineLantern(state.lanternStyle, side * lanternX, lanternZ, mats);
+          lnt.position.y = gateBaseY;
+          assetRoot.add(lnt);
+        }
+      }
+
+      // 6B. GUARDIAN KITSUNE FOXES OR KOMAINU LION-DOG STATUES
+      if (state.guardianStyle !== 'none') {
+        const guardX = state.spanWidth * 0.5 + (state.lanternStyle !== 'none' ? 0.18 : 0.65);
+        const guardZ = state.lanternStyle !== 'none' ? 2.15 : 1.45;
+        for (const side of [-1, 1]) {
+          const statue = buildGuardianStatue(state.guardianStyle, side, side * guardX, guardZ, mats);
+          statue.position.y = gateBaseY;
+          assetRoot.add(statue);
+        }
+      }
+
+      // 7. MAKER STAMP PLAQUE
+      assetRoot.add(buildMakerStampPlaque(state.spanWidth * 0.5 + 0.45, gateBaseY + 0.012, -0.85, mats));
+
+      // Resize Contact AO to match footprint
+      contactAOMesh.scale.set(totalFootprintW / 9.5, 1.0, 1.0);
+
+      rebuildVrmAvatar();
+      updateTelemetry(mainBuilt.nukiY, mainBuilt.kasagiTotalLen);
+    }
+
+    function updateTelemetry(nukiY, kasagiSpan) {
+      let meshes = 0;
+      let tris = 0;
+      assetRoot.traverse((o) => {
+        if (o.isMesh && o.geometry) {
+          meshes++;
+          const idx = o.geometry.index;
+          const pos = o.geometry.attributes.position;
+          tris += idx ? Math.round(idx.count / 3) : (pos ? Math.round(pos.count / 3) : 0);
+        }
+      });
+
+      const nukiBottomClear = Math.max(0, nukiY - state.pillarRadius * 0.5 - (state.showShimenawa ? 0.28 : 0));
+      const vrmPass = nukiBottomClear >= 1.85;
+      const headroomEl = document.getElementById('stat-headroom');
+      headroomEl.textContent = `${nukiBottomClear.toFixed(2)} m (${vrmPass ? 'PASS' : 'TIGHT'})`;
+      headroomEl.className = vrmPass
+        ? 'font-mono-tech text-emerald-400 font-semibold'
+        : 'font-mono-tech text-amber-400 font-semibold';
+
+      document.getElementById('stat-kasagiSpan').textContent = `${kasagiSpan.toFixed(2)} m`;
+      document.getElementById('stat-meshCount').textContent = meshes.toLocaleString();
+      document.getElementById('stat-triCount').textContent = tris.toLocaleString();
+
+      const lineageNames = {
+        myojin: 'MYŌJIN FAMILY',
+        shinmei: 'SHINMEI FAMILY',
+        inari: 'INARI • DAIWA',
+        ryobu: 'RYŌBU • 4-LEG',
+        miwa: 'MIWA • TRIPLE'
+      };
+      document.getElementById('stat-lineageBadge').textContent = state.tunnelCount > 1 ? `SENBON ×${Math.round(state.tunnelCount)}` : (lineageNames[state.toriiStyle] || 'TORII');
+
+      document.getElementById('label-span').textContent = `Span: ${state.spanWidth.toFixed(2)} m`;
+      document.getElementById('label-height').textContent = `Kasagi H: ${(state.pillarHeight + state.sorimashiCurve).toFixed(2)} m`;
+      document.getElementById('label-nuki').textContent = `Walk Clear: ${nukiBottomClear.toFixed(2)} m`;
+    }
+
+    function updateLabelsOverlay() {
+      const overlay = document.getElementById('dimensions-overlay');
+      if (!state.showDimensions) {
+        overlay.style.opacity = '0';
+        return;
+      }
+      overlay.style.opacity = '1';
+
+      const pts = [
+        { id: 'label-span', pos: new THREE.Vector3(0, 0.35, 1.45) },
+        { id: 'label-height', pos: new THREE.Vector3(state.spanWidth * 0.5 + state.lintelOverhang * 0.75, state.pillarHeight + 0.35, 0) },
+        { id: 'label-nuki', pos: new THREE.Vector3(-state.spanWidth * 0.32, state.pillarHeight * 0.72, 0.35) }
+      ];
+      const rect = mount.getBoundingClientRect();
+      for (const item of pts) {
+        const v = item.pos.clone().project(camera);
+        const el = document.getElementById(item.id);
+        if (!el) continue;
+        if (v.z > 1) {
+          el.style.opacity = '0';
+        } else {
+          el.style.opacity = '1';
+          el.style.left = `${(v.x * 0.5 + 0.5) * rect.width}px`;
+          el.style.top = `${(-(v.y * 0.5) + 0.5) * rect.height}px`;
+        }
+      }
+    }
+
+    // =========================================================================
+    // 6. UI CONTROL WIRING, RAYCAST CHIME, AUDIO & EXPORTERS
+    // =========================================================================
+    let audioCtx = null;
+    function playSuzuBlessingChime() {
+      try {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return;
+        if (!audioCtx) audioCtx = new Ctx();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const now = audioCtx.currentTime;
+        // Crisp pentatonic Shinto suzu bell harmonics
+        [1046.5, 1318.5, 1568.0, 2093.0].forEach((freq, i) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = i % 2 === 0 ? 'sine' : 'triangle';
+          osc.frequency.setValueAtTime(freq, now + i * 0.055);
+          gain.gain.setValueAtTime(0.0001, now + i * 0.055);
+          gain.gain.exponentialRampToValueAtTime(0.08 / (i + 1), now + i * 0.055 + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.055 + 0.95);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now + i * 0.055);
+          osc.stop(now + i * 0.055 + 1.0);
+        });
+      } catch (_e) {
+        // Ignore WebAudio restrictions cleanly
+      }
+    }
+
+    function triggerBlessing() {
+      blessingPulseTimer = 1.8;
+      suzuSwingImpulse = 0.55;
+      playSuzuBlessingChime();
+      buildToriiScene();
+      showToast('⛩️ Rung Brass Suzu Bell & Activated Shrine Blessing!');
+    }
+
+    const SLIDER_SPECS = [
+      ['spanWidth', ' m', 2],
+      ['pillarHeight', ' m', 2],
+      ['pillarRadius', ' m', 2],
+      ['korobiTilt', '°', 1],
+      ['tunnelCount', ' gates', 0],
+      ['tunnelSpacing', ' m', 2],
+      ['tunnelCurveDeg', '°', 0],
+      ['tunnelSlope', ' m', 2],
+      ['sorimashiCurve', ' m', 2],
+      ['lintelOverhang', ' m', 2],
+      ['nukiProtrusion', ' m', 2],
+      ['shimenawaThickness', ' m', 2],
+      ['shideCount', ' shide', 0],
+      ['suzuRopeLength', ' m', 2],
+      ['lanternGlow', '%', 0],
+      ['breezeStrength', '%', 0],
+      ['weatheringAmount', '%', 0],
+      ['crackDensity', '%', 0],
+      ['bumpScale', '', 2]
+    ];
+
+    function syncUI() {
+      for (const [k, unit, dec] of SLIDER_SPECS) {
+        const input = document.getElementById(`param-${k}`);
+        const label = document.getElementById(`val-${k}`);
+        if (input) input.value = state[k];
+        if (label) label.textContent = Number(state[k]).toFixed(dec) + unit;
+      }
+      ['toriiStyle', 'basePlatform', 'guardianStyle', 'lanternStyle', 'materialPalette', 'seasonMode', 'glowTheme'].forEach((k) => {
+        const el = document.getElementById(`param-${k}`);
+        if (el) el.value = state[k];
+      });
+      ['showVrmAvatar', 'showKusabi', 'showNemaki', 'showShimenawa', 'showGakuzuka', 'showSuzuBell', 'showDimensions', 'wireframe'].forEach((k) => {
+        const el = document.getElementById(`param-${k}`);
+        if (el) el.checked = Boolean(state[k]);
+      });
+      const plaqueEl = document.getElementById('param-plaqueTitle');
+      if (plaqueEl && document.activeElement !== plaqueEl) {
+        plaqueEl.value = state.plaqueTitle;
+      }
+    }
+
+    for (const [k] of SLIDER_SPECS) {
+      document.getElementById(`param-${k}`).addEventListener('input', (e) => {
+        state[k] = parseFloat(e.target.value);
+        syncUI();
+        buildToriiScene();
+      });
+    }
+
+    ['toriiStyle', 'basePlatform', 'guardianStyle', 'lanternStyle', 'materialPalette', 'seasonMode', 'glowTheme'].forEach((k) => {
+      document.getElementById(`param-${k}`).addEventListener('change', (e) => {
+        state[k] = e.target.value;
+        syncUI();
+        buildToriiScene();
+      });
+    });
+
+    ['showVrmAvatar', 'showKusabi', 'showNemaki', 'showShimenawa', 'showGakuzuka', 'showSuzuBell', 'showDimensions', 'wireframe'].forEach((k) => {
+      document.getElementById(`param-${k}`).addEventListener('change', (e) => {
+        state[k] = e.target.checked;
+        buildToriiScene();
+      });
+    });
+
+    document.getElementById('param-plaqueTitle').addEventListener('input', (e) => {
+      state.plaqueTitle = e.target.value || '神域';
+      buildToriiScene();
+    });
+
+    // Tabs
+    document.querySelectorAll('.tab-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach((b) => {
+          b.className = 'tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition';
+        });
+        btn.className = 'tab-btn py-2 rounded bg-slate-800 text-rose-400 shadow-sm transition';
+        document.querySelectorAll('.tab-content').forEach((p) => {
+          p.classList.toggle('hidden', p.id !== btn.dataset.tab);
+        });
+      });
+    });
+
+    // Presets
+    document.querySelectorAll('.preset-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.preset;
+        const p = PRESETS[key];
+        if (!p) return;
+        Object.assign(state, p);
+        syncUI();
+        buildToriiScene();
+        document.querySelectorAll('.preset-btn').forEach((b) => {
+          const active = b.dataset.preset === key;
+          if (b.parentElement.classList.contains('xl:hidden')) {
+            b.className = active
+              ? 'preset-btn shrink-0 px-2 py-1 rounded text-[11px] font-medium bg-rose-500/20 text-rose-300 border border-rose-500/40'
+              : 'preset-btn shrink-0 px-2 py-1 rounded text-[11px] font-medium text-slate-300 bg-slate-900 border border-slate-800';
+          } else {
+            b.className = active
+              ? 'preset-btn px-2 py-1 rounded text-[11px] font-medium bg-rose-500/20 text-rose-300 border border-rose-500/40 transition'
+              : 'preset-btn px-2 py-1 rounded text-[11px] font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition';
+          }
+        });
+        showToast(`Loaded ${btn.textContent.trim()} Torii archetype`);
+      });
+    });
+
+    document.getElementById('btnRandomize').addEventListener('click', () => {
+      const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+      state.toriiStyle = pick(['myojin', 'shinmei', 'inari', 'ryobu', 'miwa']);
+      state.materialPalette = pick(['vermilion-lacquer', 'hinoki-cypress', 'weathered-granite', 'aged-bronze', 'elysium-obsidian']);
+      state.glowTheme = pick(['warm-lantern', 'kitsune-gold', 'spirit-cyan', 'sakura-crimson']);
+      state.basePlatform = pick(['stone-sandou', 'tidal-water', 'minimal-plinth']);
+      state.guardianStyle = pick(['kitsune', 'komainu', 'none']);
+      state.seasonMode = pick(['sakura-spring', 'winter-snow', 'ancient-moss', 'autumn-momiji']);
+      state.tunnelCount = pick([1, 1, 6, 10, 14]);
+      state.lanternStyle = pick(['ishi-doro', 'cyber-brazier', 'none']);
+      state.spanWidth = Number((2.8 + Math.random() * 2.6).toFixed(1));
+      state.pillarHeight = Number((3.6 + Math.random() * 2.4).toFixed(1));
+      state.sorimashiCurve = state.toriiStyle === 'shinmei' ? 0 : Number((0.20 + Math.random() * 0.45).toFixed(2));
+      state.shideCount = pick([3, 5, 7]);
+      syncUI();
+      buildToriiScene();
+      showToast('Randomized Procedural Torii Shrine Gate!');
+    });
+
+    // Camera Quick Views
+    let camTarget = null;
+    let orbitTarget = null;
+    document.querySelectorAll('.cam-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const mode = btn.dataset.cam;
+        if (mode === 'iso') {
+          camTarget = new THREE.Vector3(5.6, 3.4, 6.9);
+          orbitTarget = new THREE.Vector3(0, state.pillarHeight * 0.5, 0);
+        } else if (mode === 'walkthrough') {
+          camTarget = new THREE.Vector3(0, 1.68, 3.8);
+          orbitTarget = new THREE.Vector3(0, 2.05, -1.5);
+        } else if (mode === 'tunnel') {
+          if (state.tunnelCount < 4) {
+            state.tunnelCount = 10;
+            syncUI();
+            buildToriiScene();
+          }
+          camTarget = new THREE.Vector3(0.0, 1.85, 3.6);
+          orbitTarget = new THREE.Vector3(-Math.sin(THREE.MathUtils.degToRad(state.tunnelCurveDeg)) * 5.0, 2.3 + state.tunnelSlope * 0.45, -8.0);
+        } else if (mode === 'lintel') {
+          camTarget = new THREE.Vector3(1.05, state.pillarHeight * 0.72, 2.45);
+          orbitTarget = new THREE.Vector3(0, state.pillarHeight * 0.72, 0.2);
+        }
+        document.querySelectorAll('.cam-btn').forEach((b) => {
+          b.className = b === btn
+            ? 'cam-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-rose-500/20 text-rose-300 border border-rose-500/30 transition'
+            : 'cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition';
+        });
+      });
+    });
+    controls.addEventListener('start', () => { camTarget = null; orbitTarget = null; });
+
+    document.getElementById('btnBlessingPulse').addEventListener('click', triggerBlessing);
+
+    // 3D Raycast click on Shingaku plaque, Shimenawa, or Lanterns
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    let downPos = { x: 0, y: 0 };
+    renderer.domElement.addEventListener('pointerdown', (e) => { downPos = { x: e.clientX, y: e.clientY }; });
+    window.addEventListener('pointerup', (e) => {
+      if (Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > 5) return;
+      const rect = renderer.domElement.getBoundingClientRect();
+      if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) return;
+      pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(clickableShrineMeshes, false);
+      if (hits.length > 0) {
+        triggerBlessing();
+      }
+    });
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast-notification');
+      document.getElementById('toast-text').textContent = msg;
+      toast.style.opacity = '1';
+      clearTimeout(showToast._timer);
+      showToast._timer = setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function downloadCanvasPNG(canvas, filename) {
+      const dataUrl = canvas.toDataURL('image/png');
+      const bin = atob(dataUrl.split(',')[1]);
+      const arr = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+      downloadBlob(new Blob([arr], { type: 'image/png' }), filename);
+    }
+
+    document.getElementById('btnExportPBR').addEventListener('click', () => {
+      if (!currentPBR.bumpCanvas) generatePBRMaps(state.crackDensity);
+      const slug = `toriicad_${state.toriiStyle}`;
+      downloadCanvasPNG(currentPBR.bumpCanvas, `${slug}_bump_cracks.png`);
+      downloadCanvasPNG(currentPBR.normalCanvas, `${slug}_normal_rgb.png`);
+      downloadCanvasPNG(currentPBR.roughCanvas, `${slug}_roughness_cavity.png`);
+      showToast('Exported 3-Channel PBR Maps (Bump, Normal & Roughness .PNGs)!');
+    });
+
+    document.getElementById('btnExportJSON').addEventListener('click', () => {
+      downloadBlob(
+        new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }),
+        `toriicad-recipe-${state.toriiStyle}-v6.json`
+      );
+      showToast('Exported Parametric Torii Recipe (.JSON)');
+    });
+
+    document.getElementById('btnExportGLB').addEventListener('click', () => {
+      const exporter = new GLTFExporter();
+      exporter.parse(
+        assetRoot,
+        (res) => {
+          downloadBlob(new Blob([res], { type: 'application/octet-stream' }), `parametric-torii-${state.toriiStyle}-v6.glb`);
+          showToast(`Exported 3D ${state.toriiStyle.toUpperCase()} Torii Gate (.GLB)!`);
+        },
+        (err) => console.error(err),
+        { binary: true }
+      );
+    });
+
+    document.getElementById('btnExportOBJ').addEventListener('click', () => {
+      const exporter = new OBJExporter();
+      downloadBlob(
+        new Blob([exporter.parse(assetRoot)], { type: 'text/plain' }),
+        `parametric-torii-${state.toriiStyle}-v6.obj`
+      );
+      showToast('Exported Wavefront 3D Torii Mesh (.OBJ)');
+    });
+
+    // =========================================================================
+    // 7. ANIMATION LOOP (WIND SWAY, BLESSING PULSE & FLOATING SPIRIT MOTES)
+    // =========================================================================
+    const clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = Math.min(clock.getDelta(), 0.1);
+      const elapsed = clock.getElapsedTime();
+
+      if (camTarget && orbitTarget) {
+        camera.position.lerp(camTarget, dt * 5);
+        controls.target.lerp(orbitTarget, dt * 5);
+        if (camera.position.distanceTo(camTarget) < 0.06) {
+          camTarget = null;
+          orbitTarget = null;
+        }
+      }
+
+      if (blessingPulseTimer > 0) {
+        blessingPulseTimer = Math.max(0, blessingPulseTimer - dt);
+        if (blessingPulseTimer === 0) {
+          shrinePointLight.intensity = 1.35 * (state.lanternGlow / 100);
+        }
+      }
+
+      if (suzuSwingImpulse > 0.002) {
+        suzuSwingImpulse *= Math.pow(0.22, dt);
+      } else {
+        suzuSwingImpulse = 0;
+      }
+      if (suzuPendulumPivot) {
+        const idleSway = (state.breezeStrength / 100) * 0.045;
+        suzuPendulumPivot.rotation.x = Math.sin(elapsed * 5.8) * suzuSwingImpulse + Math.cos(elapsed * 1.8) * idleSway;
+        suzuPendulumPivot.rotation.z = Math.sin(elapsed * 2.3) * (idleSway + suzuSwingImpulse * 0.35);
+      }
+
+      const windAmt = (state.breezeStrength / 100) * 0.22 + (blessingPulseTimer > 0 ? 0.14 : 0);
+      for (const item of swayNodes) {
+        if (item.isHoverCrystal) {
+          item.mesh.rotation.y += dt * 1.35;
+          item.mesh.position.y = item.baseY + Math.sin(elapsed * 2.2 + item.phase) * 0.09;
+        } else {
+          item.mesh.rotation.z = Math.sin(elapsed * 2.6 + item.phase) * windAmt * item.amp;
+          item.mesh.rotation.x = Math.cos(elapsed * 1.9 + item.phase * 0.7) * windAmt * 0.55 * item.amp;
+        }
+      }
+
+      const mPos = atmosphericMotes.geometry.attributes.position;
+      const driftX = (state.breezeStrength / 100) * 0.008;
+      for (let i = 0; i < MOTE_COUNT; i++) {
+        let mx = mPos.getX(i) + driftX;
+        let my = mPos.getY(i) - 0.0038;
+        if (my < 0.12) my = 6.1;
+        if (mx > 5.5) mx = -5.5;
+        mPos.setX(i, mx);
+        mPos.setY(i, my);
+      }
+      mPos.needsUpdate = true;
+
+      controls.update();
+      updateLabelsOverlay();
+      if (bloomEnabled) composer.render();
+      else renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+      const rw = Math.max(1, mount.clientWidth);
+      const rh = Math.max(1, mount.clientHeight);
+      camera.aspect = rw / rh;
+      camera.updateProjectionMatrix();
+      renderer.setSize(rw, rh);
+      composer.setSize(rw, rh);
+    });
+
+    window.__STUDIO_E2E__ = {
+      studioCode: 'TORIICAD',
+      version: '6.5',
+      scene,
+      camera,
+      renderer,
+      composer,
+      unrealBloomPass,
+      assetRoot,
+      getBloomEnabled: () => bloomEnabled
+    };
+
+    syncUI();
+    buildToriiScene();
+    animate();
+  </script>
+</body>
+</html>

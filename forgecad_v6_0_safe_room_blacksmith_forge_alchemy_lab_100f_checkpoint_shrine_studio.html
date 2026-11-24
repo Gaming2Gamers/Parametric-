@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FORGECAD v6.0 — Safe-Room Blacksmith Forge, Alchemy Lab & 100F Checkpoint Shrine Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <style>
+    * { box-sizing: border-box; user-select: none; }
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #09080c;
+      color: #e2e8f0;
+    }
+    .font-mono-tech { font-family: 'JetBrains Mono', monospace; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.4); }
+    ::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.6); border-radius: 3px; }
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: #1e293b;
+      border-radius: 999px;
+      outline: none;
+      border: 1px solid #334155;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #f97316;
+      cursor: pointer;
+      border: 2px solid #0f172a;
+      box-shadow: 0 0 8px rgba(249, 115, 22, 0.55);
+      transition: transform 0.1s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(51, 65, 85, 0.65);
+    }
+    .dimension-badge {
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.2s ease;
+    }
+  </style>
+</head>
+<body class="h-screen w-screen flex flex-col bg-[#09080c] text-slate-100">
+
+  <!-- TOP HEADER BAR -->
+  <header class="h-14 border-b border-slate-800/80 bg-slate-950/90 px-4 flex items-center justify-between z-20 shrink-0">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-lg bg-orange-500/15 border border-orange-400/35 flex items-center justify-center text-orange-400 shadow-inner">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"></path>
+        </svg>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="font-semibold text-sm tracking-tight text-white">FORGE<span class="text-orange-400">CAD</span></h1>
+          <span class="text-[10px] font-mono-tech uppercase px-1.5 py-0.5 rounded bg-orange-500/15 text-orange-300 border border-orange-500/30">v6.0 • Safe-Room Hub Stations</span>
+        </div>
+        <p class="text-[11px] text-slate-400">Parametric Blacksmith Forge & Anvil, Alchemy Workbench & 100F Checkpoint Respawn Shrine</p>
+      </div>
+    </div>
+
+    <!-- ARCHETYPE PRESETS -->
+    <div class="hidden xl:flex items-center gap-1.5 bg-slate-900/90 p-1 rounded-lg border border-slate-800">
+      <span class="text-[11px] font-medium text-slate-400 px-2">Station:</span>
+      <button data-preset="forge" class="preset-btn px-2.5 py-1 rounded text-xs font-medium bg-orange-500/20 text-orange-300 border border-orange-500/40 transition">Blacksmith Forge & Anvil</button>
+      <button data-preset="shrine" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-purple-300 hover:bg-purple-950/40 border border-purple-500/30 transition">100F Checkpoint Shrine</button>
+      <button data-preset="alchemy" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-emerald-300 hover:bg-emerald-950/40 border border-emerald-500/30 transition">Alchemy & Enchanting Lab</button>
+      <button data-preset="triphammer" class="preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition">Dwarven Trip-Hammer Foundry</button>
+    </div>
+
+    <!-- EXPORT ACTIONS -->
+    <div class="flex items-center gap-2">
+      <button id="btnToggleBloom" type="button" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 font-mono-tech border border-cyan-500/40 transition" title="Toggle Selective ACES Filmic HDR UnrealBloom Post-Processing">✨ Bloom: ON</button>
+      <button id="btnRandomize" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">Randomize</button>
+      <button id="btnExportPBR" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-emerald-300 font-mono-tech border border-emerald-500/30 transition">PBR .PNGs</button>
+      <button id="btnExportJSON" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-amber-400 font-mono-tech border border-slate-700 transition">.JSON</button>
+      <button id="btnExportOBJ" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">Export .OBJ</button>
+      <button id="btnExportGLB" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-orange-500 hover:bg-orange-400 text-slate-950 shadow-lg shadow-orange-500/20 transition">Export .GLB</button>
+    </div>
+  </header>
+
+  <div class="flex-1 flex relative overflow-hidden">
+
+    <!-- LEFT PANEL -->
+    <aside class="w-80 md:w-96 border-r border-slate-800/80 bg-slate-950/95 flex flex-col z-10 shrink-0">
+      <div class="grid grid-cols-5 border-b border-slate-800 bg-slate-900/60 p-1 gap-1 text-[11px] font-medium">
+        <button data-tab="tab-station" class="tab-btn py-2 rounded bg-slate-800 text-orange-400 shadow-sm transition">Station</button>
+        <button data-tab="tab-hearth" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Hearth</button>
+        <button data-tab="tab-anvil" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Anvil/Lab</button>
+        <button data-tab="tab-shrine" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Crystal</button>
+        <button data-tab="tab-finish" class="tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition">Materials</button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-4 space-y-5">
+
+        <!-- TAB 1: SAFE-ROOM STATION ARCHITECTURE -->
+        <div id="tab-station" class="tab-content space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">.VRM Hub Station Archetype</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Safe-Room Station Type</label>
+                <select id="param-stationType" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="blacksmith-forge">Smelting Furnace + Bellows + Anvil</option>
+                  <option value="respawn-shrine">100F Checkpoint Save-Crystal Shrine</option>
+                  <option value="alchemy-bench">Arcane Alchemy & Enchanting Lab</option>
+                </select>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Plinth Platform Width (X)</label>
+                  <span id="val-stationWidth" class="font-mono-tech text-orange-400">3.80 m</span>
+                </div>
+                <input id="param-stationWidth" type="range" min="2.20" max="6.00" step="0.20" value="3.80">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Monument / Chimney Height (Y)</label>
+                  <span id="val-stationHeight" class="font-mono-tech text-orange-400">3.60 m</span>
+                </div>
+                <input id="param-stationHeight" type="range" min="2.20" max="5.50" step="0.20" value="3.60">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-emerald-300 block">Show .VRM 1.70m Crafter Avatar</span>
+                  <span class="text-[11px] text-slate-400">Verify anvil & workbench height</span>
+                </div>
+                <input id="param-showVrmAvatar" type="checkbox" checked class="w-4 h-4 accent-emerald-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: SMELTING HEARTH & PUMPING BELLOWS -->
+        <div id="tab-hearth" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Furnace Hood & Mechanical Bellows</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Mechanical Pumping Bellows</span>
+                  <span class="text-[11px] text-slate-400">Animated side air-lung & brass nozzle</span>
+                </div>
+                <input id="param-showBellows" type="checkbox" checked class="w-4 h-4 accent-orange-500 rounded cursor-pointer">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Hearth Fire Intensity</label>
+                  <span id="val-fireIntensity" class="font-mono-tech text-orange-400">100%</span>
+                </div>
+                <input id="param-fireIntensity" type="range" min="10" max="150" step="5" value="100">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: HORNED ANVIL, TRIP-HAMMER & ALCHEMY VESSELS -->
+        <div id="tab-anvil" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Anvil, Trip-Hammer & Lab Gear</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Anvil / Workbench Scale</label>
+                  <span id="val-anvilScale" class="font-mono-tech text-orange-400">1.00x</span>
+                </div>
+                <input id="param-anvilScale" type="range" min="0.70" max="1.50" step="0.05" value="1.00">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-slate-200 block">Automated Power Trip-Hammer</span>
+                  <span class="text-[11px] text-slate-400">Pivoting mechanical forge hammer</span>
+                </div>
+                <input id="param-tripHammer" type="checkbox" checked class="w-4 h-4 accent-orange-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: CHECKPOINT SAVE CRYSTAL & RUNE RINGS -->
+        <div id="tab-shrine" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Checkpoint Save Crystal & Halo</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Crystal Spire Size</label>
+                  <span id="val-crystalSize" class="font-mono-tech text-orange-400">1.20 m</span>
+                </div>
+                <input id="param-crystalSize" type="range" min="0.60" max="2.20" step="0.10" value="1.20">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-slate-300 font-medium">Orbiting Halo Rings</label>
+                  <span id="val-haloRings" class="font-mono-tech text-orange-400">2 rings</span>
+                </div>
+                <input id="param-haloRings" type="range" min="0" max="4" step="1" value="2">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 5: MATERIALS & PBR BUMP/CRACKS -->
+        <div id="tab-finish" class="tab-content hidden space-y-5">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Materials & PBR Relief</h2>
+            <div class="space-y-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Masonry & Metal Palette</label>
+                <select id="param-materialPalette" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="dwarven-basalt">Dwarven Basalt Brick & Orichalcum</option>
+                  <option value="cathedral-granite">Fortress Ashlar Granite & Wrought Iron</option>
+                  <option value="astral-marble">Sanctuary Marble & Celestial Gold</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 font-medium mb-1.5">Ember / Crystal Energy Color</label>
+                <select id="param-glowColor" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="amber">Smelting Forge Ember</option>
+                  <option value="arcane-purple">Checkpoint Arcane Violet</option>
+                  <option value="emerald">Alchemical Fel Emerald</option>
+                  <option value="ice-blue">Sanctuary Starlight Cyan</option>
+                </select>
+              </div>
+
+              <div class="pt-2 border-t border-slate-800">
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-emerald-300 font-medium">PBR Crack & Scar Density</label>
+                  <span id="val-crackDensity" class="font-mono-tech text-emerald-400">45%</span>
+                </div>
+                <input id="param-crackDensity" type="range" min="0" max="100" step="5" value="45">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <label class="text-emerald-300 font-medium">Normal / Bump Relief Depth</label>
+                  <span id="val-bumpScale" class="font-mono-tech text-emerald-400">0.08</span>
+                </div>
+                <input id="param-bumpScale" type="range" min="0.00" max="0.25" step="0.01" value="0.08">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-200">3D Dimension Callouts</span>
+                <input id="param-showDimensions" type="checkbox" checked class="w-4 h-4 accent-orange-500 rounded cursor-pointer">
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-200">Wireframe Overlay Pass</span>
+                <input id="param-wireframe" type="checkbox" class="w-4 h-4 accent-orange-500 rounded cursor-pointer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- TELEMETRY FOOTER -->
+      <div class="p-3.5 border-t border-slate-800 bg-slate-900/90 space-y-2">
+        <div class="flex items-center justify-between text-[11px] text-slate-400">
+          <span class="uppercase font-semibold tracking-wider">Station Telemetry</span>
+          <span id="stat-triangles" class="font-mono-tech text-slate-300">0 tris</span>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">Footprint</span>
+            <span id="stat-width" class="font-mono-tech text-xs font-semibold text-orange-400">3.80 m</span>
+          </div>
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">Height</span>
+            <span id="stat-height" class="font-mono-tech text-xs font-semibold text-emerald-400">3.60 m</span>
+          </div>
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <span class="text-[10px] text-slate-400 block">Core Temp</span>
+            <span id="stat-temp" class="font-mono-tech text-xs font-semibold text-amber-400">1,450 °C</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- VIEWPORT -->
+    <main class="flex-1 relative bg-gradient-to-b from-[#160d09] via-[#090b12] to-[#050609] overflow-hidden">
+      <div id="canvas-mount" class="w-full h-full"></div>
+
+      <div id="labels-container" class="absolute inset-0 pointer-events-none overflow-hidden">
+        <div id="label-width" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/90 border border-orange-500/50 text-[11px] font-mono-tech text-orange-300 shadow-lg">W: 3.80m</div>
+        <div id="label-height" class="dimension-badge absolute px-2 py-0.5 rounded bg-slate-950/90 border border-orange-500/50 text-[11px] font-mono-tech text-orange-300 shadow-lg">H: 3.60m</div>
+      </div>
+
+      <!-- CAMERA PRESETS -->
+      <div class="absolute top-4 left-4 glass-panel rounded-xl p-1.5 flex items-center gap-1 shadow-xl">
+        <span class="text-[10px] font-mono-tech uppercase text-slate-400 px-2">Camera:</span>
+        <button data-cam="iso" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-orange-500/20 text-orange-300 border border-orange-500/30 transition">3/4 Sanctuary</button>
+        <button data-cam="anvil" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">.VRM Crafter View</button>
+        <button data-cam="hearth" class="cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition">Core Close-Up</button>
+      </div>
+
+      <!-- STATION CONTROLLER -->
+      <div class="absolute top-4 right-4 w-60 glass-panel rounded-2xl p-3.5 shadow-2xl flex flex-col gap-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-300">Station Kinematics</span>
+          <span class="w-2 h-2 rounded-full bg-orange-400 shadow-[0_0_8px_#f97316]"></span>
+        </div>
+
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 flex items-center justify-between">
+          <div>
+            <span class="text-[10px] text-slate-400 uppercase block">Hub State</span>
+            <span id="sim-status-text" class="text-[11px] font-mono-tech text-emerald-400">ACTIVE • FORGING</span>
+          </div>
+          <span id="sim-pct-readout" class="font-mono-tech text-sm font-bold text-orange-400">100%</span>
+        </div>
+
+        <button id="btnTriggerForgePulse" class="w-full py-1.5 px-3 rounded-lg bg-orange-500/25 hover:bg-orange-500/35 text-orange-200 border border-orange-500/40 text-xs font-semibold transition">
+          🔥 Pump Bellows / Ignite Shrine
+        </button>
+      </div>
+
+      <!-- BOTTOM-LEFT HINT -->
+      <div class="absolute bottom-4 left-4 glass-panel rounded-lg px-3 py-1.5 text-[11px] text-slate-400 flex items-center gap-3 pointer-events-none">
+        <span><strong class="text-slate-200">LMB:</strong> Orbit / Click 3D Anvil, Bellows or Crystal to Surge</span>
+        <span>•</span>
+        <span><strong class="text-slate-200">RMB:</strong> Pan</span>
+      </div>
+
+      <!-- TOAST -->
+      <div id="toast-notification" class="pointer-events-none opacity-0 transition-opacity duration-300 absolute bottom-4 right-4 glass-panel border-orange-500/40 bg-slate-900/95 text-orange-200 px-4 py-2.5 rounded-xl text-xs font-medium shadow-2xl">
+        <span id="toast-text">Station updated!</span>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+    import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+    import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+    import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+    import { OBJExporter } from 'three/addons/exporters/OBJExporter.js';
+
+    const state = {
+      stationType: 'blacksmith-forge',
+      stationWidth: 3.80,
+      stationHeight: 3.60,
+      showVrmAvatar: true,
+
+      showBellows: true,
+      fireIntensity: 100,
+
+      anvilScale: 1.00,
+      tripHammer: true,
+
+      crystalSize: 1.20,
+      haloRings: 2,
+
+      materialPalette: 'dwarven-basalt',
+      glowColor: 'amber',
+      crackDensity: 45,
+      bumpScale: 0.08,
+      showDimensions: true,
+      wireframe: false
+    };
+
+    const PRESETS = {
+      forge: {
+        stationType: 'blacksmith-forge', stationWidth: 3.80, stationHeight: 3.60,
+        showBellows: true, fireIntensity: 100, anvilScale: 1.00, tripHammer: true,
+        materialPalette: 'dwarven-basalt', glowColor: 'amber'
+      },
+      shrine: {
+        stationType: 'respawn-shrine', stationWidth: 3.60, stationHeight: 3.80,
+        crystalSize: 1.35, haloRings: 3, fireIntensity: 120,
+        materialPalette: 'astral-marble', glowColor: 'arcane-purple'
+      },
+      alchemy: {
+        stationType: 'alchemy-bench', stationWidth: 3.40, stationHeight: 3.00,
+        fireIntensity: 100, anvilScale: 1.10,
+        materialPalette: 'cathedral-granite', glowColor: 'emerald'
+      },
+      triphammer: {
+        stationType: 'blacksmith-forge', stationWidth: 4.40, stationHeight: 4.20,
+        showBellows: true, fireIntensity: 135, anvilScale: 1.25, tripHammer: true,
+        materialPalette: 'cathedral-granite', glowColor: 'amber'
+      }
+    };
+
+    const GLOW_MAP = {
+      'amber': 0xf97316,
+      'arcane-purple': 0xc084fc,
+      'emerald': 0x10b981,
+      'ice-blue': 0x38bdf8
+    };
+
+    const pbrMapCache = {};
+
+    // Helper: Compute 3x3 Sobel Tangent-Space Normal Map Texture from a Height Canvas
+    function computeSobelNormalTexture(heightCanvas, bevelStrength = 3.4) {
+      const w = heightCanvas.width;
+      const h = heightCanvas.height;
+      const hCtx = heightCanvas.getContext('2d');
+      const src = hCtx.getImageData(0, 0, w, h).data;
+
+      const normCanvas = document.createElement('canvas');
+      normCanvas.width = w;
+      normCanvas.height = h;
+      const nCtx = normCanvas.getContext('2d');
+      const dstImg = nCtx.createImageData(w, h);
+      const dst = dstImg.data;
+
+      const sample = (x, y) => {
+        const cx = (x + w) % w;
+        const cy = (y + h) % h;
+        return src[(cy * w + cx) * 4] / 255.0;
+      };
+
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const tl = sample(x - 1, y - 1), t = sample(x, y - 1), tr = sample(x + 1, y - 1);
+          const l  = sample(x - 1, y),                           r  = sample(x + 1, y);
+          const bl = sample(x - 1, y + 1), b = sample(x, y + 1), br = sample(x + 1, y + 1);
+
+          const dX = (tr + 2 * r + br) - (tl + 2 * l + bl);
+          const dY = (bl + 2 * b + br) - (tl + 2 * t + tr);
+          let vx = -dX * bevelStrength;
+          let vy = -dY * bevelStrength;
+          let vz = 1.0;
+          const inv = 1.0 / (Math.sqrt(vx * vx + vy * vy + vz * vz) || 1.0);
+          const idx = (y * w + x) * 4;
+          dst[idx]     = Math.floor((vx * inv * 0.5 + 0.5) * 255);
+          dst[idx + 1] = Math.floor((vy * inv * 0.5 + 0.5) * 255);
+          dst[idx + 2] = Math.floor((vz * inv * 0.5 + 0.5) * 255);
+          dst[idx + 3] = 255;
+        }
+      }
+      nCtx.putImageData(dstImg, 0, 0);
+      return { normCanvas, normalTex: new THREE.CanvasTexture(normCanvas) };
+    }
+
+    // ULTRA-CRISP BEZIER VECTOR INDUSTRIAL NAMEPLATE GENERATOR ('manthrax/JSlug' pattern, 1024x256 + Normal Bevel)
+    const stampedPlateCache = {};
+    function createStampedPlateTexture(text, subtext, accentHex = '#38bdf8') {
+      const key = `${text}_${subtext}_${accentHex}`;
+      if (stampedPlateCache[key]) return stampedPlateCache[key];
+
+      const W = 1024, H = 256;
+      const c = document.createElement('canvas');
+      c.width = W; c.height = H;
+      const ctx = c.getContext('2d');
+
+      const hc = document.createElement('canvas');
+      hc.width = W; hc.height = H;
+      const hCtx = hc.getContext('2d');
+      hCtx.fillStyle = 'rgb(128,128,128)';
+      hCtx.fillRect(0, 0, W, H);
+
+      // 1. Brushed Anodized Metallic Plate Background
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+      bgGrad.addColorStop(0.0, '#1e293b');
+      bgGrad.addColorStop(0.5, '#0f172a');
+      bgGrad.addColorStop(1.0, '#090d16');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, W, H);
+
+      for (let y = 0; y < H; y += 3) {
+        ctx.fillStyle = y % 6 === 0 ? 'rgba(255,255,255,0.025)' : 'rgba(0,0,0,0.04)';
+        ctx.fillRect(0, y, W, 1.5);
+      }
+
+      // 2. Cubic Bezier Chamfered Industrial Frame Border
+      const drawBezierFrame = (targetCtx, strokeCol, lineW, inset = 14, ch = 28) => {
+        targetCtx.strokeStyle = strokeCol;
+        targetCtx.lineWidth = lineW;
+        targetCtx.lineJoin = 'round';
+        targetCtx.beginPath();
+        targetCtx.moveTo(inset + ch, inset);
+        targetCtx.lineTo(W - inset - ch, inset);
+        targetCtx.bezierCurveTo(W - inset, inset, W - inset, inset, W - inset, inset + ch);
+        targetCtx.lineTo(W - inset, H - inset - ch);
+        targetCtx.bezierCurveTo(W - inset, H - inset, W - inset, H - inset, W - inset - ch, H - inset);
+        targetCtx.lineTo(inset + ch, H - inset);
+        targetCtx.bezierCurveTo(inset, H - inset, inset, H - inset, inset, H - inset - ch);
+        targetCtx.lineTo(inset, inset + ch);
+        targetCtx.bezierCurveTo(inset, inset, inset, inset, inset + ch, inset);
+        targetCtx.closePath();
+        targetCtx.stroke();
+      };
+
+      drawBezierFrame(hCtx, 'rgb(45,45,45)', 22, 16, 28);
+      drawBezierFrame(hCtx, 'rgb(240,240,240)', 10, 16, 28);
+      drawBezierFrame(ctx, '#475569', 12, 16, 28);
+      drawBezierFrame(ctx, accentHex, 5, 22, 24);
+
+      // 3. Stamped Hex Corner Rivets
+      for (const [rx, ry] of [[52, 52], [W - 52, 52], [52, H - 52], [W - 52, H - 52]]) {
+        hCtx.fillStyle = 'rgb(40,40,40)';
+        hCtx.beginPath(); hCtx.arc(rx, ry, 20, 0, Math.PI * 2); hCtx.fill();
+        hCtx.fillStyle = 'rgb(245,245,245)';
+        hCtx.beginPath(); hCtx.arc(rx, ry, 15, 0, Math.PI * 2); hCtx.fill();
+
+        const rGrad = ctx.createRadialGradient(rx - 4, ry - 4, 2, rx, ry, 16);
+        rGrad.addColorStop(0.0, '#f8fafc');
+        rGrad.addColorStop(0.6, '#94a3b8');
+        rGrad.addColorStop(1.0, '#1e293b');
+        ctx.fillStyle = rGrad;
+        ctx.beginPath(); ctx.arc(rx, ry, 15, 0, Math.PI * 2); ctx.fill();
+      }
+
+      // 4. Stamped Bezier Vector Typography Pass
+      const renderStampedVectorText = (str, yPos, fontSize, fillHex, isMain) => {
+        const fontSpec = `900 ${fontSize}px "JetBrains Mono", "Inter", monospace`;
+        ctx.font = fontSpec;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+
+        hCtx.font = fontSpec;
+        hCtx.textAlign = 'center';
+        hCtx.textBaseline = 'middle';
+        hCtx.lineJoin = 'round';
+        hCtx.lineCap = 'round';
+
+        hCtx.strokeStyle = 'rgb(38,38,38)';
+        hCtx.lineWidth = isMain ? 18 : 12;
+        hCtx.strokeText(str, W / 2, yPos);
+
+        hCtx.strokeStyle = 'rgb(205,205,205)';
+        hCtx.lineWidth = isMain ? 9 : 6;
+        hCtx.strokeText(str, W / 2, yPos);
+
+        hCtx.fillStyle = 'rgb(255,255,255)';
+        hCtx.fillText(str, W / 2, yPos);
+
+        ctx.strokeStyle = '#020617';
+        ctx.lineWidth = isMain ? 12 : 8;
+        ctx.strokeText(str, W / 2 + 2.5, yPos + 2.5);
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+        ctx.lineWidth = isMain ? 4 : 2.5;
+        ctx.strokeText(str, W / 2 - 1.5, yPos - 1.5);
+
+        ctx.fillStyle = fillHex;
+        ctx.fillText(str, W / 2, yPos);
+      };
+
+      renderStampedVectorText(text, 102, 74, '#f8fafc', true);
+      renderStampedVectorText(subtext, 188, 44, accentHex, false);
+
+      const colorTex = new THREE.CanvasTexture(c);
+      colorTex.anisotropy = 8;
+      const { normalTex } = computeSobelNormalTexture(hc, 3.6);
+      normalTex.anisotropy = 8;
+      const bumpTex = new THREE.CanvasTexture(hc);
+      bumpTex.anisotropy = 8;
+
+      colorTex.normalMap = normalTex;
+      colorTex.bumpMap = bumpTex;
+      colorTex.createMaterial = () => new THREE.MeshStandardMaterial({
+        map: colorTex,
+        normalMap: normalTex,
+        normalScale: new THREE.Vector2(1.85, 1.85),
+        bumpMap: bumpTex,
+        bumpScale: 0.035,
+        metalness: 0.86,
+        roughness: 0.24,
+        envMapIntensity: 1.65
+      });
+
+      stampedPlateCache[key] = colorTex;
+      return colorTex;
+    }
+
+    // mrdoob/harmony Proximity-History Stress-Fracture, Cross-Hatch & Weld-Bead Pass in generatePBRMaps
+    function generatePBRMaps(kind, crackPct) {
+      const key = `${kind}_${Math.round(crackPct)}`;
+      if (pbrMapCache[key]) return pbrMapCache[key];
+      const size = 256;
+      const bumpCanvas = document.createElement('canvas');
+      bumpCanvas.width = size; bumpCanvas.height = size;
+      const bCtx = bumpCanvas.getContext('2d');
+      bCtx.fillStyle = 'rgb(175,175,175)';
+      bCtx.fillRect(0, 0, size, size);
+
+      let seed = 911 + kind.charCodeAt(0) * 37;
+      const rand = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+      const crackFactor = Math.max(0.05, crackPct / 100);
+
+      // Base surface micro-grain
+      for (let i = 0; i < 2200; i++) {
+        const v = Math.floor(145 + rand() * 68);
+        bCtx.fillStyle = `rgb(${v},${v},${v})`;
+        bCtx.fillRect(rand() * size, rand() * size, 2, 2);
+      }
+
+      // Plate seams + Raised TIG/MIG Stacked-Dime Weld Beads along seams
+      bCtx.strokeStyle = 'rgb(42,42,42)';
+      bCtx.lineWidth = 3;
+      for (let y = 0; y < size; y += 64) {
+        bCtx.beginPath(); bCtx.moveTo(0, y); bCtx.lineTo(size, y); bCtx.stroke();
+        for (let wx = 4; wx < size - 4; wx += 5) {
+          bCtx.fillStyle = 'rgba(238,238,238,0.58)';
+          bCtx.beginPath(); bCtx.arc(wx, y, 2.5, 0, Math.PI * 2); bCtx.fill();
+        }
+      }
+
+      // Cross-Hatched Machining Micro-Scratches (+32 deg / -58 deg)
+      bCtx.lineCap = 'round';
+      const scratchCount = Math.floor(16 + crackFactor * 38);
+      for (let i = 0; i < scratchCount; i++) {
+        const sx = rand() * size, sy = rand() * size;
+        const ang = (i % 2 === 0 ? 0.56 : -1.01) + (rand() - 0.5) * 0.18;
+        const len = 10 + rand() * 24;
+        const ex = sx + Math.cos(ang) * len;
+        const ey = sy + Math.sin(ang) * len;
+        bCtx.strokeStyle = `rgba(22,22,22,${0.20 + crackFactor * 0.25})`;
+        bCtx.lineWidth = 0.8;
+        bCtx.beginPath(); bCtx.moveTo(sx, sy); bCtx.lineTo(ex, ey); bCtx.stroke();
+      }
+
+      // mrdoob/harmony Proximity-History Branching Stress-Fracture Web
+      const harmonyHistory = [];
+      const maxDist = 24;
+      const maxDistSq = maxDist * maxDist;
+      const walkerCount = Math.floor(3 + crackFactor * 10);
+      const stepsPerWalker = Math.floor(14 + crackFactor * 24);
+
+      for (let w = 0; w < walkerCount; w++) {
+        let cx = rand() * size, cy = rand() * size;
+        let dir = rand() * Math.PI * 2;
+        for (let s = 0; s < stepsPerWalker; s++) {
+          dir += (rand() - 0.5) * 1.15;
+          const stepLen = 4.5 + rand() * 7.5;
+          const nx = Math.max(2, Math.min(size - 2, cx + Math.cos(dir) * stepLen));
+          const ny = Math.max(2, Math.min(size - 2, cy + Math.sin(dir) * stepLen));
+          const ctrlX = (cx + nx) * 0.5 + (rand() - 0.5) * 4.5;
+          const ctrlY = (cy + ny) * 0.5 + (rand() - 0.5) * 4.5;
+
+          bCtx.strokeStyle = `rgba(12,12,12,${0.45 + crackFactor * 0.45})`;
+          bCtx.lineWidth = 1.2 + (1 - s / stepsPerWalker) * 0.85;
+          bCtx.beginPath();
+          bCtx.moveTo(cx, cy);
+          bCtx.quadraticCurveTo(ctrlX, ctrlY, nx, ny);
+          bCtx.stroke();
+
+          for (let h = 0; h < harmonyHistory.length; h++) {
+            const hp = harmonyHistory[h];
+            const dx = nx - hp.x, dy = ny - hp.y;
+            const dSq = dx * dx + dy * dy;
+            if (dSq > 5 && dSq < maxDistSq) {
+              const proxAlpha = (1.0 - dSq / maxDistSq) * 0.38 * crackFactor;
+              bCtx.strokeStyle = `rgba(18,18,18,${proxAlpha.toFixed(3)})`;
+              bCtx.lineWidth = 0.65;
+              bCtx.beginPath();
+              bCtx.moveTo(nx, ny);
+              bCtx.lineTo(hp.x, hp.y);
+              bCtx.stroke();
+            }
+          }
+          harmonyHistory.push({ x: nx, y: ny });
+          cx = nx; cy = ny;
+        }
+      }
+
+      const { normCanvas, normalTex } = computeSobelNormalTexture(bumpCanvas, 3.4);
+      const bumpTex = new THREE.CanvasTexture(bumpCanvas);
+      bumpTex.wrapS = THREE.RepeatWrapping; bumpTex.wrapT = THREE.RepeatWrapping; bumpTex.repeat.set(2, 2);
+      normalTex.wrapS = THREE.RepeatWrapping; normalTex.wrapT = THREE.RepeatWrapping; normalTex.repeat.set(2, 2);
+      // v6.0 Specular Micro-Roughness & Cavity Occlusion Map (shiny raised welds/rivets, matte cracks)
+      const roughCanvas = document.createElement('canvas');
+      roughCanvas.width = size; roughCanvas.height = size;
+      const rCtx = roughCanvas.getContext('2d');
+      const bPixels = bumpCanvas.getContext('2d').getImageData(0, 0, size, size).data;
+      const rImg = rCtx.createImageData(size, size);
+      const rData = rImg.data;
+      for (let i = 0; i < size * size; i++) {
+        const hVal = bPixels[i * 4] / 255.0;
+        // Invert height: raised weld beads & rivets (h>0.72) -> smooth shiny (low roughness ~55), cracks (h<0.45) -> matte oxidized (~238)
+        const rough = Math.max(38, Math.min(246, Math.round((1.08 - hVal * 0.86) * 235)));
+        rData[i * 4] = rough;
+        rData[i * 4 + 1] = rough;
+        rData[i * 4 + 2] = rough;
+        rData[i * 4 + 3] = 255;
+      }
+      rCtx.putImageData(rImg, 0, 0);
+      const roughnessTex = new THREE.CanvasTexture(roughCanvas);
+      roughnessTex.wrapS = THREE.RepeatWrapping; roughnessTex.wrapT = THREE.RepeatWrapping; roughnessTex.repeat.set(2, 2);
+      const entry = { bumpCanvas, normCanvas, roughCanvas, bumpTex, normalTex, roughnessTex };
+      pbrMapCache[key] = entry;
+      return entry;
+    }
+
+    function exportPBRTexturePack(prefix, kind, crackPct) {
+      const maps = generatePBRMaps(kind, crackPct);
+      maps.bumpCanvas.toBlob((b) => b && downloadBlob(b, `${prefix}_bump_cracks.png`));
+      setTimeout(() => maps.normCanvas.toBlob((b) => b && downloadBlob(b, `${prefix}_normal_rgb.png`)), 220);
+      setTimeout(() => maps.roughCanvas && maps.roughCanvas.toBlob((b) => b && downloadBlob(b, `${prefix}_roughness_cavity.png`)), 440);
+    }
+
+    const mount = document.getElementById('canvas-mount');
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x07060b, 0.015);
+
+    const camera = new THREE.PerspectiveCamera(44, mount.clientWidth / mount.clientHeight, 0.1, 120);
+    camera.position.set(4.8, 3.2, 5.4);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
+    renderer.setSize(mount.clientWidth, mount.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
+    mount.appendChild(renderer.domElement);
+    const pmremGen = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmremGen.fromScene(new RoomEnvironment(), 0.04).texture;
+
+    // v6.0 Selective High-Threshold HDR Post-Processing (EffectComposer + UnrealBloomPass + OutputPass)
+    let bloomEnabled = true;
+    const initW = Math.max(1, mount.clientWidth || window.innerWidth);
+    const initH = Math.max(1, mount.clientHeight || window.innerHeight);
+    const composer = new EffectComposer(renderer);
+    composer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    composer.setSize(initW, initH);
+    composer.addPass(new RenderPass(scene, camera));
+    const unrealBloomPass = new UnrealBloomPass(new THREE.Vector2(initW, initH), 0.42, 0.55, 0.85);
+    composer.addPass(unrealBloomPass);
+    composer.addPass(new OutputPass());
+
+    // v6.0 Studio Shadow-Catcher Deck & Soft Radial Contact AO Grounding (in scene, outside assetRoot)
+    const studioFloor = new THREE.Mesh(
+      new THREE.CircleGeometry(28, 64),
+      new THREE.MeshStandardMaterial({ color: 0x060911, roughness: 0.76, metalness: 0.28, envMapIntensity: 0.6 })
+    );
+    studioFloor.rotation.x = -Math.PI / 2;
+    studioFloor.position.y = -0.014;
+    studioFloor.receiveShadow = true;
+    scene.add(studioFloor);
+
+    const aoCanvas = document.createElement('canvas');
+    aoCanvas.width = 256; aoCanvas.height = 256;
+    const aoCtx = aoCanvas.getContext('2d');
+    const aoGrad = aoCtx.createRadialGradient(128, 128, 10, 128, 128, 124);
+    aoGrad.addColorStop(0.0, 'rgba(0,0,0,0.82)');
+    aoGrad.addColorStop(0.55, 'rgba(0,0,0,0.42)');
+    aoGrad.addColorStop(1.0, 'rgba(0,0,0,0.0)');
+    aoCtx.fillStyle = aoGrad;
+    aoCtx.fillRect(0, 0, 256, 256);
+    const contactAoPlane = new THREE.Mesh(
+      new THREE.PlaneGeometry(5.4, 5.4),
+      new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(aoCanvas), transparent: true, depthWrite: false, opacity: 0.88 })
+    );
+    contactAoPlane.rotation.x = -Math.PI / 2;
+    contactAoPlane.position.y = 0.003;
+    scene.add(contactAoPlane);
+
+    // v6.0 Subtle Atmospheric Floating Ember / Mana Mote Field (in scene, outside assetRoot so GLB export stays clean)
+    const MOTE_COUNT = 56;
+    const motePositions = new Float32Array(MOTE_COUNT * 3);
+    for (let mi = 0; mi < MOTE_COUNT; mi++) {
+      motePositions[mi * 3]     = (Math.sin(mi * 73.1) * 0.5) * 6.8;
+      motePositions[mi * 3 + 1] = 0.25 + ((mi * 0.618034) % 1.0) * 4.4;
+      motePositions[mi * 3 + 2] = (Math.cos(mi * 41.7) * 0.5) * 6.8;
+    }
+    const moteGeo = new THREE.BufferGeometry();
+    moteGeo.setAttribute('position', new THREE.BufferAttribute(motePositions, 3));
+    const moteMat = new THREE.PointsMaterial({
+      color: 0xf97316,
+      size: 0.055,
+      transparent: true,
+      opacity: 0.58,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+    const atmosphericMotes = new THREE.Points(moteGeo, moteMat);
+    atmosphericMotes.name = 'Viewport_Atmospheric_Motes';
+    scene.add(atmosphericMotes);
+
+    const btnToggleBloomEl = document.getElementById('btnToggleBloom');
+    if (btnToggleBloomEl) {
+      btnToggleBloomEl.addEventListener('click', () => {
+        bloomEnabled = !bloomEnabled;
+        unrealBloomPass.enabled = bloomEnabled;
+        btnToggleBloomEl.textContent = bloomEnabled ? '✨ Bloom: ON' : '✨ Bloom: OFF';
+        btnToggleBloomEl.className = bloomEnabled
+          ? 'px-2.5 py-1.5 rounded-lg text-xs font-medium bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 font-mono-tech border border-cyan-500/40 transition'
+          : 'px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-400 font-mono-tech border border-slate-700 transition';
+      });
+    }
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.target.set(0, 1.4, 0);
+
+    scene.add(new THREE.HemisphereLight(0xffedd5, 0x090d16, 0.9));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.9);
+    dirLight.position.set(8, 16, 10);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.set(2048, 2048);
+    dirLight.shadow.bias = -0.0005;
+    dirLight.shadow.normalBias = 0.02;
+    dirLight.shadow.camera.near = 0.5;
+    dirLight.shadow.camera.far = 85;
+    dirLight.shadow.camera.left = -9.0;
+    dirLight.shadow.camera.right = 9.0;
+    dirLight.shadow.camera.top = 9.0;
+    dirLight.shadow.camera.bottom = -9.0;
+    scene.add(dirLight);
+
+    const hearthLight = new THREE.PointLight(0xf97316, 3.5, 14);
+    hearthLight.position.set(0, 1.8, 0);
+    scene.add(hearthLight);
+
+    const gridHelper = new THREE.GridHelper(28, 28, 0xea580c, 0x1e293b);
+    gridHelper.position.y = 0;
+    scene.add(gridHelper);
+
+    const assetRoot = new THREE.Group();
+    assetRoot.name = 'Parametric_Forge_Shrine_Asset';
+    scene.add(assetRoot);
+
+    const animatedStationNodes = [];
+    const clickableStationMeshes = [];
+
+    function getMaterials() {
+      const wf = state.wireframe;
+      const palMap = {
+        'dwarven-basalt':    { stone: 0x222632, metal: 0x334155, trim: 0xd4af37 },
+        'cathedral-granite': { stone: 0x3b4252, metal: 0x1e293b, trim: 0x94a3b8 },
+        'astral-marble':     { stone: 0xcbd5e1, metal: 0x475569, trim: 0xf59e0b }
+      };
+      const pal = palMap[state.materialPalette] || palMap['dwarven-basalt'];
+      const stonePbr = generatePBRMaps('stone', state.crackDensity);
+      const armorPbr = generatePBRMaps('armor', state.crackDensity);
+      const glowHex = GLOW_MAP[state.glowColor] || 0xf97316;
+      hearthLight.color.setHex(glowHex);
+      hearthLight.intensity = 3.5 * (state.fireIntensity / 100);
+
+      const nScale = new THREE.Vector2(state.bumpScale * 2.5, state.bumpScale * 2.5);
+      return {
+        stone: new THREE.MeshStandardMaterial({
+          color: pal.stone, roughness: 0.58, metalness: 0.26,
+          bumpMap: stonePbr.bumpTex, bumpScale: state.bumpScale, normalMap: stonePbr.normalTex, roughnessMap: stonePbr.roughnessTex, normalScale: nScale, envMapIntensity: 1.35, wireframe: wf
+        }),
+        anvilSteel: new THREE.MeshStandardMaterial({
+          color: pal.metal, roughness: 0.18, metalness: 0.94,
+          bumpMap: armorPbr.bumpTex, bumpScale: state.bumpScale * 0.6, normalMap: armorPbr.normalTex, roughnessMap: armorPbr.roughnessTex, normalScale: nScale, envMapIntensity: 1.80, wireframe: wf
+        }),
+        trim: new THREE.MeshStandardMaterial({
+          color: pal.trim, roughness: 0.20, metalness: 0.92,
+          bumpMap: armorPbr.bumpTex, bumpScale: state.bumpScale * 0.35, normalMap: armorPbr.normalTex, roughnessMap: armorPbr.roughnessTex, normalScale: nScale, envMapIntensity: 1.75, wireframe: wf
+        }),
+        timber: new THREE.MeshStandardMaterial({
+          color: 0x5c3a21, roughness: 0.55, metalness: 0.15,
+          bumpMap: stonePbr.bumpTex, bumpScale: state.bumpScale * 0.5, normalMap: stonePbr.normalTex, roughnessMap: stonePbr.roughnessTex, normalScale: nScale, wireframe: wf
+        }),
+        glow: new THREE.MeshStandardMaterial({
+          color: glowHex, emissive: glowHex, emissiveIntensity: 2.8 * (state.fireIntensity / 100), wireframe: wf
+        }),
+        glass: new THREE.MeshPhysicalMaterial({
+          color: glowHex, transparent: true, opacity: 0.52, roughness: 0.08, clearcoat: 1.0, transmission: 0.65, envMapIntensity: 1.8, wireframe: wf
+        }),
+        vrmAvatar: new THREE.MeshStandardMaterial({
+          color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.35, roughness: 0.3, wireframe: wf
+        })
+      };
+    }
+
+    function clearGroup(group) {
+      while (group.children.length > 0) {
+        const c = group.children[0];
+        group.remove(c);
+        if (c.geometry) c.geometry.dispose();
+      }
+    }
+
+    function buildStationScene() {
+      clearGroup(assetRoot);
+      animatedStationNodes.length = 0;
+      clickableStationMeshes.length = 0;
+
+      const mats = getMaterials();
+      const W = state.stationWidth;
+      const H = state.stationHeight;
+      const aScale = state.anvilScale;
+
+      // Base Sanctuary Plinth
+      const plinth = new THREE.Mesh(new THREE.CylinderGeometry(W * 0.56, W * 0.62, 0.18, 12), mats.stone);
+      plinth.position.y = 0.09;
+      plinth.receiveShadow = true;
+      assetRoot.add(plinth);
+
+      if (state.stationType === 'blacksmith-forge') {
+        // 1. Smelting Hearth Furnace & Tapered Chimney Hood at Rear (-Z)
+        const hearthBase = new THREE.Mesh(new THREE.BoxGeometry(1.85, 1.05, 1.45), mats.stone);
+        hearthBase.position.set(0, 0.18 + 0.525, -0.85);
+        const emberBed = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.55, 0.24, 16), mats.glow);
+        emberBed.position.set(0, 1.25, -0.75);
+        const hood = new THREE.Mesh(new THREE.ConeGeometry(1.15, H - 1.3, 4), mats.stone);
+        hood.rotation.y = Math.PI / 4;
+        hood.position.set(0, 1.75 + (H - 1.3) / 2, -0.85);
+        assetRoot.add(hearthBase, emberBed, hood);
+
+        // 2. Pumping Mechanical Bellows on Left Side (-X)
+        if (state.showBellows) {
+          const bellowsGroup = new THREE.Group();
+          bellowsGroup.position.set(-1.35, 1.05, -0.85);
+          const lowerPaddle = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.08, 0.65), mats.timber);
+          const upperPaddle = lowerPaddle.clone();
+          upperPaddle.position.y = 0.32;
+          const nozzle = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.10, 0.45, 12), mats.trim);
+          nozzle.rotation.z = Math.PI / 2;
+          nozzle.position.set(0.55, 0.12, 0);
+          bellowsGroup.add(lowerPaddle, upperPaddle, nozzle);
+          assetRoot.add(bellowsGroup);
+          animatedStationNodes.push({ type: 'bellows', mesh: upperPaddle });
+        }
+
+        // 3. London-Pattern Horned Blacksmith Anvil in Center Foreground (+Z)
+        const anvilGroup = new THREE.Group();
+        anvilGroup.position.set(0, 0.18, 0.65);
+        anvilGroup.scale.set(aScale, aScale, aScale);
+
+        const stump = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.40, 0.52, 16), mats.timber);
+        stump.position.y = 0.26;
+        const anvilBody = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.34, 0.28), mats.anvilSteel);
+        anvilBody.position.y = 0.68;
+        const horn = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.45, 16), mats.anvilSteel);
+        horn.rotation.z = -Math.PI / 2;
+        horn.position.set(0.52, 0.72, 0);
+        const hotIngot = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.05, 0.10), mats.glow);
+        hotIngot.position.set(0, 0.87, 0);
+
+        anvilBody.userData.isForgeTrigger = true;
+        clickableStationMeshes.push(anvilBody, hotIngot);
+        anvilGroup.add(stump, anvilBody, horn, hotIngot);
+        assetRoot.add(anvilGroup);
+
+        // Coopered Oak Water Quench Barrel with Iron Hoops & Clearcoat Water Surface
+        const quenchGroup = new THREE.Group();
+        quenchGroup.position.set(-0.92, 0.18, 0.55);
+        const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.24, 0.62, 18), mats.timber);
+        barrel.position.y = 0.31;
+        const hoop1 = new THREE.Mesh(new THREE.TorusGeometry(0.27, 0.018, 8, 24), mats.trim);
+        hoop1.rotation.x = Math.PI / 2; hoop1.position.y = 0.48;
+        const hoop2 = hoop1.clone(); hoop2.position.y = 0.16;
+        const water = new THREE.Mesh(new THREE.CircleGeometry(0.25, 18), mats.glass);
+        water.rotation.x = -Math.PI / 2; water.position.y = 0.58;
+        quenchGroup.add(barrel, hoop1, hoop2, water);
+        assetRoot.add(quenchGroup);
+
+        // Blacksmith Tongs & Cross-Peen Hammer resting on Anvil Face
+        const tongs = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.48, 8), mats.trim);
+        tongs.rotation.z = Math.PI / 2;
+        tongs.rotation.y = 0.35;
+        tongs.position.set(-0.22, 0.87, 0.06);
+        anvilGroup.add(tongs);
+
+        // 4. Automated Power Trip-Hammer with Wiper-Driven Camshaft & Tappet Wheel
+        if (state.tripHammer) {
+          const post = new THREE.Mesh(new THREE.BoxGeometry(0.28, 1.35, 0.28), mats.stone);
+          post.position.set(1.15, 0.18 + 0.675, 0.65);
+
+          // Wiper Camshaft & Flywheel Assembly driving the Helve Beam
+          const camWheel = new THREE.Group();
+          camWheel.position.set(1.38, 1.12, 0.65);
+          const camDrum = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.24, 18), mats.trim);
+          camDrum.rotation.x = Math.PI / 2;
+          const flywheel = new THREE.Mesh(new THREE.TorusGeometry(0.36, 0.04, 10, 24), mats.anvilSteel);
+          flywheel.position.z = 0.16;
+          camWheel.add(camDrum, flywheel);
+          for (let w = 0; w < 4; w++) {
+            const wang = (w / 4) * Math.PI * 2;
+            const wiper = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.14, 0.16), mats.anvilSteel);
+            wiper.position.set(Math.cos(wang) * 0.26, Math.sin(wang) * 0.26, 0);
+            wiper.rotation.z = wang;
+            camWheel.add(wiper);
+          }
+          animatedStationNodes.push({ type: 'halo', mesh: camWheel, idx: 1 });
+
+          const pivotArm = new THREE.Group();
+          pivotArm.position.set(1.15, 1.35, 0.65);
+          const beam = new THREE.Mesh(new THREE.BoxGeometry(1.25, 0.12, 0.12), mats.timber);
+          beam.position.x = -0.55;
+          const collar = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.16, 0.16), mats.trim);
+          collar.position.x = -1.12;
+          const head = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.38, 16), mats.anvilSteel);
+          head.position.set(-1.12, -0.15, 0);
+          pivotArm.add(beam, collar, head);
+          assetRoot.add(post, camWheel, pivotArm);
+          animatedStationNodes.push({ type: 'hammer', mesh: pivotArm });
+        }
+      } else if (state.stationType === 'respawn-shrine') {
+        // 100F CHECKPOINT RESPAWN SAVE-CRYSTAL SHRINE
+        const altar = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 1.15, 0.75, 8), mats.stone);
+        altar.position.y = 0.18 + 0.375;
+        const runePad = new THREE.Mesh(new THREE.RingGeometry(1.25, 1.45, 32), mats.glow);
+        runePad.rotation.x = -Math.PI / 2;
+        runePad.position.y = 0.19;
+        assetRoot.add(altar, runePad);
+
+        const cSize = state.crystalSize;
+        const saveCrystal = new THREE.Mesh(new THREE.OctahedronGeometry(cSize * 0.45, 0), mats.glow);
+        saveCrystal.scale.set(0.68, 1.85, 0.68);
+        saveCrystal.position.y = 1.2 + cSize * 0.75;
+        saveCrystal.userData.isForgeTrigger = true;
+        clickableStationMeshes.push(saveCrystal);
+        assetRoot.add(saveCrystal);
+        animatedStationNodes.push({ type: 'crystal', mesh: saveCrystal, baseY: 1.2 + cSize * 0.75 });
+
+        for (let r = 0; r < state.haloRings; r++) {
+          const ring = new THREE.Mesh(new THREE.TorusGeometry(cSize * (0.72 + r * 0.22), 0.035, 12, 36), mats.trim);
+          ring.position.y = 1.2 + cSize * 0.75;
+          assetRoot.add(ring);
+          animatedStationNodes.push({ type: 'halo', mesh: ring, idx: r });
+        }
+      } else {
+        // ARCANE ALCHEMY & ENCHANTING LAB WORKBENCH
+        const table = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.12, 1.15), mats.timber);
+        table.position.set(0, 0.98, 0);
+        assetRoot.add(table);
+        for (const sx of [-1.0, 1.0]) {
+          for (const sz of [-0.45, 0.45]) {
+            const leg = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.80, 0.14), mats.stone);
+            leg.position.set(sx, 0.58, sz);
+            assetRoot.add(leg);
+          }
+        }
+        // Alembic Distillation Vessels, Graham Helical Coil Condensers & Open Arcane Grimoire
+        for (let v = -1; v <= 1; v++) {
+          const fx = v * 0.65;
+          const standRing = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.018, 8, 20), mats.trim);
+          standRing.rotation.x = Math.PI / 2;
+          standRing.position.set(fx, 1.08, -0.15);
+          const flask = new THREE.Mesh(new THREE.SphereGeometry(0.20, 20, 20), mats.glass);
+          flask.position.set(fx, 1.24, -0.15);
+          const liquid = new THREE.Mesh(new THREE.SphereGeometry(0.15, 16, 16), mats.glow);
+          liquid.position.set(fx, 1.20, -0.15);
+          const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 0.28, 14), mats.glass);
+          neck.position.set(fx, 1.44, -0.15);
+          assetRoot.add(standRing, flask, liquid, neck);
+
+          if (v < 1) {
+            // Borosilicate Graham Helical Coil Condenser Bridge between adjacent flasks
+            const coilPts = [];
+            for (let s = 0; s <= 20; s++) {
+              const u = s / 20;
+              const cx = fx + u * 0.65;
+              const cy = 1.54 + Math.sin(u * Math.PI) * 0.14 + Math.cos(u * Math.PI * 8) * 0.035;
+              const cz = -0.15 + Math.sin(u * Math.PI * 8) * 0.035;
+              coilPts.push(new THREE.Vector3(cx, cy, cz));
+            }
+            const coilCurve = new THREE.CatmullRomCurve3(coilPts);
+            const coilTube = new THREE.Mesh(new THREE.TubeGeometry(coilCurve, 32, 0.018, 8, false), mats.glass);
+            assetRoot.add(coilTube);
+          }
+        }
+        // Open Arcane Grimoire on Brass Lectern at Front of Workbench
+        const grimoire = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.04, 0.28), mats.glow);
+        grimoire.position.set(0, 1.08, 0.28);
+        grimoire.rotation.x = 0.28;
+        assetRoot.add(grimoire);
+      }
+
+      if (state.showVrmAvatar) {
+        const av = new THREE.Group();
+        const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.18, 0.58, 10, 14), mats.vrmAvatar);
+        torso.position.y = 1.05;
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 16), mats.vrmAvatar);
+        head.position.y = 1.56;
+        av.add(torso, head);
+        av.position.set(-0.75, 0.18, 1.15);
+        assetRoot.add(av);
+      }
+
+
+      // v5.2 Bezeled Stamped Bezier Vector Industrial Nameplate ('manthrax/JSlug' pattern)
+      const plaqueTex = createStampedPlateTexture(
+        state.stationType === 'respawn-shrine' ? 'CHECKPOINT_100F' : (state.stationType === 'alchemy-lab' ? 'ARCANE_LAB' : 'SANCTUARY_FORGE'),
+        `${state.stationType.toUpperCase()} • ACTIVE`,
+        '#f59e0b'
+      );
+      const plaqueGroup = new THREE.Group();
+      plaqueGroup.name = 'Stamped_Bezier_Nameplate';
+      const plaqueBezel = new THREE.Mesh(new THREE.BoxGeometry(0.60, 0.17, 0.04), mats.trim);
+      const plaqueMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.56, 0.14), plaqueTex.createMaterial());
+      plaqueMesh.position.z = 0.022;
+      plaqueGroup.add(plaqueBezel, plaqueMesh);
+      plaqueGroup.position.set(0, 0.14, W * 0.59);
+      assetRoot.add(plaqueGroup);
+      updateTelemetry();
+    }
+
+    function updateTelemetry() {
+      document.getElementById('stat-width').textContent = `${state.stationWidth.toFixed(2)} m`;
+      document.getElementById('stat-height').textContent = `${state.stationHeight.toFixed(2)} m`;
+      document.getElementById('stat-temp').textContent = `${Math.round(14.5 * state.fireIntensity)} °C`;
+      document.getElementById('sim-pct-readout').textContent = `${Math.round(state.fireIntensity)}%`;
+
+      let tris = 0;
+      assetRoot.traverse((obj) => {
+        if (obj.isMesh && obj.geometry) {
+          const g = obj.geometry;
+          tris += g.index ? g.index.count / 3 : g.attributes.position.count / 3;
+        }
+      });
+      document.getElementById('stat-triangles').textContent = `${Math.round(tris).toLocaleString()} tris`;
+
+      document.getElementById('label-width').textContent = `W: ${state.stationWidth.toFixed(2)}m`;
+      document.getElementById('label-height').textContent = `H: ${state.stationHeight.toFixed(2)}m`;
+    }
+
+    function updateLabelsOverlay() {
+      const container = document.getElementById('labels-container');
+      if (!state.showDimensions) {
+        container.style.opacity = '0';
+        return;
+      }
+      container.style.opacity = '1';
+
+      const pts = [
+        { id: 'label-width', pos: new THREE.Vector3(0, 0.2, state.stationWidth * 0.65) },
+        { id: 'label-height', pos: new THREE.Vector3(state.stationWidth * 0.55, state.stationHeight * 0.5, 0) }
+      ];
+      const rect = mount.getBoundingClientRect();
+      for (const item of pts) {
+        const v = item.pos.clone().project(camera);
+        const el = document.getElementById(item.id);
+        if (v.z > 1) {
+          el.style.opacity = '0';
+        } else {
+          el.style.opacity = '1';
+          el.style.left = `${(v.x * 0.5 + 0.5) * rect.width}px`;
+          el.style.top = `${(-(v.y * 0.5) + 0.5) * rect.height}px`;
+        }
+      }
+    }
+
+    function syncUI() {
+      const sliders = [
+        ['stationWidth', ' m', 2],
+        ['stationHeight', ' m', 2],
+        ['fireIntensity', '%', 0],
+        ['anvilScale', 'x', 2],
+        ['crystalSize', ' m', 2],
+        ['haloRings', ' rings', 0],
+        ['crackDensity', '%', 0],
+        ['bumpScale', '', 2]
+      ];
+      for (const [k, unit, dec] of sliders) {
+        const input = document.getElementById(`param-${k}`);
+        const label = document.getElementById(`val-${k}`);
+        if (input) input.value = state[k];
+        if (label) label.textContent = Number(state[k]).toFixed(dec) + unit;
+      }
+      ['stationType', 'materialPalette', 'glowColor'].forEach((k) => {
+        const el = document.getElementById(`param-${k}`);
+        if (el) el.value = state[k];
+      });
+      ['showVrmAvatar', 'showBellows', 'tripHammer', 'showDimensions', 'wireframe'].forEach((k) => {
+        const el = document.getElementById(`param-${k}`);
+        if (el) el.checked = Boolean(state[k]);
+      });
+    }
+
+    ['stationWidth', 'stationHeight', 'fireIntensity', 'anvilScale', 'crystalSize', 'haloRings', 'crackDensity', 'bumpScale'].forEach((k) => {
+      document.getElementById(`param-${k}`).addEventListener('input', (e) => {
+        state[k] = parseFloat(e.target.value);
+        syncUI();
+        buildStationScene();
+      });
+    });
+
+    ['stationType', 'materialPalette', 'glowColor'].forEach((k) => {
+      document.getElementById(`param-${k}`).addEventListener('change', (e) => {
+        state[k] = e.target.value;
+        syncUI();
+        buildStationScene();
+      });
+    });
+
+    ['showVrmAvatar', 'showBellows', 'tripHammer', 'showDimensions', 'wireframe'].forEach((k) => {
+      document.getElementById(`param-${k}`).addEventListener('change', (e) => {
+        state[k] = e.target.checked;
+        buildStationScene();
+      });
+    });
+
+    document.querySelectorAll('.tab-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach((b) => {
+          b.className = 'tab-btn py-2 rounded text-slate-400 hover:text-slate-200 transition';
+        });
+        btn.className = 'tab-btn py-2 rounded bg-slate-800 text-orange-400 shadow-sm transition';
+        document.querySelectorAll('.tab-content').forEach((p) => {
+          p.classList.toggle('hidden', p.id !== btn.dataset.tab);
+        });
+      });
+    });
+
+    document.querySelectorAll('.preset-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const p = PRESETS[btn.dataset.preset];
+        if (!p) return;
+        Object.assign(state, p);
+        syncUI();
+        buildStationScene();
+        document.querySelectorAll('.preset-btn').forEach((b) => {
+          b.className = 'preset-btn px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 border border-transparent transition';
+        });
+        btn.className = 'preset-btn px-2.5 py-1 rounded text-xs font-medium bg-orange-500/20 text-orange-300 border border-orange-500/40 transition';
+        showToast(`Loaded ${btn.textContent} hub station`);
+      });
+    });
+
+    document.getElementById('btnRandomize').addEventListener('click', () => {
+      const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+      state.stationType = pick(['blacksmith-forge', 'respawn-shrine', 'alchemy-bench']);
+      state.materialPalette = pick(['dwarven-basalt', 'cathedral-granite', 'astral-marble']);
+      state.glowColor = pick(['amber', 'arcane-purple', 'emerald', 'ice-blue']);
+      syncUI();
+      buildStationScene();
+      showToast('Randomized Safe-Room Hub Station');
+    });
+
+    let camTarget = null;
+    let orbitTarget = null;
+    document.querySelectorAll('.cam-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const mode = btn.dataset.cam;
+        if (mode === 'iso') {
+          camTarget = new THREE.Vector3(4.8, 3.2, 5.4);
+          orbitTarget = new THREE.Vector3(0, 1.4, 0);
+        } else if (mode === 'anvil') {
+          camTarget = new THREE.Vector3(-0.9, 1.65, 2.4);
+          orbitTarget = new THREE.Vector3(0, 1.0, 0.3);
+        } else if (mode === 'hearth') {
+          camTarget = new THREE.Vector3(1.5, 1.8, 1.8);
+          orbitTarget = new THREE.Vector3(0, 1.4, -0.5);
+        }
+        document.querySelectorAll('.cam-btn').forEach((b) => {
+          b.className = b === btn
+            ? 'cam-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-orange-500/20 text-orange-300 border border-orange-500/30 transition'
+            : 'cam-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/70 transition';
+        });
+      });
+    });
+    controls.addEventListener('start', () => { camTarget = null; orbitTarget = null; });
+
+    document.getElementById('btnTriggerForgePulse').addEventListener('click', () => {
+      state.fireIntensity = state.fireIntensity > 120 ? 100 : 150;
+      syncUI();
+      buildStationScene();
+      showToast('Stoked Smelting Bellows & Ignited Core!');
+    });
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    let downPos = { x: 0, y: 0 };
+    renderer.domElement.addEventListener('pointerdown', (e) => { downPos = { x: e.clientX, y: e.clientY }; });
+    window.addEventListener('pointerup', (e) => {
+      if (Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > 5) return;
+      const rect = renderer.domElement.getBoundingClientRect();
+      if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) return;
+      pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(clickableStationMeshes, false);
+      if (hits.length > 0) {
+        state.fireIntensity = state.fireIntensity > 120 ? 100 : 150;
+        syncUI();
+        buildStationScene();
+        showToast('Activated Safe-Room Station Surge!');
+      }
+    });
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast-notification');
+      document.getElementById('toast-text').textContent = msg;
+      toast.style.opacity = '1';
+      setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('btnExportPBR').addEventListener('click', () => {
+      exportPBRTexturePack('forgecad', 'stone', state.crackDensity);
+      showToast('Exported Seamless PBR Bump/Crack Height & Normal Maps (.PNG)!');
+    });
+
+    document.getElementById('btnExportJSON').addEventListener('click', () => {
+      downloadBlob(new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }), `forge-shrine-recipe-${state.stationType}.json`);
+      showToast('Exported Parametric Station Recipe (.JSON)');
+    });
+
+    document.getElementById('btnExportGLB').addEventListener('click', () => {
+      const exporter = new GLTFExporter();
+      exporter.parse(assetRoot, (res) => {
+        downloadBlob(new Blob([res], { type: 'application/octet-stream' }), `parametric-station-${state.stationType}.glb`);
+        showToast(`Exported 3D ${state.stationType} (.GLB)!`);
+      }, (err) => console.error(err), { binary: true });
+    });
+
+    document.getElementById('btnExportOBJ').addEventListener('click', () => {
+      const exporter = new OBJExporter();
+      downloadBlob(new Blob([exporter.parse(assetRoot)], { type: 'text/plain' }), `parametric-station-${state.stationType}.obj`);
+      showToast('Exported Wavefront 3D Mesh (.OBJ)');
+    });
+
+    const clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = Math.min(clock.getDelta(), 0.1);
+      const elapsed = clock.getElapsedTime();
+
+      if (camTarget && orbitTarget) {
+        camera.position.lerp(camTarget, dt * 5);
+        controls.target.lerp(orbitTarget, dt * 5);
+        if (camera.position.distanceTo(camTarget) < 0.06) {
+          camTarget = null;
+          orbitTarget = null;
+        }
+      }
+
+      for (const item of animatedStationNodes) {
+        if (item.type === 'bellows') {
+          item.mesh.rotation.z = Math.sin(elapsed * 3.2) * 0.18;
+        } else if (item.type === 'hammer') {
+          item.mesh.rotation.z = Math.max(0, Math.sin(elapsed * 4.2)) * 0.42;
+        } else if (item.type === 'crystal') {
+          item.mesh.rotation.y += dt * 1.4;
+          item.mesh.position.y = item.baseY + Math.sin(elapsed * 2.2) * 0.15;
+        } else if (item.type === 'halo') {
+          item.mesh.rotation.x = elapsed * (1.2 + item.idx * 0.4);
+          item.mesh.rotation.y = elapsed * (0.9 - item.idx * 0.3);
+        }
+      }
+
+      controls.update();
+      updateLabelsOverlay();
+      const mPos = atmosphericMotes.geometry.attributes.position;
+      for (let mi = 0; mi < MOTE_COUNT; mi++) {
+        let my = mPos.getY(mi) + 0.0045;
+        if (my > 4.4) my = 0.15;
+        mPos.setY(mi, my);
+      }
+      mPos.needsUpdate = true;
+      if (bloomEnabled) composer.render();
+      else renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+      const rw = Math.max(1, mount.clientWidth);
+      const rh = Math.max(1, mount.clientHeight);
+      camera.aspect = rw / rh;
+      camera.updateProjectionMatrix();
+      renderer.setSize(rw, rh);
+      composer.setSize(rw, rh);
+    });
+
+    window.__STUDIO_E2E__ = {
+      studioCode: 'FORGECAD',
+      version: '6.0',
+      scene, camera, renderer, composer, unrealBloomPass, assetRoot,
+      getBloomEnabled: () => bloomEnabled
+    };
+
+    syncUI();
+    buildStationScene();
+    animate();
+  </script>
+</body>
+</html>
